@@ -60,7 +60,7 @@ class ProgressUpdateRequest(BaseModel):
 def health():
     return {"status": "ok", "app": "amber-podcast", "version": "0.1.0"}
 
-@app.get("/download/AmberPodcast.ipa")
+@app.api_route("/download/AmberPodcast.ipa", methods=["GET", "HEAD"])
 def download_ipa():
     ipa_path = Path("/root/projects/amber-podcast/dist/AmberPodcast.ipa")
     if not ipa_path.exists():
