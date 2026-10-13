@@ -60,6 +60,17 @@ class ProgressUpdateRequest(BaseModel):
 def health():
     return {"status": "ok", "app": "amber-podcast", "version": "0.1.0"}
 
+@app.get("/download/AmberPodcast.ipa")
+def download_ipa():
+    ipa_path = Path("/root/projects/amber-podcast/dist/AmberPodcast.ipa")
+    if not ipa_path.exists():
+        raise HTTPException(status_code=404, detail="IPA not found on server")
+    return FileResponse(
+        path=str(ipa_path),
+        media_type="application/octet-stream",
+        filename="AmberPodcast.ipa"
+    )
+
 @app.get("/api/v1/search")
 async def search_podcasts(
     q: str = Query(..., min_length=1),
