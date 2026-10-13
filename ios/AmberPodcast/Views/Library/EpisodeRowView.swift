@@ -18,20 +18,20 @@ public struct EpisodeRowView: View {
     }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            // Pub date & duration
+        VStack(alignment: .leading, spacing: 10) {
+            // 1. Metadata Line (Date · Duration · Status Badge)
             HStack(spacing: 8) {
                 Text(formatDate(episode.pubDate))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .font(.system(size: 11.5, weight: .medium))
+                    .foregroundStyle(AmberTheme.labelTertiary)
 
-                Text("•")
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
+                Text("·")
+                    .font(.system(size: 11.5, weight: .bold))
+                    .foregroundStyle(AmberTheme.labelTertiary)
 
                 Text(formatDuration(Double(episode.duration)))
-                    .font(.caption.monospacedDigit())
-                    .foregroundStyle(.secondary)
+                    .font(.system(size: 11.5, weight: .medium, design: .monospaced))
+                    .foregroundStyle(AmberTheme.labelTertiary)
 
                 Spacer()
 
@@ -39,68 +39,99 @@ public struct EpisodeRowView: View {
                 statusBadge
             }
 
-            // Episode Title
-            Text(episode.title)
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(isCurrentPlaying ? Color.accentColor : Color.primary)
-                .lineLimit(2)
-                .multilineTextAlignment(.leading)
+            // 2. Episode Title with Playing State Indicator
+            HStack(alignment: .top, spacing: 8) {
+                if isCurrentPlaying && player.isPlaying {
+                    Image(systemName: "waveform")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(AmberTheme.primaryAmber)
+                        .padding(.top, 2)
+                }
 
-            // Shownotes Snippet
+                Text(episode.title)
+                    .font(.system(size: 15.5, weight: .semibold, design: .rounded))
+                    .foregroundStyle(isCurrentPlaying ? AmberTheme.primaryAmber : AmberTheme.labelPrimary)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+            }
+
+            // 3. Shownotes Snippet
             if !episode.shownotes.isEmpty {
                 Text(cleanSnippet(episode.shownotes))
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .font(.system(size: 13, weight: .regular))
+                    .foregroundStyle(AmberTheme.labelSecondary)
+                    .lineSpacing(3)
                     .lineLimit(2)
             }
 
-            // Bottom Actions (Play / Trigger AI Translation)
-            HStack(spacing: 12) {
-                // Play Button
+            // 4. Bottom Action Bar (Forward-Style Minimalist Capsules)
+            HStack(spacing: 10) {
+                // Play / Pause Capsule Button
                 Button {
                     playEpisode()
                 } label: {
                     HStack(spacing: 6) {
                         Image(systemName: isCurrentPlaying && player.isPlaying ? "pause.fill" : "play.fill")
-                            .font(.caption.bold())
+                            .font(.system(size: 10, weight: .bold))
                         Text(isCurrentPlaying && player.isPlaying ? "暂停" : (currentStatus == "ready" ? "播放双轨" : "播放原声"))
-                            .font(.caption.bold())
+                            .font(.system(size: 12, weight: .bold, design: .rounded))
                     }
                     .padding(.horizontal, 14)
-                    .padding(.vertical, 7)
-                    .background(isCurrentPlaying ? Color.accentColor : Color.secondary.opacity(0.12), in: Capsule())
-                    .foregroundStyle(isCurrentPlaying ? Color.white : Color.primary)
+                    .padding(.vertical, 6)
+                    .background(
+                        isCurrentPlaying ?
+                        AnyView(Capsule().fill(AmberTheme.primaryAmber)) :
+                        AnyView(Capsule().fill(Color.white.opacity(0.1)))
+                    )
+                    .overlay(
+                        Capsule().stroke(isCurrentPlaying ? AmberTheme.primaryAmber : AmberTheme.borderSpecular, lineWidth: 0.5)
+                    )
+                    .foregroundStyle(isCurrentPlaying ? Color.black : AmberTheme.labelPrimary)
                 }
+                .buttonStyle(.plain)
+                .amberPressable(scale: 0.95)
 
                 // AI Translation Trigger Button (if not ready yet)
                 if currentStatus == "idle" || currentStatus == "failed" {
                     Button {
                         triggerTranslation()
                     } label: {
-                        HStack(spacing: 4) {
+                        HStack(spacing: 5) {
                             if isTriggering {
                                 ProgressView()
-                                    .scaleEffect(0.7)
+                                    .scaleEffect(0.65)
                             } else {
                                 Image(systemName: "sparkles")
-                                    .font(.caption)
+                                    .font(.system(size: 11, weight: .bold))
                             }
-                            Text(currentStatus == "failed" ? "重试 AI 转译" : "生成双轨配音")
-                                .font(.caption.bold())
+                            Text(currentStatus == "failed" ? "重试双轨转译" : "生成双轨配音")
+                                .font(.system(size: 12, weight: .semibold, design: .rounded))
                         }
                         .padding(.horizontal, 12)
-                        .padding(.vertical, 7)
-                        .background(Color.purple.opacity(0.12), in: Capsule())
-                        .foregroundStyle(Color.purple)
+                        .padding(.vertical, 6)
+                        .background(AmberTheme.primaryAmber.opacity(0.12), in: Capsule())
+                        .overlay(Capsule().stroke(AmberTheme.primaryAmber.opacity(0.35), lineWidth: 0.5))
+                        .foregroundStyle(AmberTheme.primaryAmber)
                     }
+                    .buttonStyle(.plain)
                     .disabled(isTriggering)
+                    .amberPressable(scale: 0.95)
                 }
 
                 Spacer()
             }
-            .padding(.top, 4)
+            .padding(.top, 2)
         }
-        .padding(.vertical, 10)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(isCurrentPlaying ? AmberTheme.cardSurfaceElevated.opacity(0.6) : Color.white.opacity(0.02))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(isCurrentPlaying ? AmberTheme.primaryAmber.opacity(0.25) : Color.white.opacity(0.05), lineWidth: 0.5)
+        )
         .contentShape(Rectangle())
         .onTapGesture {
             playEpisode()
@@ -111,45 +142,45 @@ public struct EpisodeRowView: View {
         player.currentEpisode?.id == episode.id
     }
 
-    // MARK: - Status Badge
+    // MARK: - Status Badge (Refined Apple HIG)
     @ViewBuilder
     private var statusBadge: some View {
         switch currentStatus {
         case "ready":
             HStack(spacing: 4) {
-                Image(systemName: "checkmark.seal.fill")
-                    .font(.caption2)
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 10))
                 Text("双轨已就绪")
-                    .font(.caption2.bold())
+                    .font(.system(size: 10, weight: .bold, design: .rounded))
             }
-            .foregroundStyle(Color.green)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 3)
-            .background(Color.green.opacity(0.12), in: Capsule())
+            .foregroundStyle(AmberTheme.accentElectric)
+            .padding(.horizontal, 7)
+            .padding(.vertical, 2.5)
+            .background(AmberTheme.accentElectric.opacity(0.12), in: Capsule())
 
         case "transcribing", "translating", "synthesizing", "pending":
             HStack(spacing: 4) {
                 ProgressView()
-                    .scaleEffect(0.6)
+                    .scaleEffect(0.55)
                 Text("AI 制作中 \(currentProgress)%")
-                    .font(.caption2.bold().monospacedDigit())
+                    .font(.system(size: 10, weight: .bold, design: .monospaced))
             }
-            .foregroundStyle(Color.purple)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 3)
-            .background(Color.purple.opacity(0.12), in: Capsule())
+            .foregroundStyle(AmberTheme.primaryAmber)
+            .padding(.horizontal, 7)
+            .padding(.vertical, 2.5)
+            .background(AmberTheme.primaryAmber.opacity(0.12), in: Capsule())
 
         case "failed":
             HStack(spacing: 4) {
                 Image(systemName: "exclamationmark.circle.fill")
-                    .font(.caption2)
+                    .font(.system(size: 10))
                 Text("转译失败")
-                    .font(.caption2.bold())
+                    .font(.system(size: 10, weight: .bold, design: .rounded))
             }
-            .foregroundStyle(Color.red)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 3)
-            .background(Color.red.opacity(0.12), in: Capsule())
+            .foregroundStyle(Color.red.opacity(0.85))
+            .padding(.horizontal, 7)
+            .padding(.vertical, 2.5)
+            .background(Color.red.opacity(0.1), in: Capsule())
 
         default:
             EmptyView()

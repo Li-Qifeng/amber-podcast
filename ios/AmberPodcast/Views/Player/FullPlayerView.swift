@@ -10,6 +10,7 @@ public struct FullPlayerView: View {
     @State private var scrubTime: Double = 0.0
     @State private var showSpeedSheet: Bool = false
 
+    @Namespace private var modeNamespace
     private let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
 
     public init(isPresented: Binding<Bool>) {
@@ -19,48 +20,50 @@ public struct FullPlayerView: View {
     public var body: some View {
         GeometryReader { geo in
             ZStack {
-                // Background: Dynamic vibrant frosted glass matching artwork
-                backgroundLayer(geometry: geo)
+                // Background: Forward / Apple OLED Ambient Glow Canvas
+                ambientBackground(geometry: geo)
 
                 VStack(spacing: 0) {
                     // 1. Top Navigation Bar: Drag indicator & Header
                     topHeaderBar
+                        .padding(.top, geo.safeAreaInsets.top > 0 ? 4 : 12)
 
-                    // 2. Center Content: Switchable between Artwork, Subtitles, Shownotes
+                    // 2. Center Content Area (Artwork / Lyrics / Shownotes)
                     centerContentArea(geometry: geo)
 
-                    Spacer(minLength: 12)
+                    Spacer(minLength: 8)
 
                     // 3. Track Mode Pill Selector: [原声 | 中文 | 交替]
                     trackModeSelector
-                        .padding(.bottom, 16)
+                        .padding(.bottom, 14)
 
-                    // 4. Scrubbing Timeline & Duration
+                    // 4. Fluid Timeline Scrubber
                     timelineScrubberArea
                         .padding(.horizontal, 28)
-                        .padding(.bottom, 12)
+                        .padding(.bottom, 14)
 
                     // 5. Main Playback Controls
                     playbackControlsArea
                         .padding(.horizontal, 28)
-                        .padding(.bottom, 24)
+                        .padding(.bottom, 20)
 
-                    // 6. Bottom Utility Toolbar (Speed, AirPlay, Chapters)
+                    // 6. Bottom Utility Toolbar (Speed, Vocal Boost, AirPlay)
                     bottomUtilityBar
                         .padding(.horizontal, 36)
-                        .padding(.bottom, geo.safeAreaInsets.bottom > 0 ? 8 : 20)
+                        .padding(.bottom, geo.safeAreaInsets.bottom > 0 ? geo.safeAreaInsets.bottom : 20)
                 }
             }
         }
         .sheet(isPresented: $showSpeedSheet) {
             speedSelectionSheet
         }
+        .preferredColorScheme(.dark)
     }
 
-    // MARK: - Dynamic Blurred Background
-    private func backgroundLayer(geometry: GeometryProxy) -> some View {
+    // MARK: - OLED Ambient Glow Background
+    private func ambientBackground(geometry: GeometryProxy) -> some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            AmberTheme.background.ignoresSafeArea()
 
             if let coverUrl = player.currentFeed?.coverUrl, let url = URL(string: coverUrl) {
                 AsyncImage(url: url) { image in
@@ -69,77 +72,91 @@ public struct FullPlayerView: View {
                         .scaledToFill()
                         .frame(width: geometry.size.width, height: geometry.size.height)
                         .clipped()
-                        .blur(radius: 60)
-                        .opacity(0.45)
-                        .scaleEffect(1.2)
+                        .saturation(1.6)
+                        .blur(radius: 85)
+                        .opacity(0.38)
+                        .scaleEffect(1.25)
                 } placeholder: {
-                    Color.gray.opacity(0.2)
+                    Color.clear
                 }
             }
 
             Rectangle()
                 .fill(.ultraThinMaterial)
+                .opacity(0.55)
                 .ignoresSafeArea()
         }
     }
 
     // MARK: - Top Header Bar
     private var topHeaderBar: some View {
-        VStack(spacing: 8) {
-            // Dismiss grabber pill
+        VStack(spacing: 6) {
+            // Dismiss Grabber Pill
             Capsule()
-                .fill(Color.secondary.opacity(0.4))
-                .frame(width: 36, height: 5)
-                .padding(.top, 10)
+                .fill(Color.white.opacity(0.25))
+                .frame(width: 38, height: 4.5)
+                .padding(.top, 8)
                 .onTapGesture {
                     isPresented = false
                 }
 
-            HStack {
+            HStack(spacing: 12) {
                 Button {
                     isPresented = false
                 } label: {
                     Image(systemName: "chevron.down")
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundStyle(.primary)
-                        .frame(width: 44, height: 44)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(AmberTheme.labelSecondary)
+                        .frame(width: 38, height: 38)
+                        .background(Color.white.opacity(0.08), in: Circle())
                 }
 
                 Spacer()
 
+                // Podcast Channel Title
                 VStack(spacing: 2) {
-                    Text(player.currentFeed?.title ?? "Amber Podcast")
-                        .font(.subheadline.bold())
-                        .foregroundStyle(.secondary)
+                    Text(player.currentFeed?.title ?? "Amber 播客")
+                        .font(.system(size: 13, weight: .bold, design: .rounded))
+                        .foregroundStyle(AmberTheme.labelSecondary)
                         .lineLimit(1)
                 }
 
                 Spacer()
 
-                // Center Tab Switcher (Artwork / Lyrics / Notes)
-                HStack(spacing: 12) {
-                    tabIconButton(icon: "music.note", tag: 0)
-                    tabIconButton(icon: "quote.bubble", tag: 1)
-                    tabIconButton(icon: "doc.text", tag: 2)
+                // Switcher Tabs: Artwork / Subtitles / Shownotes
+                HStack(spacing: 6) {
+                    tabPillButton(icon: "music.note", tag: 0)
+                    tabPillButton(icon: "quote.bubble.fill", tag: 1)
+                    tabPillButton(icon: "text.alignleft", tag: 2)
                 }
-                .padding(.trailing, 8)
+                .padding(3)
+                .background(Color.white.opacity(0.06), in: Capsule())
+                .overlay(Capsule().stroke(AmberTheme.borderSpecular, lineWidth: 0.5))
             }
-            .padding(.horizontal, 16)
+            .padding(.horizontal, 20)
+            .padding(.top, 6)
         }
     }
 
-    private func tabIconButton(icon: String, tag: Int) -> some View {
+    private func tabPillButton(icon: String, tag: Int) -> some View {
         Button {
             impactFeedback.impactOccurred()
-            withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+            withAnimation(AmberTheme.fluidSpring) {
                 currentCenterTab = tag
             }
         } label: {
             Image(systemName: icon)
-                .font(.system(size: 15, weight: currentCenterTab == tag ? .bold : .medium))
-                .foregroundStyle(currentCenterTab == tag ? Color.accentColor : Color.secondary)
-                .frame(width: 32, height: 32)
-                .background(currentCenterTab == tag ? Color.accentColor.opacity(0.15) : Color.clear, in: Circle())
+                .font(.system(size: 13, weight: currentCenterTab == tag ? .bold : .medium))
+                .foregroundStyle(currentCenterTab == tag ? AmberTheme.labelPrimary : AmberTheme.labelTertiary)
+                .frame(width: 32, height: 28)
+                .background(
+                    Group {
+                        if currentCenterTab == tag {
+                            Capsule()
+                                .fill(Color.white.opacity(0.18))
+                        }
+                    }
+                )
         }
     }
 
@@ -149,15 +166,15 @@ public struct FullPlayerView: View {
         let contentHeight = geometry.size.height * 0.44
 
         TabView(selection: $currentCenterTab) {
-            // Tab 0: Album Artwork with Physical Shadow & Play Scale
-            artworkView(size: min(geometry.size.width - 64, contentHeight))
+            // Tab 0: Physical Breathing Album Artwork
+            artworkView(size: min(geometry.size.width - 68, contentHeight))
                 .tag(0)
 
-            // Tab 1: Live Synced Lyrics & Subtitles
+            // Tab 1: Live Synced Dual-Track Subtitles
             LyricsSubtitleView()
                 .tag(1)
 
-            // Tab 2: Shownotes & AI Markdown Notes
+            // Tab 2: Shownotes & AI Smart Notes
             ShownotesView()
                 .tag(2)
         }
@@ -175,53 +192,63 @@ public struct FullPlayerView: View {
                             .resizable()
                             .scaledToFit()
                             .frame(width: size, height: size)
-                            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-                            .shadow(color: Color.black.opacity(player.isPlaying ? 0.35 : 0.15), radius: player.isPlaying ? 24 : 12, y: player.isPlaying ? 16 : 8)
-                            .scaleEffect(player.isPlaying ? 1.0 : 0.88)
-                            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: player.isPlaying)
+                            .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 26, style: .continuous)
+                                    .stroke(Color.white.opacity(0.15), lineWidth: 0.8)
+                            )
+                            .shadow(color: Color.black.opacity(player.isPlaying ? 0.45 : 0.2),
+                                    radius: player.isPlaying ? 28 : 12,
+                                    y: player.isPlaying ? 16 : 6)
+                            .scaleEffect(player.isPlaying ? 1.0 : 0.90)
+                            .animation(AmberTheme.fluidSpring, value: player.isPlaying)
                     } placeholder: {
-                        RoundedRectangle(cornerRadius: 24, style: .continuous)
-                            .fill(Color.gray.opacity(0.3))
+                        RoundedRectangle(cornerRadius: 26, style: .continuous)
+                            .fill(Color(white: 0.12))
                             .frame(width: size, height: size)
                     }
                 } else {
-                    RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .fill(Color.gray.opacity(0.3))
+                    RoundedRectangle(cornerRadius: 26, style: .continuous)
+                        .fill(Color(white: 0.12))
                         .frame(width: size, height: size)
-                        .overlay(Image(systemName: "mic.fill").font(.system(size: 48)).foregroundStyle(.white))
+                        .overlay(Image(systemName: "headphones").font(.system(size: 44)).foregroundStyle(.white.opacity(0.6)))
                 }
             }
             Spacer()
         }
     }
 
-    // MARK: - Track Mode Selector Pill Capsule [原声 | 中文 | 交替]
+    // MARK: - Track Mode Selector Pill [原声 | 中文 | 交替]
     private var trackModeSelector: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 2) {
             ForEach(TrackMode.allCases, id: \.self) { mode in
                 let isSelected = player.trackMode == mode
 
                 Button {
-                    player.switchTrackMode(to: mode)
+                    impactFeedback.impactOccurred()
+                    withAnimation(AmberTheme.quickSpring) {
+                        player.switchTrackMode(to: mode)
+                    }
                 } label: {
-                    HStack(spacing: 6) {
+                    HStack(spacing: 5) {
                         if mode == .chinese {
                             Image(systemName: "sparkles")
                                 .font(.system(size: 11, weight: .bold))
+                                .foregroundStyle(isSelected ? AmberTheme.primaryAmber : AmberTheme.labelTertiary)
                         }
                         Text(mode.title)
-                            .font(.system(size: 13, weight: isSelected ? .bold : .medium))
+                            .font(.system(size: 12.5, weight: isSelected ? .bold : .medium, design: .rounded))
+                            .foregroundStyle(isSelected ? AmberTheme.labelPrimary : AmberTheme.labelSecondary)
                     }
                     .padding(.horizontal, 14)
                     .padding(.vertical, 7)
-                    .foregroundStyle(isSelected ? Color.white : Color.primary.opacity(0.7))
                     .background(
                         ZStack {
                             if isSelected {
                                 Capsule()
-                                    .fill(LinearGradient(colors: [Color.blue, Color.purple], startPoint: .leading, endPoint: .trailing))
-                                    .matchedGeometryEffect(id: "TrackModeSelected", in: namespace)
-                                    .shadow(color: Color.purple.opacity(0.3), radius: 6, y: 3)
+                                    .fill(Color.white.opacity(0.18))
+                                    .matchedGeometryEffect(id: "TrackModeCapsule", in: modeNamespace)
+                                    .shadow(color: Color.black.opacity(0.2), radius: 4, y: 2)
                             }
                         }
                     )
@@ -229,46 +256,45 @@ public struct FullPlayerView: View {
                 .buttonStyle(.plain)
             }
         }
-        .padding(4)
-        .background(Color.secondary.opacity(0.12), in: Capsule())
+        .padding(3)
+        .background(Color.white.opacity(0.08), in: Capsule())
+        .overlay(Capsule().stroke(AmberTheme.borderSpecular, lineWidth: 0.5))
     }
 
-    @Namespace private var namespace
-
-    // MARK: - Timeline Scrubber Area
+    // MARK: - Fluid Timeline Scrubber Area
     private var timelineScrubberArea: some View {
         let effectiveTime = isScrubbing ? scrubTime : player.currentTime
         let effectiveDuration = max(1.0, player.duration)
+        let progress = min(1.0, max(0.0, effectiveTime / effectiveDuration))
 
         return VStack(spacing: 8) {
-            // Interactive Progress Bar
             GeometryReader { barGeo in
                 ZStack(alignment: .leading) {
                     // Track Background
                     Capsule()
-                        .fill(Color.secondary.opacity(0.2))
-                        .frame(height: 5)
+                        .fill(Color.white.opacity(0.15))
+                        .frame(height: isScrubbing ? 7 : 4)
 
-                    // Active Progress
+                    // Active Glowing Progress
                     Capsule()
-                        .fill(Color.primary)
-                        .frame(width: max(0, min(barGeo.size.width, barGeo.size.width * CGFloat(effectiveTime / effectiveDuration))), height: 5)
+                        .fill(player.trackMode == .chinese ? AmberTheme.primaryAmber : Color.white)
+                        .frame(width: max(0, min(barGeo.size.width, barGeo.size.width * CGFloat(progress))), height: isScrubbing ? 7 : 4)
 
-                    // Scrubber thumb
+                    // Scrubber Thumb
                     Circle()
                         .fill(Color.white)
-                        .frame(width: isScrubbing ? 16 : 8, height: isScrubbing ? 16 : 8)
-                        .shadow(radius: 4)
-                        .offset(x: max(0, min(barGeo.size.width - (isScrubbing ? 16 : 8), barGeo.size.width * CGFloat(effectiveTime / effectiveDuration) - (isScrubbing ? 8 : 4))))
-                        .animation(.spring(response: 0.2), value: isScrubbing)
+                        .frame(width: isScrubbing ? 14 : 7, height: isScrubbing ? 14 : 7)
+                        .shadow(color: Color.black.opacity(0.3), radius: 3, y: 1)
+                        .offset(x: max(0, min(barGeo.size.width - (isScrubbing ? 14 : 7), barGeo.size.width * CGFloat(progress) - (isScrubbing ? 7 : 3.5))))
                 }
+                .frame(height: 18)
                 .contentShape(Rectangle())
                 .gesture(
                     DragGesture(minimumDistance: 0)
                         .onChanged { value in
                             isScrubbing = true
-                            let progress = max(0.0, min(1.0, Double(value.location.x / barGeo.size.width)))
-                            scrubTime = progress * effectiveDuration
+                            let p = max(0.0, min(1.0, Double(value.location.x / barGeo.size.width)))
+                            scrubTime = p * effectiveDuration
                         }
                         .onEnded { _ in
                             player.seek(to: scrubTime)
@@ -276,20 +302,21 @@ public struct FullPlayerView: View {
                             impactFeedback.impactOccurred()
                         }
                 )
+                .animation(AmberTheme.quickSpring, value: isScrubbing)
             }
-            .frame(height: 16)
+            .frame(height: 18)
 
-            // Time Labels
+            // Monospaced Time Labels
             HStack {
                 Text(formatDuration(effectiveTime))
-                    .font(.caption.monospacedDigit())
-                    .foregroundStyle(.secondary)
+                    .font(.system(size: 11, weight: .regular, design: .monospaced))
+                    .foregroundStyle(AmberTheme.labelTertiary)
 
                 Spacer()
 
                 Text("-\(formatDuration(max(0, effectiveDuration - effectiveTime)))")
-                    .font(.caption.monospacedDigit())
-                    .foregroundStyle(.secondary)
+                    .font(.system(size: 11, weight: .regular, design: .monospaced))
+                    .foregroundStyle(AmberTheme.labelTertiary)
             }
         }
     }
@@ -297,42 +324,51 @@ public struct FullPlayerView: View {
     // MARK: - Playback Controls
     private var playbackControlsArea: some View {
         VStack(spacing: 16) {
-            // Episode Title
+            // Titles
             VStack(spacing: 4) {
                 Text(player.currentEpisode?.title ?? "未选择节目")
-                    .font(.title3.bold())
-                    .foregroundStyle(.primary)
+                    .font(.system(size: 18, weight: .bold, design: .rounded))
+                    .foregroundStyle(AmberTheme.labelPrimary)
                     .lineLimit(1)
                     .multilineTextAlignment(.center)
 
                 Text(player.currentFeed?.author ?? "")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(AmberTheme.labelTertiary)
                     .lineLimit(1)
             }
 
-            // Buttons: Skip 15s, Play/Pause, Skip 30s
-            HStack(spacing: 40) {
+            // Controls: Skip 15s | Play/Pause | Skip 30s
+            HStack(spacing: 44) {
                 // Skip backward 15s
                 Button {
                     player.skipBackward(15)
                     impactFeedback.impactOccurred()
                 } label: {
                     Image(systemName: "gobackward.15")
-                        .font(.system(size: 28, weight: .medium))
-                        .foregroundStyle(.primary)
+                        .font(.system(size: 26, weight: .semibold))
+                        .foregroundStyle(AmberTheme.labelSecondary)
                 }
+                .amberPressable()
 
-                // Play / Pause Button with Spring Physical Click
+                // Play / Pause Button with Specular Glow Ring
                 Button {
                     player.togglePlayPause()
+                    impactFeedback.impactOccurred()
                 } label: {
-                    Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
-                        .font(.system(size: 40, weight: .bold))
-                        .foregroundStyle(.primary)
-                        .frame(width: 72, height: 72)
-                        .contentShape(Circle())
+                    ZStack {
+                        Circle()
+                            .fill(Color.white)
+                            .frame(width: 72, height: 72)
+                            .shadow(color: Color.white.opacity(0.2), radius: 14, y: 4)
+
+                        Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
+                            .font(.system(size: 32, weight: .bold))
+                            .foregroundStyle(Color.black)
+                            .offset(x: player.isPlaying ? 0 : 2)
+                    }
                 }
+                .amberPressable(scale: 0.92)
 
                 // Skip forward 30s
                 Button {
@@ -340,9 +376,10 @@ public struct FullPlayerView: View {
                     impactFeedback.impactOccurred()
                 } label: {
                     Image(systemName: "goforward.30")
-                        .font(.system(size: 28, weight: .medium))
-                        .foregroundStyle(.primary)
+                        .font(.system(size: 26, weight: .semibold))
+                        .foregroundStyle(AmberTheme.labelSecondary)
                 }
+                .amberPressable()
             }
         }
     }
@@ -353,14 +390,17 @@ public struct FullPlayerView: View {
             // Playback Speed Button
             Button {
                 showSpeedSheet = true
+                impactFeedback.impactOccurred()
             } label: {
                 Text(String(format: "%.1fx", player.playbackRate))
-                    .font(.subheadline.bold().monospacedDigit())
+                    .font(.system(size: 12, weight: .bold, design: .monospaced))
                     .padding(.horizontal, 10)
                     .padding(.vertical, 4)
-                    .background(Color.secondary.opacity(0.15), in: Capsule())
-                    .foregroundStyle(.primary)
+                    .background(Color.white.opacity(0.1), in: Capsule())
+                    .overlay(Capsule().stroke(AmberTheme.borderSpecular, lineWidth: 0.5))
+                    .foregroundStyle(AmberTheme.labelPrimary)
             }
+            .amberPressable()
 
             Spacer()
 
@@ -369,17 +409,26 @@ public struct FullPlayerView: View {
                 player.isVocalBoostEnabled.toggle()
                 impactFeedback.impactOccurred()
             } label: {
-                Image(systemName: player.isVocalBoostEnabled ? "waveform.badge.magnifyingglass" : "waveform")
-                    .font(.system(size: 18))
-                    .foregroundStyle(player.isVocalBoostEnabled ? Color.accentColor : Color.secondary)
+                HStack(spacing: 4) {
+                    Image(systemName: player.isVocalBoostEnabled ? "waveform.badge.magnifyingglass" : "waveform")
+                        .font(.system(size: 15))
+                    Text(player.isVocalBoostEnabled ? "人声增强" : "原声模式")
+                        .font(.system(size: 11, weight: .medium))
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 4)
+                .background(player.isVocalBoostEnabled ? AmberTheme.primaryAmber.opacity(0.18) : Color.white.opacity(0.06), in: Capsule())
+                .overlay(Capsule().stroke(player.isVocalBoostEnabled ? AmberTheme.primaryAmber.opacity(0.4) : AmberTheme.borderSpecular, lineWidth: 0.5))
+                .foregroundStyle(player.isVocalBoostEnabled ? AmberTheme.primaryAmber : AmberTheme.labelTertiary)
             }
+            .amberPressable()
 
             Spacer()
 
             // AirPlay route picker button placeholder
             Image(systemName: "airplayaudio")
-                .font(.system(size: 18))
-                .foregroundStyle(.secondary)
+                .font(.system(size: 17))
+                .foregroundStyle(AmberTheme.labelTertiary)
         }
     }
 
@@ -390,11 +439,13 @@ public struct FullPlayerView: View {
                 ForEach([0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.5, 3.0], id: \.self) { rate in
                     HStack {
                         Text(String(format: "%.2fx", rate))
-                            .font(.body.monospacedDigit())
+                            .font(.system(size: 16, weight: .medium, design: .monospaced))
+                            .foregroundStyle(AmberTheme.labelPrimary)
                         Spacer()
                         if abs(player.playbackRate - Float(rate)) < 0.01 {
                             Image(systemName: "checkmark")
-                                .foregroundStyle(Color.accentColor)
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundStyle(AmberTheme.primaryAmber)
                         }
                     }
                     .contentShape(Rectangle())
@@ -402,12 +453,16 @@ public struct FullPlayerView: View {
                         player.setPlaybackRate(Float(rate))
                         showSpeedSheet = false
                     }
+                    .listRowBackground(Color(white: 0.1))
                 }
             }
+            .scrollContentBackground(.hidden)
+            .background(AmberTheme.background)
             .navigationTitle("播放速度")
             .navigationBarTitleDisplayMode(.inline)
         }
         .presentationDetents([.medium])
+        .preferredColorScheme(.dark)
     }
 
     // MARK: - Formatting Helpers

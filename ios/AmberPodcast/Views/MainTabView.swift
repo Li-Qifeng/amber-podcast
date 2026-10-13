@@ -29,16 +29,18 @@ public struct MainTabView: View {
                     }
                     .tag(2)
             }
+            .tint(AmberTheme.primaryAmber)
 
-            // Floating MiniPlayer docked above TabBar
+            // Forward/Rex Style Floating MiniPlayer docked above TabBar
             if player.currentEpisode != nil {
                 MiniPlayerView(showFullPlayer: $showFullPlayer)
-                    .padding(.bottom, 54) // Clearance above native TabBar
+                    .padding(.bottom, 54) // Precise clearance above native TabBar
                     .transition(.move(edge: .bottom).combined(with: .opacity))
-                    .animation(.spring(response: 0.35, dampingFraction: 0.85), value: player.currentEpisode?.id)
+                    .animation(AmberTheme.fluidSpring, value: player.currentEpisode?.id)
             }
         }
-        // Modal sheet for Apple-style Full Screen Player
+        .preferredColorScheme(.dark)
+        // Fluid Full-Screen Cover for Apple-style immersive Player
         .fullScreenCover(isPresented: $showFullPlayer) {
             FullPlayerView(isPresented: $showFullPlayer)
         }

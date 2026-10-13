@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+data/*.db
+data/*.db-*
+
+# Build & Dist
+dist/
+build/
+*.xcodeproj
+DerivedData/
+
+# Temp
+.DS_Store
+*.swp

@@ -3,73 +3,94 @@ import SwiftUI
 public struct LyricsSubtitleView: View {
     @ObservedObject var player = DualTrackAudioPlayer.shared
     @State private var autoScroll: Bool = true
+    private let impactFeedback = UIImpactFeedbackGenerator(style: .light)
 
     public init() {}
 
     public var body: some View {
         ScrollViewReader { proxy in
             ScrollView(.vertical, showsIndicators: false) {
-                LazyVStack(alignment: .leading, spacing: 28) {
+                LazyVStack(alignment: .leading, spacing: 32) {
+                    Color.clear.frame(height: 24)
+
                     ForEach(player.fullMapping) { seg in
                         let isCurrent = seg.index == player.currentSegmentIndex
+                        let distance = abs(seg.index - player.currentSegmentIndex)
 
-                        VStack(alignment: .leading, spacing: 8) {
-                            // Speaker tag
-                            HStack {
+                        VStack(alignment: .leading, spacing: 10) {
+                            // Speaker & Timestamp Pill
+                            HStack(spacing: 8) {
                                 Text(seg.speaker)
-                                    .font(.caption2.bold())
-                                    .foregroundStyle(.secondary)
-                                    .padding(.horizontal, 6)
-                                    .padding(.vertical, 2)
-                                    .background(.ultraThinMaterial, in: Capsule())
+                                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+                                    .foregroundStyle(isCurrent ? AmberTheme.primaryAmber : AmberTheme.labelTertiary)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 3)
+                                    .background(
+                                        Capsule()
+                                            .fill(isCurrent ? AmberTheme.primaryAmber.opacity(0.18) : Color.white.opacity(0.06))
+                                    )
+
+                                Text(formatSeconds(player.trackMode == .chinese ? seg.zhRange.start : seg.enRange.start))
+                                    .font(.system(size: 11, weight: .regular, design: .monospaced))
+                                    .foregroundStyle(AmberTheme.labelTertiary)
 
                                 Spacer()
-
-                                Text(formatSeconds(seg.enRange.start))
-                                    .font(.caption2.monospacedDigit())
-                                    .foregroundStyle(.tertiary)
                             }
 
-                            // Primary Display Text based on mode
+                            // Primary Subtitle Typography (Apple Music Depth of Field)
                             if player.trackMode == .chinese {
                                 Text(seg.zhDisplay)
-                                    .font(.system(size: isCurrent ? 24 : 19, weight: isCurrent ? .bold : .medium, design: .rounded))
-                                    .foregroundStyle(isCurrent ? Color.primary : Color.secondary.opacity(0.6))
-                                    .lineSpacing(4)
-                                    .animation(.spring(response: 0.35, dampingFraction: 0.85), value: isCurrent)
+                                    .font(.system(size: isCurrent ? 25 : 19, weight: isCurrent ? .bold : .medium, design: .rounded))
+                                    .foregroundStyle(isCurrent ? AmberTheme.labelPrimary : AmberTheme.labelSecondary.opacity(max(0.18, 0.55 - Double(distance) * 0.12)))
+                                    .lineSpacing(6)
+                                    .blur(radius: isCurrent ? 0 : min(1.8, Double(distance) * 0.45))
+                                    .scaleEffect(isCurrent ? 1.02 : 1.0, anchor: .leading)
+                                    .animation(AmberTheme.fluidSpring, value: isCurrent)
 
-                                // Subordinate original text
                                 Text(seg.enText)
-                                    .font(.system(size: 14, weight: .regular))
-                                    .foregroundStyle(.secondary.opacity(isCurrent ? 0.8 : 0.4))
+                                    .font(.system(size: 13, weight: .regular))
+                                    .foregroundStyle(AmberTheme.labelTertiary.opacity(isCurrent ? 0.75 : 0.3))
+                                    .lineSpacing(3)
                             } else {
                                 Text(seg.enText)
-                                    .font(.system(size: isCurrent ? 24 : 19, weight: isCurrent ? .bold : .medium, design: .rounded))
-                                    .foregroundStyle(isCurrent ? Color.primary : Color.secondary.opacity(0.6))
-                                    .lineSpacing(4)
-                                    .animation(.spring(response: 0.35, dampingFraction: 0.85), value: isCurrent)
+                                    .font(.system(size: isCurrent ? 25 : 19, weight: isCurrent ? .bold : .medium, design: .rounded))
+                                    .foregroundStyle(isCurrent ? AmberTheme.labelPrimary : AmberTheme.labelSecondary.opacity(max(0.18, 0.55 - Double(distance) * 0.12)))
+                                    .lineSpacing(6)
+                                    .blur(radius: isCurrent ? 0 : min(1.8, Double(distance) * 0.45))
+                                    .scaleEffect(isCurrent ? 1.02 : 1.0, anchor: .leading)
+                                    .animation(AmberTheme.fluidSpring, value: isCurrent)
 
                                 Text(seg.zhDisplay)
-                                    .font(.system(size: 14, weight: .regular))
-                                    .foregroundStyle(.secondary.opacity(isCurrent ? 0.8 : 0.4))
+                                    .font(.system(size: 13, weight: .regular))
+                                    .foregroundStyle(AmberTheme.labelTertiary.opacity(isCurrent ? 0.75 : 0.3))
+                                    .lineSpacing(3)
                             }
                         }
                         .id(seg.index)
                         .contentShape(Rectangle())
                         .onTapGesture {
+                            impactFeedback.impactOccurred()
                             let targetTime = (player.trackMode == .chinese) ? seg.zhRange.start : seg.enRange.start
                             player.seek(to: targetTime)
                         }
-                        .scaleEffect(isCurrent ? 1.02 : 1.0, anchor: .leading)
-                        .animation(.spring(response: 0.35, dampingFraction: 0.85), value: isCurrent)
                     }
+
+                    Color.clear.frame(height: 80)
                 }
-                .padding(.horizontal, 24)
-                .padding(.vertical, 40)
+                .padding(.horizontal, 28)
             }
+            .mask(
+                VStack(spacing: 0) {
+                    LinearGradient(colors: [.clear, .black], startPoint: .top, endPoint: .bottom)
+                        .frame(height: 36)
+                    Rectangle().fill(.black)
+                    LinearGradient(colors: [.black, .clear], startPoint: .top, endPoint: .bottom)
+                        .frame(height: 60)
+                }
+            )
             .onChange(of: player.currentSegmentIndex) { newIndex in
                 if autoScroll {
-                    withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
+                    withAnimation(AmberTheme.fluidSpring) {
                         proxy.scrollTo(newIndex, anchor: .center)
                     }
                 }
@@ -78,6 +99,7 @@ public struct LyricsSubtitleView: View {
     }
 
     private func formatSeconds(_ seconds: Double) -> String {
+        guard !seconds.isNaN && seconds >= 0 else { return "00:00" }
         let mins = Int(seconds) / 60
         let secs = Int(seconds) % 60
         return String(format: "%02d:%02d", mins, secs)
