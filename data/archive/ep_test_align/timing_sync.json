@@ -1,0 +1,26 @@
+[
+  {
+    "id": 0,
+    "speaker": "SPEAKER_00",
+    "en": {
+      "start": 0.0,
+      "end": 2.0
+    },
+    "zh": {
+      "start": 0.0,
+      "end": 1.5
+    }
+  },
+  {
+    "id": 1,
+    "speaker": "SPEAKER_01",
+    "en": {
+      "start": 2.5,
+      "end": 4.0
+    },
+    "zh": {
+      "start": 1.82,
+      "end": 3.32
+    }
+  }
+]
