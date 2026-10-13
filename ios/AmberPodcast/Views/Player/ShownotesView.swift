@@ -92,7 +92,7 @@ public struct ShownotesView: View {
         let lines = text.components(separatedBy: .newlines)
         var blocks: [ShownotesBlock] = []
 
-        let regex = try? NSRegularExpression(pattern: @"(?:(\\d{1,2}):)?(\\d{2}):(\\d{2})", options: [])
+        let regex = try? NSRegularExpression(pattern: #"(?:(\d{1,2}):)?(\d{2}):(\d{2})"#, options: [])
 
         for line in lines {
             let trimmed = line.trimmingCharacters(in: .whitespaces)
