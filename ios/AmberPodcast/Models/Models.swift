@@ -37,6 +37,64 @@ public struct PodcastFeed: Identifiable, Codable, Hashable {
     }
 }
 
+// MARK: - Sample Preview Data
+public extension PodcastFeed {
+    static let samples: [PodcastFeed] = [
+        PodcastFeed(
+            id: "feed_huberman",
+            sourceType: "apple_rss",
+            title: "Huberman Lab",
+            author: "Dr. Andrew Huberman",
+            feedUrl: "https://feeds.megaphone.fm/hubermanlab",
+            coverUrl: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&auto=format&fit=crop&q=80",
+            description: "Neural pathways, dopamine architecture and daily cognitive protocols.",
+            autoTranslate: 1
+        ),
+        PodcastFeed(
+            id: "feed_lex",
+            sourceType: "apple_rss",
+            title: "Lex Fridman Podcast",
+            author: "Lex Fridman",
+            feedUrl: "https://lexfridman.com/feed/podcast/",
+            coverUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80",
+            description: "Conversations about AI, science, technology, history, and consciousness.",
+            autoTranslate: 1
+        )
+    ]
+}
+
+public extension Episode {
+    static let samples: [Episode] = [
+        Episode(
+            id: "ep_huberman_dopamine",
+            feedId: "feed_huberman",
+            guid: "huberman_001",
+            title: "How to Optimize Your Dopamine & Sustained Motivation",
+            audioUrl: "https://traffic.megaphone.fm/GLT3547289871.mp3",
+            duration: 5240,
+            pubDate: "2026-10-12",
+            shownotes: "In this episode, Dr. Huberman discusses the biological mechanisms of dopamine, motivation peaks, and circadian rhythm alignment.",
+            status: "ready",
+            progress: 35,
+            errorMessage: nil,
+            gdriveFolderId: nil
+        ),
+        Episode(
+            id: "ep_lex_sam",
+            feedId: "feed_lex",
+            guid: "lex_002",
+            title: "Sam Altman: OpenAI, GPT-5, and the Future of AGI",
+            audioUrl: "https://traffic.libsyn.com/secure/lexfridman/lex_ai_sam_altman.mp3",
+            duration: 7320,
+            pubDate: "2026-10-10",
+            shownotes: "Sam Altman on frontier AI alignment, synthetic intelligence architecture, and next-generation compute clusters.",
+            status: "ready",
+            progress: 80,
+            errorMessage: nil,
+            gdriveFolderId: nil
+        )
+    ]
+}
 // MARK: - Episode
 public struct Episode: Identifiable, Codable, Hashable {
     public let id: String

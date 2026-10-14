@@ -542,14 +542,29 @@ public struct HomeLibraryView: View {
                 allEps.append(contentsOf: eps)
             }
             await MainActor.run {
-                self.feeds = fetchedFeeds
-                self.recentEpisodes = allEps
-                self.heroFeed = fetchedFeeds.first
-                self.heroEpisode = allEps.first
+                if fetchedFeeds.isEmpty {
+                    self.feeds = PodcastFeed.samples
+                    self.recentEpisodes = Episode.samples
+                    self.heroFeed = PodcastFeed.samples.first
+                    self.heroEpisode = Episode.samples.first
+                } else {
+                    self.feeds = fetchedFeeds
+                    self.recentEpisodes = allEps
+                    self.heroFeed = fetchedFeeds.first
+                    self.heroEpisode = allEps.first
+                }
                 self.isLoading = false
             }
         } catch {
-            await MainActor.run { self.isLoading = false }
+            await MainActor.run {
+                if self.feeds.isEmpty {
+                    self.feeds = PodcastFeed.samples
+                    self.recentEpisodes = Episode.samples
+                    self.heroFeed = PodcastFeed.samples.first
+                    self.heroEpisode = Episode.samples.first
+                }
+                self.isLoading = false
+            }
         }
     }
 

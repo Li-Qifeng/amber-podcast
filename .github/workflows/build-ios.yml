@@ -35,6 +35,53 @@ jobs:
           xcodegen generate
           ls -la AmberPodcast.xcodeproj
 
+      - name: Build for Simulator & Capture Screenshots
+        run: |
+          cd ios
+          mkdir -p screenshots
+          
+          # Find modern iPhone Simulator (iPhone 16 Pro / iPhone 15 Pro / iPhone 16)
+          DEVICE_UUID=$(xcrun simctl list devices available | grep -E "iPhone 16 Pro|iPhone 15 Pro|iPhone 16|iPhone 15" | head -n 1 | grep -o "[0-9A-F]\{8\}-[0-9A-F]\{4\}-[0-9A-F]\{4\}-[0-9A-F]\{4\}-[0-9A-F]\{12\}")
+          if [ -z "$DEVICE_UUID" ]; then
+            DEVICE_UUID=$(xcrun simctl list devices available | grep "iPhone" | head -n 1 | grep -o "[0-9A-F]\{8\}-[0-9A-F]\{4\}-[0-9A-F]\{4\}-[0-9A-F]\{4\}-[0-9A-F]\{12\}")
+          fi
+          echo "Selected Simulator UUID: $DEVICE_UUID"
+
+          # Boot the simulator
+          xcrun simctl boot "$DEVICE_UUID" || true
+          
+          # Build target specifically for the selected simulator architecture
+          xcodebuild build \
+            -project AmberPodcast.xcodeproj \
+            -scheme AmberPodcast \
+            -destination "id=$DEVICE_UUID" \
+            -derivedDataPath build/DerivedData \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            COMPILER_INDEX_STORE_ENABLE=NO
+          
+          # Locate built simulator .app
+          APP_PATH=$(find build/DerivedData -name "*.app" -path "*/Debug-iphonesimulator/*" | head -n 1)
+          echo "Simulator App binary located at: $APP_PATH"
+          
+          # Install and launch in booted simulator
+          xcrun simctl install "$DEVICE_UUID" "$APP_PATH"
+          xcrun simctl launch "$DEVICE_UUID" com.refoxai.amberpodcast
+          
+          # Allow SwiftUI views and layout animations to complete
+          sleep 6
+          xcrun simctl io "$DEVICE_UUID" screenshot screenshots/home_screen.png
+          
+          ls -lh screenshots/
+
+      - name: Upload Screenshot Artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: AmberPodcast-Screenshots
+          path: ios/screenshots/
+          retention-days: 7
+
       - name: Build Archive (Unsigned)
         run: |
           cd ios
