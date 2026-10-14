@@ -9,6 +9,7 @@ public struct FullPlayerView: View {
     @State private var isScrubbing: Bool = false
     @State private var scrubTime: Double = 0.0
     @State private var showSpeedSheet: Bool = false
+    @State private var dragOffsetY: CGFloat = 0.0
 
     @Namespace private var modeNamespace
     private let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
@@ -53,6 +54,26 @@ public struct FullPlayerView: View {
                         .padding(.bottom, geo.safeAreaInsets.bottom > 0 ? geo.safeAreaInsets.bottom : 20)
                 }
             }
+            .offset(y: max(0, dragOffsetY))
+            .gesture(
+                DragGesture(minimumDistance: 15)
+                    .onChanged { value in
+                        if value.translation.height > 0 {
+                            dragOffsetY = value.translation.height
+                        }
+                    }
+                    .onEnded { value in
+                        if value.translation.height > 120 || value.predictedEndTranslation.height > 300 {
+                            withAnimation(ForwardMotion.snapSpring) {
+                                isPresented = false
+                            }
+                        } else {
+                            withAnimation(ForwardMotion.snapSpring) {
+                                dragOffsetY = 0
+                            }
+                        }
+                    }
+            )
         }
         .sheet(isPresented: $showSpeedSheet) {
             speedSelectionSheet
@@ -93,11 +114,15 @@ public struct FullPlayerView: View {
         VStack(spacing: 6) {
             // Dismiss Grabber Pill
             Capsule()
-                .fill(Color.white.opacity(0.25))
-                .frame(width: 38, height: 4.5)
+                .fill(Color.white.opacity(0.30))
+                .frame(width: 44, height: 5)
                 .padding(.top, 8)
+                .padding(.bottom, 4)
+                .contentShape(Rectangle())
                 .onTapGesture {
-                    isPresented = false
+                    withAnimation(ForwardMotion.snapSpring) {
+                        isPresented = false
+                    }
                 }
 
             HStack(spacing: 12) {

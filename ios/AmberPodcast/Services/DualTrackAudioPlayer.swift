@@ -32,6 +32,7 @@ public final class DualTrackAudioPlayer: ObservableObject {
     private var originalTimeObserverToken: Any?
     private var chineseTimeObserverToken: Any?
     private var isAlternatingPlayingEn: Bool = true
+    private var isSeekingOptimisticLock: Bool = false
     private var hapticFeedback = UIImpactFeedbackGenerator(style: .light)
 
     private init() {
@@ -191,12 +192,19 @@ public final class DualTrackAudioPlayer: ObservableObject {
         updateNowPlayingInfo()
     }
 
-    // MARK: - Seek
+    // MARK: - Seek with Optimistic Time Lock
     public func seek(to seconds: Double) {
         guard let player = activePlayer else { return }
         let targetCMTime = CMTime(seconds: max(0, seconds), preferredTimescale: 600)
-        player.seek(to: targetCMTime, toleranceBefore: .zero, toleranceAfter: .zero)
+        
+        self.isSeekingOptimisticLock = true
         self.currentTime = seconds
+        
+        player.seek(to: targetCMTime, toleranceBefore: .zero, toleranceAfter: .zero) { [weak self] _ in
+            Task { @MainActor in
+                self?.isSeekingOptimisticLock = false
+            }
+        }
         updateNowPlayingInfo()
     }
 
@@ -256,6 +264,7 @@ public final class DualTrackAudioPlayer: ObservableObject {
     }
 
     private func handlePeriodicTimeTick(time: CMTime, isFromEnglish: Bool) {
+        guard !isSeekingOptimisticLock else { return }
         let sec = time.seconds
         guard !sec.isNaN else { return }
         self.currentTime = sec
@@ -352,13 +361,21 @@ public final class DualTrackAudioPlayer: ObservableObject {
             MPNowPlayingInfoPropertyPlaybackRate: isPlaying ? Double(playbackRate) : 0.0
         ]
 
-        // Load cover art async if available
+        // Load cover art async without blocking threads
         if let coverUrlStr = currentFeed?.coverUrl, let url = URL(string: coverUrlStr) {
             Task {
-                if let data = try? Data(contentsOf: url), let image = UIImage(data: data) {
-                    let artwork = MPMediaItemArtwork(boundsSize: image.size) { _ in image }
-                    info[MPMediaItemPropertyArtwork] = artwork
-                    MPNowPlayingInfoCenter.default().nowPlayingInfo = info
+                do {
+                    let (data, _) = try await URLSession.shared.data(from: url)
+                    if let image = UIImage(data: data) {
+                        await MainActor.run {
+                            let artwork = MPMediaItemArtwork(boundsSize: image.size) { _ in image }
+                            var updatedInfo = MPNowPlayingInfoCenter.default().nowPlayingInfo ?? info
+                            updatedInfo[MPMediaItemPropertyArtwork] = artwork
+                            MPNowPlayingInfoCenter.default().nowPlayingInfo = updatedInfo
+                        }
+                    }
+                } catch {
+                    // Ignore transient network errors
                 }
             }
         }

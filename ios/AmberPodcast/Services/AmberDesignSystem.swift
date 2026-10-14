@@ -131,29 +131,47 @@ public struct LiquidGlassCapsuleModifier: ViewModifier {
     }
 }
 
-// MARK: - Tactile Touch-Down Feedback Modifier
-public struct TactilePressableModifier: ViewModifier {
-    @State private var isPressed = false
-    public var scale: CGFloat = 0.95
-    public var action: (() -> Void)?
-    private let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+// MARK: - Native Tactile ButtonStyle (Zero Scroll Interference)
+public struct TactileButtonStyle: ButtonStyle {
+    public var scale: CGFloat = 0.96
+    public var enableHaptic: Bool = true
+    private let impact = UIImpactFeedbackGenerator(style: .light)
+
+    public init(scale: CGFloat = 0.96, enableHaptic: Bool = true) {
+        self.scale = scale
+        self.enableHaptic = enableHaptic
+    }
+
+    public func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? scale : 1.0)
+            .animation(
+                configuration.isPressed ? ForwardMotion.touchDown : ForwardMotion.touchUp,
+                value: configuration.isPressed
+            )
+            .onChange(of: configuration.isPressed) { isPressed in
+                if isPressed && enableHaptic {
+                    impact.prepare()
+                    impact.impactOccurred()
+                }
+            }
+    }
+}
+
+// MARK: - Lightweight Card Modifier (GPU Friendly for Lists)
+public struct LightweightCardModifier: ViewModifier {
+    public var cornerRadius: CGFloat = AmberTheme.radiusCardShelf
+    public var tint: Color? = nil
 
     public func body(content: Content) -> some View {
         content
-            .scaleEffect(isPressed ? scale : 1.0)
-            .animation(isPressed ? ForwardMotion.touchDown : ForwardMotion.touchUp, value: isPressed)
-            .simultaneousGesture(
-                DragGesture(minimumDistance: 0)
-                    .onChanged { _ in
-                        if !isPressed {
-                            isPressed = true
-                            impactFeedback.impactOccurred()
-                        }
-                    }
-                    .onEnded { _ in
-                        isPressed = false
-                        action?()
-                    }
+            .background(
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .fill(tint?.opacity(0.15) ?? Color(white: 0.08))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .strokeBorder(Color.white.opacity(0.06), lineWidth: 0.5)
             )
     }
 }
@@ -176,8 +194,21 @@ public struct AmbientBacklightGlow: ViewModifier {
 
 // MARK: - View Extensions
 public extension View {
-    func amberPressable(scale: CGFloat = 0.95, action: (() -> Void)? = nil) -> some View {
-        self.modifier(TactilePressableModifier(scale: scale, action: action))
+    func tactileButton(scale: CGFloat = 0.96, enableHaptic: Bool = true) -> some View {
+        self.buttonStyle(TactileButtonStyle(scale: scale, enableHaptic: enableHaptic))
+    }
+
+    func lightweightCard(cornerRadius: CGFloat = AmberTheme.radiusCardShelf, tint: Color? = nil) -> some View {
+        self.modifier(LightweightCardModifier(cornerRadius: cornerRadius, tint: tint))
+    }
+
+    func amberPressable(scale: CGFloat = 0.96, action: (() -> Void)? = nil) -> some View {
+        Button {
+            action?()
+        } label: {
+            self
+        }
+        .buttonStyle(TactileButtonStyle(scale: scale))
     }
     
     func frostedGlassCard(cornerRadius: CGFloat = AmberTheme.radiusCardShelf) -> some View {
@@ -192,8 +223,13 @@ public extension View {
         self.modifier(LiquidGlassCapsuleModifier(tint: tint))
     }
     
-    func tactilePress(scale: CGFloat = 0.95, action: (() -> Void)? = nil) -> some View {
-        self.modifier(TactilePressableModifier(scale: scale, action: action))
+    func tactilePress(scale: CGFloat = 0.96, action: (() -> Void)? = nil) -> some View {
+        Button {
+            action?()
+        } label: {
+            self
+        }
+        .buttonStyle(TactileButtonStyle(scale: scale))
     }
     
     func ambientGlow(color: Color = AmberTheme.primaryAmber, opacity: Double = 0.25, radius: CGFloat = 60) -> some View {

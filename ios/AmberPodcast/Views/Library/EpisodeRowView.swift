@@ -80,16 +80,16 @@ public struct EpisodeRowView: View {
                     .padding(.vertical, 6)
                     .background(
                         isCurrentPlaying ?
-                        AnyView(Capsule().fill(AmberTheme.primaryAmber)) :
-                        AnyView(Capsule().fill(Color.white.opacity(0.1)))
+                        AmberTheme.primaryAmber :
+                        Color.white.opacity(0.1),
+                        in: Capsule()
                     )
                     .overlay(
                         Capsule().stroke(isCurrentPlaying ? AmberTheme.primaryAmber : AmberTheme.borderSpecular, lineWidth: 0.5)
                     )
                     .foregroundStyle(isCurrentPlaying ? Color.black : AmberTheme.labelPrimary)
                 }
-                .buttonStyle(.plain)
-                .amberPressable(scale: 0.95)
+                .buttonStyle(TactileButtonStyle(scale: 0.94))
 
                 // AI Translation Trigger Button (if not ready yet)
                 if currentStatus == "idle" || currentStatus == "failed" {
@@ -113,9 +113,8 @@ public struct EpisodeRowView: View {
                         .overlay(Capsule().stroke(AmberTheme.primaryAmber.opacity(0.35), lineWidth: 0.5))
                         .foregroundStyle(AmberTheme.primaryAmber)
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(TactileButtonStyle(scale: 0.94))
                     .disabled(isTriggering)
-                    .amberPressable(scale: 0.95)
                 }
 
                 Spacer()
@@ -124,7 +123,7 @@ public struct EpisodeRowView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 14)
-        .liquidGlassCard(cornerRadius: 16, tint: isCurrentPlaying ? AmberTheme.primaryAmber : nil)
+        .lightweightCard(cornerRadius: 16, tint: isCurrentPlaying ? AmberTheme.primaryAmber : nil)
         .contentShape(Rectangle())
         .onTapGesture {
             playEpisode()
