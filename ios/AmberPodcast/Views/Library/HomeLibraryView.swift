@@ -83,26 +83,31 @@ public struct HomeLibraryView: View {
 
         ZStack(alignment: .bottomLeading) {
             // Ambient Backdrop Artwork
-            if let coverUrl = heroFeed?.coverUrl, let url = URL(string: coverUrl) {
-                AsyncImage(url: url) { img in
-                    img
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: geometry.size.width, height: heroHeight)
-                        .clipped()
-                } placeholder: {
-                    Rectangle().fill(Color(white: 0.08))
+            if let coverUrl = heroFeed?.coverUrl, let url = URL(string: coverUrl), !coverUrl.isEmpty {
+                AsyncImage(url: url) { phase in
+                    switch phase {
+                    case .success(let img):
+                        img
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: geometry.size.width, height: heroHeight)
+                            .clipped()
+                    case .failure, .empty:
+                        ambientHeroArtworkPlaceholder(width: geometry.size.width, height: heroHeight)
+                    @unknown default:
+                        ambientHeroArtworkPlaceholder(width: geometry.size.width, height: heroHeight)
+                    }
                 }
             } else {
-                Rectangle().fill(Color(white: 0.08))
+                ambientHeroArtworkPlaceholder(width: geometry.size.width, height: heroHeight)
             }
 
             // Dual Falloff Linear Gradient (0% clear -> 35% falloff start -> 65% dark -> 98% pure OLED black)
             LinearGradient(
                 stops: [
-                    .init(color: .black.opacity(0.15), location: 0.0),
-                    .init(color: .black.opacity(0.20), location: 0.35),
-                    .init(color: .black.opacity(0.85), location: 0.65),
+                    .init(color: .black.opacity(0.10), location: 0.0),
+                    .init(color: .black.opacity(0.25), location: 0.35),
+                    .init(color: .black.opacity(0.85), location: 0.70),
                     .init(color: AmberTheme.background, location: 0.98)
                 ],
                 startPoint: .top,
@@ -133,9 +138,9 @@ public struct HomeLibraryView: View {
                         .liquidGlassCapsule()
                 }
 
-                // L1 Hero Title (~24pt Bold)
+                // L1 Hero Title (~26pt Bold)
                 Text(heroEpisode?.title ?? (heroFeed?.title ?? "精选播客"))
-                    .font(.system(size: 24, weight: .bold, design: .rounded))
+                    .font(.system(size: 26, weight: .bold, design: .rounded))
                     .foregroundStyle(AmberTheme.labelPrimary)
                     .lineLimit(2)
                     .shadow(color: Color.black.opacity(0.6), radius: 8, y: 4)
@@ -143,9 +148,9 @@ public struct HomeLibraryView: View {
                 // L4 Synopsis (2 lines max)
                 if let shownotes = heroEpisode?.shownotes, !shownotes.isEmpty {
                     Text(cleanSnippet(shownotes))
-                        .font(.system(size: 12, weight: .regular))
+                        .font(.system(size: 12.5, weight: .regular))
                         .foregroundStyle(AmberTheme.labelSecondary)
-                        .lineSpacing(3)
+                        .lineSpacing(3.5)
                         .lineLimit(2)
                         .shadow(color: Color.black.opacity(0.5), radius: 4, y: 2)
                 }
@@ -165,11 +170,11 @@ public struct HomeLibraryView: View {
                             .font(.system(size: 13, weight: .bold, design: .rounded))
                             .foregroundStyle(Color.black)
                     }
-                    .padding(.horizontal, 18)
-                    .padding(.vertical, 9)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 10)
                     .background(Color.white, in: Capsule())
-                    .overlay(Capsule().stroke(Color.white.opacity(0.3), lineWidth: 0.5))
-                    .shadow(color: Color.white.opacity(0.25), radius: 10, y: 3)
+                    .overlay(Capsule().stroke(Color.white.opacity(0.35), lineWidth: 0.5))
+                    .shadow(color: Color.white.opacity(0.16), radius: 16, y: 6)
                 }
                 .buttonStyle(.plain)
                 .tactilePress(scale: 0.94)
@@ -181,8 +186,61 @@ public struct HomeLibraryView: View {
         .frame(width: geometry.size.width, height: heroHeight)
     }
 
+    private func ambientHeroArtworkPlaceholder(width: CGFloat, height: CGFloat) -> some View {
+        ZStack {
+            LinearGradient(
+                colors: [
+                    Color(red: 0.16, green: 0.10, blue: 0.04),
+                    Color(red: 0.08, green: 0.06, blue: 0.12),
+                    Color.black
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .frame(width: width, height: height)
+
+            Circle()
+                .fill(AmberTheme.primaryAmber.opacity(0.18))
+                .frame(width: width * 0.7, height: width * 0.7)
+                .blur(radius: 50)
+                .offset(y: -40)
+
+            Image(systemName: "waveform.circle.fill")
+                .font(.system(size: 72, weight: .light))
+                .foregroundStyle(
+                    LinearGradient(
+                        colors: [AmberTheme.primaryAmber.opacity(0.5), Color.white.opacity(0.1)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+                .offset(y: -30)
+        }
+    }
+
     private var isHeroPlaying: Bool {
         player.currentEpisode?.id == heroEpisode?.id && player.isPlaying
+    }
+
+    private func coverPlaceholder(width: CGFloat, height: CGFloat, title: String) -> some View {
+        ZStack {
+            LinearGradient(
+                colors: [Color(white: 0.18), Color(white: 0.08)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            VStack(spacing: 6) {
+                Image(systemName: "headphones.circle.fill")
+                    .font(.system(size: min(width, height) * 0.28))
+                    .foregroundStyle(AmberTheme.primaryAmber.opacity(0.85))
+                Text(title)
+                    .font(.system(size: 11, weight: .bold, design: .rounded))
+                    .foregroundStyle(Color.white.opacity(0.75))
+                    .lineLimit(1)
+                    .padding(.horizontal, 10)
+            }
+        }
+        .frame(width: width, height: height)
     }
 
     // MARK: - 2. "继续收听" (16:9 Landscape Carousel with Peek 35%)
@@ -226,17 +284,20 @@ public struct HomeLibraryView: View {
             // 16:9 Liquid Glass Cover with Micro Time Badge
             ZStack(alignment: .bottomLeading) {
                 if let url = URL(string: feed.coverUrl), !feed.coverUrl.isEmpty {
-                    AsyncImage(url: url) { img in
-                        img
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: width, height: height)
-                            .clipped()
-                    } placeholder: {
-                        Rectangle().fill(Color(white: 0.12))
+                    AsyncImage(url: url) { phase in
+                        switch phase {
+                        case .success(let img):
+                            img
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: width, height: height)
+                                .clipped()
+                        default:
+                            coverPlaceholder(width: width, height: height, title: feed.title)
+                        }
                     }
                 } else {
-                    Rectangle().fill(Color(white: 0.12))
+                    coverPlaceholder(width: width, height: height, title: feed.title)
                 }
 
                 // Dark Gradient Rim
@@ -384,12 +445,21 @@ public struct HomeLibraryView: View {
     }
 
     // MARK: - Top Floating Toolbar (Glass Capsule)
+    private var topSafeOffset: CGFloat {
+        if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let window = scene.windows.first(where: { $0.isKeyWindow }) {
+            let top = window.safeAreaInsets.top
+            return top > 0 ? top + 8 : 58
+        }
+        return 58
+    }
+
     private func topFloatingToolbar(geometry: GeometryProxy) -> some View {
         VStack {
             HStack {
                 HStack(spacing: 6) {
-                    Image(systemName: "headphones")
-                        .font(.system(size: 12, weight: .bold))
+                    Image(systemName: "waveform")
+                        .font(.system(size: 11, weight: .bold))
                         .foregroundStyle(AmberTheme.primaryAmber)
 
                     Text("AMBER PODCAST")
@@ -416,7 +486,7 @@ public struct HomeLibraryView: View {
                 .tactilePress(scale: 0.90)
             }
             .padding(.horizontal, AmberTheme.pageMargin)
-            .padding(.top, geometry.safeAreaInsets.top > 0 ? geometry.safeAreaInsets.top + 2 : 12)
+            .padding(.top, topSafeOffset)
 
             Spacer()
         }
