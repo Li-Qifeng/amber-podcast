@@ -4,8 +4,9 @@ public struct MainTabView: View {
     @ObservedObject var player = DualTrackAudioPlayer.shared
     @State private var selectedTab: Int = 0
     @State private var showFullPlayer: Bool = false
+    @Namespace private var dockNamespace
 
-    private let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+    private let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
 
     public init() {}
 
@@ -62,6 +63,7 @@ public struct MainTabView: View {
             dockTabButton(index: 1, icon: "magnifyingglass", title: "发现")
             dockTabButton(index: 2, icon: "gearshape.fill", title: "设置")
         }
+        .padding(4)
         .frame(width: dockWidth, height: AmberTheme.dockHeight)
         .liquidGlassCapsule()
     }
@@ -70,23 +72,56 @@ public struct MainTabView: View {
         let isSelected = selectedTab == index
         return Button {
             impactFeedback.impactOccurred()
-            withAnimation(ForwardMotion.snapSpring) {
+            withAnimation(.spring(response: 0.32, dampingFraction: 0.82)) {
                 selectedTab = index
             }
         } label: {
-            VStack(spacing: 3) {
-                Image(systemName: icon)
-                    .font(.system(size: 19, weight: isSelected ? .bold : .medium))
-                    .foregroundStyle(isSelected ? AmberTheme.primaryAmber : AmberTheme.labelTertiary)
+            ZStack {
+                if isSelected {
+                    Capsule()
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    AmberTheme.primaryAmber.opacity(0.26),
+                                    AmberTheme.primaryAmber.opacity(0.10)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .overlay(
+                            Capsule()
+                                .strokeBorder(
+                                    LinearGradient(
+                                        colors: [
+                                            Color.white.opacity(0.65),
+                                            AmberTheme.primaryAmber.opacity(0.50),
+                                            Color.white.opacity(0.15)
+                                        ],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    ),
+                                    lineWidth: 0.8
+                                )
+                        )
+                        .shadow(color: AmberTheme.primaryAmber.opacity(0.35), radius: 6, y: 2)
+                        .matchedGeometryEffect(id: "activeDockIndicator", in: dockNamespace)
+                }
 
-                Text(title)
-                    .font(.system(size: 10, weight: isSelected ? .bold : .medium, design: .rounded))
-                    .foregroundStyle(isSelected ? AmberTheme.primaryAmber : AmberTheme.labelTertiary)
+                VStack(spacing: 3) {
+                    Image(systemName: icon)
+                        .font(.system(size: 18, weight: isSelected ? .bold : .medium))
+                        .foregroundStyle(isSelected ? Color.white : AmberTheme.labelTertiary)
+                        .scaleEffect(isSelected ? 1.08 : 1.0)
+
+                    Text(title)
+                        .font(.system(size: 10, weight: isSelected ? .bold : .medium, design: .rounded))
+                        .foregroundStyle(isSelected ? AmberTheme.primaryAmber : AmberTheme.labelTertiary)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
-        .tactilePress(scale: 0.92)
+        .buttonStyle(TactileButtonStyle(scale: 0.93))
     }
 }

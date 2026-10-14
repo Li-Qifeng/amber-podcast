@@ -265,13 +265,16 @@ public extension View {
         self.modifier(LightweightCardModifier(cornerRadius: cornerRadius, tint: tint))
     }
 
+    @ViewBuilder
     func amberPressable(scale: CGFloat = 0.96, action: (() -> Void)? = nil) -> some View {
-        Button {
-            action?()
-        } label: {
-            self
+        if let action = action {
+            Button(action: action) {
+                self
+            }
+            .buttonStyle(TactileButtonStyle(scale: scale))
+        } else {
+            self.buttonStyle(TactileButtonStyle(scale: scale))
         }
-        .buttonStyle(TactileButtonStyle(scale: scale))
     }
     
     func frostedGlassCard(cornerRadius: CGFloat = AmberTheme.radiusCardShelf) -> some View {
@@ -286,13 +289,16 @@ public extension View {
         self.modifier(LiquidGlassCapsuleModifier(tint: tint))
     }
     
+    @ViewBuilder
     func tactilePress(scale: CGFloat = 0.96, action: (() -> Void)? = nil) -> some View {
-        Button {
-            action?()
-        } label: {
-            self
+        if let action = action {
+            Button(action: action) {
+                self
+            }
+            .buttonStyle(TactileButtonStyle(scale: scale))
+        } else {
+            self.buttonStyle(TactileButtonStyle(scale: scale))
         }
-        .buttonStyle(TactileButtonStyle(scale: scale))
     }
     
     func ambientGlow(color: Color = AmberTheme.primaryAmber, opacity: Double = 0.25, radius: CGFloat = 60) -> some View {

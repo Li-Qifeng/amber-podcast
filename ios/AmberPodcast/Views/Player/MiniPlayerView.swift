@@ -93,7 +93,7 @@ public struct MiniPlayerView: View {
                                 .offset(x: player.isPlaying ? 0 : 1)
                         }
                     }
-                    .tactilePress(scale: 0.90)
+                    .buttonStyle(TactileButtonStyle(scale: 0.90))
 
                     // 4. Skip forward 30s
                     Button {
@@ -105,7 +105,7 @@ public struct MiniPlayerView: View {
                             .foregroundStyle(AmberTheme.labelSecondary)
                             .frame(width: 32, height: 32)
                     }
-                    .tactilePress(scale: 0.90)
+                    .buttonStyle(TactileButtonStyle(scale: 0.90))
                 }
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8)

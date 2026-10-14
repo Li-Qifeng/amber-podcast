@@ -176,14 +176,19 @@ public struct HomeLibraryView: View {
                     .overlay(Capsule().stroke(Color.white.opacity(0.35), lineWidth: 0.5))
                     .shadow(color: Color.white.opacity(0.16), radius: 16, y: 6)
                 }
-                .buttonStyle(.plain)
-                .tactilePress(scale: 0.94)
+                .buttonStyle(TactileButtonStyle(scale: 0.94))
                 .padding(.top, 4)
             }
             .padding(.horizontal, AmberTheme.pageMargin)
             .padding(.bottom, 20)
         }
         .frame(width: geometry.size.width, height: heroHeight)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            if let ep = heroEpisode, let f = heroFeed {
+                playEpisode(ep, feed: f)
+            }
+        }
     }
 
     private func ambientHeroArtworkPlaceholder(width: CGFloat, height: CGFloat) -> some View {
@@ -274,7 +279,9 @@ public struct HomeLibraryView: View {
                     }
                 }
                 .padding(.horizontal, AmberTheme.pageMargin)
+                .scrollTargetLayout()
             }
+            .scrollTargetBehavior(.viewAligned)
         }
     }
 
@@ -399,10 +406,10 @@ public struct HomeLibraryView: View {
                                                 .frame(width: posterWidth, height: posterHeight)
                                                 .clipped()
                                         } placeholder: {
-                                            Rectangle().fill(Color(white: 0.12))
+                                            coverPlaceholder(width: posterWidth, height: posterHeight, title: feed.title)
                                         }
                                     } else {
-                                        Rectangle().fill(Color(white: 0.12))
+                                        coverPlaceholder(width: posterWidth, height: posterHeight, title: feed.title)
                                     }
 
                                     // Source Tag
@@ -434,13 +441,14 @@ public struct HomeLibraryView: View {
                                     .lineLimit(1)
                                     .frame(width: posterWidth, alignment: .leading)
                             }
-                            .tactilePress(scale: 0.95)
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(TactileButtonStyle(scale: 0.95))
                     }
                 }
                 .padding(.horizontal, AmberTheme.pageMargin)
+                .scrollTargetLayout()
             }
+            .scrollTargetBehavior(.viewAligned)
         }
     }
 
