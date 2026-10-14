@@ -85,7 +85,7 @@ public struct LiquidGlassBorder: View {
     }
 }
 
-// MARK: - Liquid Glass Modifiers
+// MARK: - Liquid Glass Modifiers (Forward & Apple Optics)
 public struct LiquidGlassCardModifier: ViewModifier {
     public var cornerRadius: CGFloat = AmberTheme.radiusCardShelf
     public var tint: Color? = nil
@@ -94,11 +94,13 @@ public struct LiquidGlassCardModifier: ViewModifier {
         content
             .background(
                 ZStack {
-                    RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                        .fill(tint?.opacity(0.12) ?? AmberTheme.glassSurface)
-                    
+                    // Optical refraction layer
                     RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                         .fill(.ultraThinMaterial)
+
+                    // Ambient inner tint & refraction depth
+                    RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                        .fill(tint?.opacity(0.14) ?? AmberTheme.glassSurface)
                 }
             )
             .overlay(
@@ -116,11 +118,13 @@ public struct LiquidGlassCapsuleModifier: ViewModifier {
         content
             .background(
                 ZStack {
-                    Capsule()
-                        .fill(tint?.opacity(0.14) ?? AmberTheme.glassSurfaceElevated)
-                    
+                    // Optical refraction layer
                     Capsule()
                         .fill(.ultraThinMaterial)
+
+                    // Ambient inner tint & chromatic luminescence
+                    Capsule()
+                        .fill(tint?.opacity(0.16) ?? AmberTheme.glassSurfaceElevated)
                 }
             )
             .overlay(
@@ -128,6 +132,46 @@ public struct LiquidGlassCapsuleModifier: ViewModifier {
             )
             .shadow(color: Color.black.opacity(0.45), radius: 20, x: 0, y: 10)
             .shadow(color: Color.black.opacity(0.25), radius: 5, x: 0, y: 2)
+    }
+}
+
+// MARK: - Native Liquid Glass ButtonStyle
+public struct LiquidGlassButtonStyle: ButtonStyle {
+    public var tint: Color? = nil
+    public var isCapsule: Bool = true
+    public var cornerRadius: CGFloat = AmberTheme.radiusCardShelf
+    private let impact = UIImpactFeedbackGenerator(style: .light)
+
+    public init(tint: Color? = nil, isCapsule: Bool = true, cornerRadius: CGFloat = AmberTheme.radiusCardShelf) {
+        self.tint = tint
+        self.isCapsule = isCapsule
+        self.cornerRadius = cornerRadius
+    }
+
+    public func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
+            .background(
+                Group {
+                    if isCapsule {
+                        Capsule().fill(.ultraThinMaterial)
+                            .overlay(Capsule().fill(configuration.isPressed ? (tint?.opacity(0.25) ?? Color.white.opacity(0.12)) : (tint?.opacity(0.12) ?? Color.white.opacity(0.04))))
+                    } else {
+                        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous).fill(.ultraThinMaterial)
+                            .overlay(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous).fill(configuration.isPressed ? (tint?.opacity(0.25) ?? Color.white.opacity(0.12)) : (tint?.opacity(0.12) ?? Color.white.opacity(0.04))))
+                    }
+                }
+            )
+            .overlay(
+                LiquidGlassBorder(cornerRadius: cornerRadius, isCapsule: isCapsule, lineWidth: configuration.isPressed ? 1.0 : 0.75)
+            )
+            .animation(configuration.isPressed ? ForwardMotion.touchDown : ForwardMotion.touchUp, value: configuration.isPressed)
+            .onChange(of: configuration.isPressed) { isPressed in
+                if isPressed {
+                    impact.prepare()
+                    impact.impactOccurred()
+                }
+            }
     }
 }
 
@@ -189,6 +233,25 @@ public struct AmbientBacklightGlow: ViewModifier {
                     .blur(radius: radius)
                     .opacity(opacity)
             )
+    }
+}
+
+// MARK: - ButtonStyle Extension
+public extension ButtonStyle where Self == LiquidGlassButtonStyle {
+    static var liquidGlass: LiquidGlassButtonStyle {
+        LiquidGlassButtonStyle()
+    }
+    static func liquidGlass(tint: Color? = nil, isCapsule: Bool = true, cornerRadius: CGFloat = AmberTheme.radiusCardShelf) -> LiquidGlassButtonStyle {
+        LiquidGlassButtonStyle(tint: tint, isCapsule: isCapsule, cornerRadius: cornerRadius)
+    }
+}
+
+public extension ButtonStyle where Self == TactileButtonStyle {
+    static var tactile: TactileButtonStyle {
+        TactileButtonStyle()
+    }
+    static func tactile(scale: CGFloat = 0.96, enableHaptic: Bool = true) -> TactileButtonStyle {
+        TactileButtonStyle(scale: scale, enableHaptic: enableHaptic)
     }
 }
 

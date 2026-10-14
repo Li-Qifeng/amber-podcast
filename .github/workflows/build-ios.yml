@@ -53,6 +53,20 @@ jobs:
           cd ios
           mkdir -p build/Payload
           cp -r build/AmberPodcast.xcarchive/Products/Applications/*.app build/Payload/
+          python3 -c "
+          import plistlib, glob
+          plists = glob.glob('build/Payload/*.app/Info.plist')
+          for p in plists:
+              with open(p, 'rb') as f:
+                  d = plistlib.load(f)
+              d['UILaunchScreen'] = {}
+              d['UILaunchStoryboardName'] = 'LaunchScreen'
+              d['UIBackgroundModes'] = ['audio', 'processing']
+              d['UISupportedInterfaceOrientations'] = ['UIInterfaceOrientationPortrait']
+              with open(p, 'wb') as f:
+                  plistlib.dump(d, f)
+              print(f'Verified and updated {p} with full-screen UILaunchScreen support.')
+          "
           cd build
           zip -r AmberPodcast.ipa Payload
           ls -lh AmberPodcast.ipa

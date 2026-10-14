@@ -20,6 +20,13 @@ targets:
       - path: AmberPodcast
     info:
       path: AmberPodcast/Info.plist
+      properties:
+        CFBundleDisplayName: "Amber 播客"
+        UILaunchScreen: {}
+        UIBackgroundModes: [audio, processing]
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoads: true
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: com.refoxai.amberpodcast
       PRODUCT_NAME: "Amber 播客"

@@ -21,7 +21,8 @@ public struct HomeLibraryView: View {
         NavigationStack {
             GeometryReader { geo in
                 ZStack {
-                    AmberTheme.background.ignoresSafeArea()
+                    AmberTheme.background
+                        .ignoresSafeArea()
 
                     if isLoading && feeds.isEmpty {
                         VStack(spacing: 16) {
@@ -57,7 +58,11 @@ public struct HomeLibraryView: View {
                     // Top Floating Minimalist Bar (Channels Switcher & Add Button)
                     topFloatingToolbar(geometry: geo)
                 }
+                .ignoresSafeArea()
             }
+            .ignoresSafeArea()
+            .toolbar(.hidden, for: .navigationBar)
+            .navigationBarBackButtonHidden(true)
             .sheet(isPresented: $showSubscribeSheet) {
                 subscribeSheet
             }

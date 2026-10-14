@@ -26,6 +26,7 @@ public struct MainTabView: View {
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .ignoresSafeArea()
 
                 // Bottom Floating Stack: MiniPlayer + Liquid Glass Dock
                 VStack(spacing: 8) {
@@ -39,11 +40,12 @@ public struct MainTabView: View {
                     // Floating Liquid Glass Navigation Dock
                     floatingNavigationDock(geometry: geo)
                 }
-                .padding(.bottom, geo.safeAreaInsets.bottom > 0 ? max(10, geo.safeAreaInsets.bottom - 8) : AmberTheme.dockBottomGap)
+                .padding(.bottom, geo.safeAreaInsets.bottom > 0 ? max(10, geo.safeAreaInsets.bottom - 4) : AmberTheme.dockBottomGap)
                 .animation(ForwardMotion.fluidSheet, value: player.currentEpisode?.id)
             }
-            .ignoresSafeArea(.keyboard)
+            .ignoresSafeArea()
         }
+        .ignoresSafeArea()
         .preferredColorScheme(.dark)
         // Immersive Apple Fluid Full Screen Player
         .fullScreenCover(isPresented: $showFullPlayer) {
