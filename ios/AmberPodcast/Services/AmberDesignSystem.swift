@@ -53,42 +53,10 @@ public enum ForwardMotion {
     public static let snapSpring = Animation.interactiveSpring(response: 0.32, dampingFraction: 0.85)
 }
 
-// MARK: - Liquid Glass Specular Rim Border
-public struct LiquidGlassBorder: View {
-    public var cornerRadius: CGFloat
-    public var isCapsule: Bool = false
-    public var lineWidth: CGFloat = 0.75
-    
-    private var rimGradient: LinearGradient {
-        LinearGradient(
-            colors: [
-                Color.white.opacity(0.38), // Top-left specular key light
-                Color.white.opacity(0.14),
-                Color.white.opacity(0.04), // Bottom-right shadow edge
-                Color.white.opacity(0.10)
-            ],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
-    }
-
-    public var body: some View {
-        Group {
-            if isCapsule {
-                Capsule()
-                    .strokeBorder(rimGradient, lineWidth: lineWidth)
-            } else {
-                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .strokeBorder(rimGradient, lineWidth: lineWidth)
-            }
-        }
-    }
-}
-
 // MARK: - Liquid Glass Specular Border with Interactive Bloom & 3D Optics
 public struct LiquidGlassBorder: View {
     public var cornerRadius: CGFloat
-    public var isCapsule: Bool
+    public var isCapsule: Bool = false
     public var lineWidth: CGFloat = 0.75
     public var isPressed: Bool = false
     public var specularCenter: UnitPoint = .topLeading
