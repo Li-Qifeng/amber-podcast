@@ -18,55 +18,57 @@ public struct HomeLibraryView: View {
     public init() {}
 
     public var body: some View {
-        GeometryReader { geo in
-            ZStack {
-                AmberTheme.background.ignoresSafeArea()
+        NavigationStack {
+            GeometryReader { geo in
+                ZStack {
+                    AmberTheme.background.ignoresSafeArea()
 
-                if isLoading && feeds.isEmpty {
-                    VStack(spacing: 16) {
-                        ProgressView()
-                            .scaleEffect(1.2)
-                        Text("正在载入流媒体库...")
-                            .font(.system(size: 13, weight: .medium, design: .rounded))
-                            .foregroundStyle(AmberTheme.labelSecondary)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else if feeds.isEmpty {
-                    emptyStateView
-                } else {
-                    ScrollView(.vertical, showsIndicators: false) {
-                        VStack(alignment: .leading, spacing: 0) {
-                            // 1. Forward-style 61.8% Hero Banner
-                            heroBannerSection(geometry: geo)
-
-                            // 2. Shelf: "继续收听" (16:9 Landscape Carousel with Peek)
-                            continueListeningShelf(geometry: geo)
-                                .padding(.top, 24)
-
-                            // 3. Shelf: "订阅频道" (2:3 Portrait Carousel)
-                            subscribedChannelsShelf(geometry: geo)
-                                .padding(.top, 30)
-
-                            Color.clear.frame(height: 120) // Clearance for floating liquid glass Dock
+                    if isLoading && feeds.isEmpty {
+                        VStack(spacing: 16) {
+                            ProgressView()
+                                .scaleEffect(1.2)
+                            Text("正在载入流媒体库...")
+                                .font(.system(size: 13, weight: .medium, design: .rounded))
+                                .foregroundStyle(AmberTheme.labelSecondary)
                         }
-                    }
-                    .ignoresSafeArea(edges: .top)
-                }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    } else if feeds.isEmpty {
+                        emptyStateView
+                    } else {
+                        ScrollView(.vertical, showsIndicators: false) {
+                            VStack(alignment: .leading, spacing: 0) {
+                                // 1. Forward-style 61.8% Hero Banner
+                                heroBannerSection(geometry: geo)
 
-                // Top Floating Minimalist Bar (Channels Switcher & Add Button)
-                topFloatingToolbar(geometry: geo)
+                                // 2. Shelf: "继续收听" (16:9 Landscape Carousel with Peek)
+                                continueListeningShelf(geometry: geo)
+                                    .padding(.top, 24)
+
+                                // 3. Shelf: "订阅频道" (2:3 Portrait Carousel)
+                                subscribedChannelsShelf(geometry: geo)
+                                    .padding(.top, 30)
+
+                                Color.clear.frame(height: 120) // Clearance for floating liquid glass Dock
+                            }
+                        }
+                        .ignoresSafeArea(edges: .top)
+                    }
+
+                    // Top Floating Minimalist Bar (Channels Switcher & Add Button)
+                    topFloatingToolbar(geometry: geo)
+                }
             }
+            .sheet(isPresented: $showSubscribeSheet) {
+                subscribeSheet
+            }
+            .task {
+                await loadData()
+            }
+            .refreshable {
+                await loadData()
+            }
+            .preferredColorScheme(.dark)
         }
-        .sheet(isPresented: $showSubscribeSheet) {
-            subscribeSheet
-        }
-        .task {
-            await loadData()
-        }
-        .refreshable {
-            await loadData()
-        }
-        .preferredColorScheme(.dark)
     }
 
     // MARK: - 1. 61.8% Hero Banner

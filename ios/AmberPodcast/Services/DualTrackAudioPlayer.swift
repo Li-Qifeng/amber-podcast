@@ -29,7 +29,8 @@ public final class DualTrackAudioPlayer: ObservableObject {
     // MARK: - Private Players
     private var originalPlayer: AVPlayer?
     private var chinesePlayer: AVPlayer?
-    private var timeObserverToken: Any?
+    private var originalTimeObserverToken: Any?
+    private var chineseTimeObserverToken: Any?
     private var isAlternatingPlayingEn: Bool = true
     private var hapticFeedback = UIImpactFeedbackGenerator(style: .light)
 
@@ -74,7 +75,14 @@ public final class DualTrackAudioPlayer: ObservableObject {
 
         // 2. Prepare Chinese audio player
         let streamEndpoint = artifacts?.streaming.streamEndpoint ?? "/api/v1/episodes/\(episode.id)/stream/chinese"
-        let fullStreamUrlString = "https://podcast.refoxai.com\(streamEndpoint)"
+        let fullStreamUrlString: String
+        if streamEndpoint.lowercased().hasPrefix("http://") || streamEndpoint.lowercased().hasPrefix("https://") {
+            fullStreamUrlString = streamEndpoint
+        } else {
+            let base = AmberAPIClient.shared.serverBaseUrl.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+            let endpoint = streamEndpoint.hasPrefix("/") ? streamEndpoint : "/\(streamEndpoint)"
+            fullStreamUrlString = "\(base)\(endpoint)"
+        }
         if let zhUrl = URL(string: fullStreamUrlString) {
             var asset = AVURLAsset(url: zhUrl)
             // If Google Drive token exists, inject Authorization header
@@ -171,6 +179,9 @@ public final class DualTrackAudioPlayer: ObservableObject {
                 isAlternatingPlayingEn = true
             }
             seek(to: targetTime)
+        } else {
+            // Fallback: keep current elapsed time if no timing sync data
+            seek(to: curTime)
         }
 
         if wasPlaying {
@@ -226,39 +237,55 @@ public final class DualTrackAudioPlayer: ObservableObject {
     private func attachTimeObserver() {
         removeTimeObserver()
         let interval = CMTime(seconds: 0.1, preferredTimescale: 600)
-        timeObserverToken = activePlayer?.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
+
+        // 1. Observer for original audio player
+        originalTimeObserverToken = originalPlayer?.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
             guard let self = self else { return }
-            let sec = time.seconds
-            guard !sec.isNaN else { return }
-            self.currentTime = sec
+            let shouldProcess = (self.trackMode == .original) || (self.trackMode == .alternating && self.isAlternatingPlayingEn)
+            guard shouldProcess else { return }
+            self.handlePeriodicTimeTick(time: time, isFromEnglish: true)
+        }
 
-            // Update duration
-            if let item = self.activePlayer?.currentItem, item.duration.seconds > 0, !item.duration.seconds.isNaN {
-                self.duration = item.duration.seconds
-            }
+        // 2. Observer for Chinese audio player
+        chineseTimeObserverToken = chinesePlayer?.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
+            guard let self = self else { return }
+            let shouldProcess = (self.trackMode == .chinese) || (self.trackMode == .alternating && !self.isAlternatingPlayingEn)
+            guard shouldProcess else { return }
+            self.handlePeriodicTimeTick(time: time, isFromEnglish: false)
+        }
+    }
 
-            // Update current segment index
-            if let idx = self.findSegmentIndex(forTime: sec, inMode: self.trackMode) {
-                self.currentSegmentIndex = idx
+    private func handlePeriodicTimeTick(time: CMTime, isFromEnglish: Bool) {
+        let sec = time.seconds
+        guard !sec.isNaN else { return }
+        self.currentTime = sec
 
-                // Alternating Playback Logic
-                if self.trackMode == .alternating && idx < self.timingSegments.count {
-                    let seg = self.timingSegments[idx]
-                    if self.isAlternatingPlayingEn && sec >= seg.en.end {
-                        // Switch from English sentence to Chinese sentence
-                        self.isAlternatingPlayingEn = false
-                        self.originalPlayer?.pause()
-                        self.chinesePlayer?.seek(to: CMTime(seconds: seg.zh.start, preferredTimescale: 600), toleranceBefore: .zero, toleranceAfter: .zero)
-                        self.chinesePlayer?.rate = self.playbackRate
-                    } else if !self.isAlternatingPlayingEn && sec >= seg.zh.end {
-                        // Switch to next English sentence
-                        if idx + 1 < self.timingSegments.count {
-                            let nextSeg = self.timingSegments[idx + 1]
-                            self.isAlternatingPlayingEn = true
-                            self.chinesePlayer?.pause()
-                            self.originalPlayer?.seek(to: CMTime(seconds: nextSeg.en.start, preferredTimescale: 600), toleranceBefore: .zero, toleranceAfter: .zero)
-                            self.originalPlayer?.rate = self.playbackRate
-                        }
+        // Update duration
+        if let item = self.activePlayer?.currentItem, item.duration.seconds > 0, !item.duration.seconds.isNaN {
+            self.duration = item.duration.seconds
+        }
+
+        // Update current segment index
+        if let idx = self.findSegmentIndex(forTime: sec, inMode: self.trackMode) {
+            self.currentSegmentIndex = idx
+
+            // Alternating Playback Logic
+            if self.trackMode == .alternating && idx < self.timingSegments.count {
+                let seg = self.timingSegments[idx]
+                if self.isAlternatingPlayingEn && isFromEnglish && sec >= seg.en.end {
+                    // Switch from English sentence to Chinese sentence
+                    self.isAlternatingPlayingEn = false
+                    self.originalPlayer?.pause()
+                    self.chinesePlayer?.seek(to: CMTime(seconds: seg.zh.start, preferredTimescale: 600), toleranceBefore: .zero, toleranceAfter: .zero)
+                    self.chinesePlayer?.rate = self.playbackRate
+                } else if !self.isAlternatingPlayingEn && !isFromEnglish && sec >= seg.zh.end {
+                    // Switch to next English sentence
+                    if idx + 1 < self.timingSegments.count {
+                        let nextSeg = self.timingSegments[idx + 1]
+                        self.isAlternatingPlayingEn = true
+                        self.chinesePlayer?.pause()
+                        self.originalPlayer?.seek(to: CMTime(seconds: nextSeg.en.start, preferredTimescale: 600), toleranceBefore: .zero, toleranceAfter: .zero)
+                        self.originalPlayer?.rate = self.playbackRate
                     }
                 }
             }
@@ -266,10 +293,13 @@ public final class DualTrackAudioPlayer: ObservableObject {
     }
 
     private func removeTimeObserver() {
-        if let token = timeObserverToken {
+        if let token = originalTimeObserverToken {
             originalPlayer?.removeTimeObserver(token)
+            originalTimeObserverToken = nil
+        }
+        if let token = chineseTimeObserverToken {
             chinesePlayer?.removeTimeObserver(token)
-            timeObserverToken = nil
+            chineseTimeObserverToken = nil
         }
     }
 

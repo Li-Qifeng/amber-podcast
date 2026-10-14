@@ -142,14 +142,19 @@ public struct TactilePressableModifier: ViewModifier {
         content
             .scaleEffect(isPressed ? scale : 1.0)
             .animation(isPressed ? ForwardMotion.touchDown : ForwardMotion.touchUp, value: isPressed)
-            ._onButtonGesture { pressing in
-                if pressing {
-                    impactFeedback.impactOccurred()
-                }
-                isPressed = pressing
-            } perform: {
-                action?()
-            }
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { _ in
+                        if !isPressed {
+                            isPressed = true
+                            impactFeedback.impactOccurred()
+                        }
+                    }
+                    .onEnded { _ in
+                        isPressed = false
+                        action?()
+                    }
+            )
     }
 }
 
