@@ -67,21 +67,23 @@ public struct LiquidGlassBorder: View {
     }
 
     private var rimGradient: LinearGradient {
-        LinearGradient(
-            colors: isPressed ? [
-                Color.white.opacity(0.85), // Specular bloom when pressed
+        if isPressed {
+            let pressedColors: [Color] = [
+                Color.white.opacity(0.85),
                 Color.white.opacity(0.35),
                 Color.white.opacity(0.12),
                 Color.white.opacity(0.25)
-            ] : [
-                Color.white.opacity(0.42), // Ambient key light
+            ]
+            return LinearGradient(colors: pressedColors, startPoint: specularCenter, endPoint: .bottomTrailing)
+        } else {
+            let normalColors: [Color] = [
+                Color.white.opacity(0.42),
                 Color.white.opacity(0.14),
-                Color.white.opacity(0.04), // Ambient shadow boundary
+                Color.white.opacity(0.04),
                 Color.white.opacity(0.12)
-            ],
-            startPoint: specularCenter,
-            endPoint: .bottomTrailing
-        )
+            ]
+            return LinearGradient(colors: normalColors, startPoint: specularCenter, endPoint: .bottomTrailing)
+        }
     }
 
     public var body: some View {
@@ -210,17 +212,34 @@ public struct LiquidGlassButtonStyle: ButtonStyle {
         self.cornerRadius = cornerRadius
     }
 
+    private func overlayColor(isPressed: Bool) -> Color {
+        if isPressed {
+            return tint?.opacity(0.28) ?? Color.white.opacity(0.16)
+        } else {
+            return tint?.opacity(0.12) ?? Color.white.opacity(0.04)
+        }
+    }
+
     public func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed ? 0.96 : 1.0)
+        let isPressed = configuration.isPressed
+        let fillCol = overlayColor(isPressed: isPressed)
+        let shadowColor = Color.black.opacity(isPressed ? 0.20 : 0.35)
+        let shadowRadius: CGFloat = isPressed ? 4.0 : 12.0
+        let shadowY: CGFloat = isPressed ? 2.0 : 6.0
+        let borderLineWidth: CGFloat = isPressed ? 1.2 : 0.75
+
+        return configuration.label
+            .scaleEffect(isPressed ? 0.96 : 1.0)
             .background(
                 Group {
                     if isCapsule {
-                        Capsule().fill(.ultraThinMaterial)
-                            .overlay(Capsule().fill(configuration.isPressed ? (tint?.opacity(0.28) ?? Color.white.opacity(0.16)) : (tint?.opacity(0.12) ?? Color.white.opacity(0.04))))
+                        Capsule()
+                            .fill(.ultraThinMaterial)
+                            .overlay(Capsule().fill(fillCol))
                     } else {
-                        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous).fill(.ultraThinMaterial)
-                            .overlay(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous).fill(configuration.isPressed ? (tint?.opacity(0.28) ?? Color.white.opacity(0.16)) : (tint?.opacity(0.12) ?? Color.white.opacity(0.04))))
+                        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                            .fill(.ultraThinMaterial)
+                            .overlay(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous).fill(fillCol))
                     }
                 }
             )
@@ -228,18 +247,14 @@ public struct LiquidGlassButtonStyle: ButtonStyle {
                 LiquidGlassBorder(
                     cornerRadius: cornerRadius,
                     isCapsule: isCapsule,
-                    lineWidth: configuration.isPressed ? 1.2 : 0.75,
-                    isPressed: configuration.isPressed
+                    lineWidth: borderLineWidth,
+                    isPressed: isPressed
                 )
             )
-            .shadow(
-                color: Color.black.opacity(configuration.isPressed ? 0.20 : 0.35),
-                radius: configuration.isPressed ? 4 : 12,
-                y: configuration.isPressed ? 2 : 6
-            )
-            .animation(configuration.isPressed ? ForwardMotion.touchDown : ForwardMotion.touchUp, value: configuration.isPressed)
-            .onChange(of: configuration.isPressed) { isPressed in
-                if isPressed {
+            .shadow(color: shadowColor, radius: shadowRadius, y: shadowY)
+            .animation(isPressed ? ForwardMotion.touchDown : ForwardMotion.touchUp, value: isPressed)
+            .onChange(of: isPressed) { pressed in
+                if pressed {
                     impact.prepare()
                     impact.impactOccurred()
                 }
