@@ -51,6 +51,7 @@ public enum ForwardMotion {
     public static let touchUp   = Animation.spring(response: 0.30, dampingFraction: 0.80)
     public static let fluidSheet = Animation.spring(response: 0.40, dampingFraction: 0.78)
     public static let snapSpring = Animation.interactiveSpring(response: 0.32, dampingFraction: 0.85)
+    public static let spring = Animation.spring(response: 0.35, dampingFraction: 0.82)
 }
 
 // MARK: - Liquid Glass Specular Border with Interactive Bloom & 3D Optics

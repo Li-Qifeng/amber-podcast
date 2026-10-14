@@ -134,7 +134,7 @@ public struct MiniPlayerView: View {
             .liquidGlassCapsule(isPressed: isPressed || isDragging)
             .offset(y: dragOffsetY)
             .scaleEffect(isDragging ? 1.02 : (isPressed ? 0.97 : 1.0))
-            .animation(isDragging ? .interactiveSpring() : ForwardMotion.spring, value: dragOffsetY)
+            .animation(isDragging ? .interactiveSpring() : ForwardMotion.snapSpring, value: dragOffsetY)
             .animation(ForwardMotion.touchDown, value: isPressed)
             .contentShape(Rectangle())
             .gesture(
@@ -163,7 +163,7 @@ public struct MiniPlayerView: View {
                             }
                         } else {
                             // Snap back
-                            withAnimation(ForwardMotion.spring) {
+                            withAnimation(ForwardMotion.snapSpring) {
                                 dragOffsetY = 0
                                 isDragging = false
                             }
