@@ -84,11 +84,7 @@ public struct SearchView: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(AmberTheme.cardSurfaceElevated)
-                .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(AmberTheme.borderSpecular, lineWidth: 0.5))
-        )
+        .liquidGlassCard(cornerRadius: 14)
     }
 
     // MARK: - Forward / Rex Style Search Result Card
@@ -173,8 +169,7 @@ public struct SearchView: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
-        .background(AmberTheme.cardSurface.opacity(0.6), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(Color.white.opacity(0.06), lineWidth: 0.5))
+        .liquidGlassCard(cornerRadius: 16)
     }
 
     // MARK: - Suggestions or Empty View
@@ -238,8 +233,7 @@ public struct SearchView: View {
                 .foregroundStyle(AmberTheme.labelSecondary)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
-                .background(Color.white.opacity(0.07), in: Capsule())
-                .overlay(Capsule().stroke(AmberTheme.borderSpecular, lineWidth: 0.5))
+                .liquidGlassCapsule()
         }
         .buttonStyle(.plain)
         .amberPressable(scale: 0.95)

@@ -124,14 +124,7 @@ public struct EpisodeRowView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 14)
-        .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(isCurrentPlaying ? AmberTheme.cardSurfaceElevated.opacity(0.6) : Color.white.opacity(0.02))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(isCurrentPlaying ? AmberTheme.primaryAmber.opacity(0.25) : Color.white.opacity(0.05), lineWidth: 0.5)
-        )
+        .liquidGlassCard(cornerRadius: 16, tint: isCurrentPlaying ? AmberTheme.primaryAmber : nil)
         .contentShape(Rectangle())
         .onTapGesture {
             playEpisode()

@@ -13,39 +13,39 @@ public struct MiniPlayerView: View {
     public var body: some View {
         if let episode = player.currentEpisode {
             VStack(spacing: 0) {
-                // Main Mini Player Island Capsule
+                // Main Mini Player Liquid Glass Capsule Island
                 HStack(spacing: 12) {
-                    // 1. Cover Squircle Artwork
+                    // 1. Cover Squircle Artwork (38x38 pt)
                     ZStack {
                         if let coverUrl = player.currentFeed?.coverUrl, let url = URL(string: coverUrl) {
                             AsyncImage(url: url) { image in
                                 image
                                     .resizable()
                                     .scaledToFill()
-                                    .frame(width: 44, height: 44)
-                                    .clipShape(RoundedRectangle(cornerRadius: 11, style: .continuous))
+                                    .frame(width: 40, height: 40)
+                                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                                     .overlay(
-                                        RoundedRectangle(cornerRadius: 11, style: .continuous)
-                                            .stroke(Color.white.opacity(0.12), lineWidth: 0.5)
+                                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                            .stroke(Color.white.opacity(0.18), lineWidth: 0.5)
                                     )
                             } placeholder: {
-                                RoundedRectangle(cornerRadius: 11, style: .continuous)
+                                RoundedRectangle(cornerRadius: 10, style: .continuous)
                                     .fill(Color(white: 0.15))
-                                    .frame(width: 44, height: 44)
+                                    .frame(width: 40, height: 40)
                             }
                         } else {
-                            RoundedRectangle(cornerRadius: 11, style: .continuous)
+                            RoundedRectangle(cornerRadius: 10, style: .continuous)
                                 .fill(Color(white: 0.15))
-                                .frame(width: 44, height: 44)
+                                .frame(width: 40, height: 40)
                                 .overlay(Image(systemName: "headphones").font(.caption).foregroundStyle(.white.opacity(0.6)))
                         }
                     }
-                    .shadow(color: Color.black.opacity(0.35), radius: 5, y: 2)
+                    .shadow(color: Color.black.opacity(0.4), radius: 6, y: 3)
 
-                    // 2. Title & Current Track Mode Pill
-                    VStack(alignment: .leading, spacing: 3) {
+                    // 2. Titles & Current Track Mode Pill
+                    VStack(alignment: .leading, spacing: 2.5) {
                         Text(episode.title)
-                            .font(.system(size: 13.5, weight: .semibold, design: .rounded))
+                            .font(.system(size: 13, weight: .semibold, design: .rounded))
                             .foregroundStyle(AmberTheme.labelPrimary)
                             .lineLimit(1)
 
@@ -54,10 +54,10 @@ public struct MiniPlayerView: View {
                             HStack(spacing: 3) {
                                 if player.trackMode == .chinese {
                                     Image(systemName: "sparkles")
-                                        .font(.system(size: 8, weight: .bold))
+                                        .font(.system(size: 7.5, weight: .bold))
                                 }
                                 Text(player.trackMode.title)
-                                    .font(.system(size: 9.5, weight: .bold, design: .rounded))
+                                    .font(.system(size: 9, weight: .bold, design: .rounded))
                             }
                             .foregroundStyle(player.trackMode == .chinese ? AmberTheme.primaryAmber : AmberTheme.labelTertiary)
                             .padding(.horizontal, 6)
@@ -68,7 +68,7 @@ public struct MiniPlayerView: View {
                             )
 
                             Text(player.currentFeed?.title ?? "")
-                                .font(.system(size: 11.5, weight: .medium))
+                                .font(.system(size: 11, weight: .medium))
                                 .foregroundStyle(AmberTheme.labelTertiary)
                                 .lineLimit(1)
                         }
@@ -76,7 +76,7 @@ public struct MiniPlayerView: View {
 
                     Spacer(minLength: 4)
 
-                    // 3. Play / Pause Button with Spring scale
+                    // 3. Play / Pause Button with Specular Ring
                     Button {
                         player.togglePlayPause()
                         impactFeedback.impactOccurred()
@@ -84,16 +84,16 @@ public struct MiniPlayerView: View {
                         ZStack {
                             Circle()
                                 .fill(Color.white)
-                                .frame(width: 36, height: 36)
-                                .shadow(color: Color.white.opacity(0.15), radius: 6, y: 2)
+                                .frame(width: 34, height: 34)
+                                .shadow(color: Color.white.opacity(0.2), radius: 6, y: 2)
 
                             Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
-                                .font(.system(size: 15, weight: .bold))
+                                .font(.system(size: 14, weight: .bold))
                                 .foregroundStyle(Color.black)
                                 .offset(x: player.isPlaying ? 0 : 1)
                         }
                     }
-                    .amberPressable(scale: 0.90)
+                    .tactilePress(scale: 0.90)
 
                     // 4. Skip forward 30s
                     Button {
@@ -101,16 +101,16 @@ public struct MiniPlayerView: View {
                         impactFeedback.impactOccurred()
                     } label: {
                         Image(systemName: "goforward.30")
-                            .font(.system(size: 18, weight: .medium))
+                            .font(.system(size: 17, weight: .medium))
                             .foregroundStyle(AmberTheme.labelSecondary)
-                            .frame(width: 36, height: 36)
+                            .frame(width: 32, height: 32)
                     }
-                    .amberPressable()
+                    .tactilePress(scale: 0.90)
                 }
-                .padding(.horizontal, 12)
+                .padding(.horizontal, 14)
                 .padding(.vertical, 8)
 
-                // 5. Hairline Micro Progress Bar on capsule bottom
+                // 5. Hairline Micro Progress Bar along capsule bottom edge
                 GeometryReader { barGeo in
                     let effectiveDuration = max(1.0, player.duration)
                     let progress = min(1.0, max(0.0, player.currentTime / effectiveDuration))
@@ -125,18 +125,9 @@ public struct MiniPlayerView: View {
                     }
                 }
                 .frame(height: 2)
+                .clipShape(Capsule())
             }
-            .background(
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .fill(AmberTheme.cardSurfaceElevated.opacity(0.85))
-                    .background(.ultraThinMaterial)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .stroke(AmberTheme.borderSpecular, lineWidth: 0.5)
-            )
-            .shadow(color: Color.black.opacity(0.4), radius: 16, y: 8)
-            .padding(.horizontal, 14)
+            .liquidGlassCapsule()
             .contentShape(Rectangle())
             .onTapGesture {
                 impactFeedback.impactOccurred()

@@ -72,9 +72,9 @@ public struct FullPlayerView: View {
                         .scaledToFill()
                         .frame(width: geometry.size.width, height: geometry.size.height)
                         .clipped()
-                        .saturation(1.6)
-                        .blur(radius: 85)
-                        .opacity(0.38)
+                        .saturation(1.7)
+                        .blur(radius: 90)
+                        .opacity(0.42)
                         .scaleEffect(1.25)
                 } placeholder: {
                     Color.clear
@@ -105,11 +105,12 @@ public struct FullPlayerView: View {
                     isPresented = false
                 } label: {
                     Image(systemName: "chevron.down")
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(.system(size: 15, weight: .semibold))
                         .foregroundStyle(AmberTheme.labelSecondary)
-                        .frame(width: 38, height: 38)
-                        .background(Color.white.opacity(0.08), in: Circle())
+                        .frame(width: 36, height: 36)
+                        .liquidGlassCapsule()
                 }
+                .tactilePress(scale: 0.90)
 
                 Spacer()
 
@@ -123,15 +124,14 @@ public struct FullPlayerView: View {
 
                 Spacer()
 
-                // Switcher Tabs: Artwork / Subtitles / Shownotes
-                HStack(spacing: 6) {
+                // Liquid Glass Switcher Tabs: Artwork / Subtitles / Shownotes
+                HStack(spacing: 4) {
                     tabPillButton(icon: "music.note", tag: 0)
                     tabPillButton(icon: "quote.bubble.fill", tag: 1)
                     tabPillButton(icon: "text.alignleft", tag: 2)
                 }
                 .padding(3)
-                .background(Color.white.opacity(0.06), in: Capsule())
-                .overlay(Capsule().stroke(AmberTheme.borderSpecular, lineWidth: 0.5))
+                .liquidGlassCapsule()
             }
             .padding(.horizontal, 20)
             .padding(.top, 6)
@@ -141,19 +141,19 @@ public struct FullPlayerView: View {
     private func tabPillButton(icon: String, tag: Int) -> some View {
         Button {
             impactFeedback.impactOccurred()
-            withAnimation(AmberTheme.fluidSpring) {
+            withAnimation(ForwardMotion.snapSpring) {
                 currentCenterTab = tag
             }
         } label: {
             Image(systemName: icon)
-                .font(.system(size: 13, weight: currentCenterTab == tag ? .bold : .medium))
+                .font(.system(size: 12.5, weight: currentCenterTab == tag ? .bold : .medium))
                 .foregroundStyle(currentCenterTab == tag ? AmberTheme.labelPrimary : AmberTheme.labelTertiary)
                 .frame(width: 32, height: 28)
                 .background(
                     Group {
                         if currentCenterTab == tag {
                             Capsule()
-                                .fill(Color.white.opacity(0.18))
+                                .fill(Color.white.opacity(0.20))
                         }
                     }
                 )
@@ -167,7 +167,7 @@ public struct FullPlayerView: View {
 
         TabView(selection: $currentCenterTab) {
             // Tab 0: Physical Breathing Album Artwork
-            artworkView(size: min(geometry.size.width - 68, contentHeight))
+            artworkView(size: min(geometry.size.width - 72, contentHeight))
                 .tag(0)
 
             // Tab 1: Live Synced Dual-Track Subtitles
@@ -192,23 +192,23 @@ public struct FullPlayerView: View {
                             .resizable()
                             .scaledToFit()
                             .frame(width: size, height: size)
-                            .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
+                            .clipShape(RoundedRectangle(cornerRadius: AmberTheme.radiusCoverHero, style: .continuous))
                             .overlay(
-                                RoundedRectangle(cornerRadius: 26, style: .continuous)
-                                    .stroke(Color.white.opacity(0.15), lineWidth: 0.8)
+                                RoundedRectangle(cornerRadius: AmberTheme.radiusCoverHero, style: .continuous)
+                                    .strokeBorder(LinearGradient(colors: [Color.white.opacity(0.35), Color.white.opacity(0.08)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 0.8)
                             )
                             .shadow(color: Color.black.opacity(player.isPlaying ? 0.45 : 0.2),
                                     radius: player.isPlaying ? 28 : 12,
                                     y: player.isPlaying ? 16 : 6)
                             .scaleEffect(player.isPlaying ? 1.0 : 0.90)
-                            .animation(AmberTheme.fluidSpring, value: player.isPlaying)
+                            .animation(ForwardMotion.fluidSheet, value: player.isPlaying)
                     } placeholder: {
-                        RoundedRectangle(cornerRadius: 26, style: .continuous)
+                        RoundedRectangle(cornerRadius: AmberTheme.radiusCoverHero, style: .continuous)
                             .fill(Color(white: 0.12))
                             .frame(width: size, height: size)
                     }
                 } else {
-                    RoundedRectangle(cornerRadius: 26, style: .continuous)
+                    RoundedRectangle(cornerRadius: AmberTheme.radiusCoverHero, style: .continuous)
                         .fill(Color(white: 0.12))
                         .frame(width: size, height: size)
                         .overlay(Image(systemName: "headphones").font(.system(size: 44)).foregroundStyle(.white.opacity(0.6)))
@@ -226,18 +226,18 @@ public struct FullPlayerView: View {
 
                 Button {
                     impactFeedback.impactOccurred()
-                    withAnimation(AmberTheme.quickSpring) {
+                    withAnimation(ForwardMotion.snapSpring) {
                         player.switchTrackMode(to: mode)
                     }
                 } label: {
                     HStack(spacing: 5) {
                         if mode == .chinese {
                             Image(systemName: "sparkles")
-                                .font(.system(size: 11, weight: .bold))
+                                .font(.system(size: 10.5, weight: .bold))
                                 .foregroundStyle(isSelected ? AmberTheme.primaryAmber : AmberTheme.labelTertiary)
                         }
                         Text(mode.title)
-                            .font(.system(size: 12.5, weight: isSelected ? .bold : .medium, design: .rounded))
+                            .font(.system(size: 12, weight: isSelected ? .bold : .medium, design: .rounded))
                             .foregroundStyle(isSelected ? AmberTheme.labelPrimary : AmberTheme.labelSecondary)
                     }
                     .padding(.horizontal, 14)
@@ -246,7 +246,7 @@ public struct FullPlayerView: View {
                         ZStack {
                             if isSelected {
                                 Capsule()
-                                    .fill(Color.white.opacity(0.18))
+                                    .fill(Color.white.opacity(0.22))
                                     .matchedGeometryEffect(id: "TrackModeCapsule", in: modeNamespace)
                                     .shadow(color: Color.black.opacity(0.2), radius: 4, y: 2)
                             }
@@ -257,8 +257,7 @@ public struct FullPlayerView: View {
             }
         }
         .padding(3)
-        .background(Color.white.opacity(0.08), in: Capsule())
-        .overlay(Capsule().stroke(AmberTheme.borderSpecular, lineWidth: 0.5))
+        .liquidGlassCapsule()
     }
 
     // MARK: - Fluid Timeline Scrubber Area
@@ -302,7 +301,7 @@ public struct FullPlayerView: View {
                             impactFeedback.impactOccurred()
                         }
                 )
-                .animation(AmberTheme.quickSpring, value: isScrubbing)
+                .animation(ForwardMotion.touchDown, value: isScrubbing)
             }
             .frame(height: 18)
 
@@ -349,7 +348,7 @@ public struct FullPlayerView: View {
                         .font(.system(size: 26, weight: .semibold))
                         .foregroundStyle(AmberTheme.labelSecondary)
                 }
-                .amberPressable()
+                .tactilePress(scale: 0.92)
 
                 // Play / Pause Button with Specular Glow Ring
                 Button {
@@ -360,15 +359,19 @@ public struct FullPlayerView: View {
                         Circle()
                             .fill(Color.white)
                             .frame(width: 72, height: 72)
+                            .overlay(
+                                Circle()
+                                    .strokeBorder(LinearGradient(colors: [Color.white, Color.white.opacity(0.4)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1)
+                            )
                             .shadow(color: Color.white.opacity(0.2), radius: 14, y: 4)
 
                         Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
-                            .font(.system(size: 32, weight: .bold))
+                            .font(.system(size: 30, weight: .bold))
                             .foregroundStyle(Color.black)
                             .offset(x: player.isPlaying ? 0 : 2)
                     }
                 }
-                .amberPressable(scale: 0.92)
+                .tactilePress(scale: 0.90)
 
                 // Skip forward 30s
                 Button {
@@ -379,7 +382,7 @@ public struct FullPlayerView: View {
                         .font(.system(size: 26, weight: .semibold))
                         .foregroundStyle(AmberTheme.labelSecondary)
                 }
-                .amberPressable()
+                .tactilePress(scale: 0.92)
             }
         }
     }
@@ -395,12 +398,11 @@ public struct FullPlayerView: View {
                 Text(String(format: "%.1fx", player.playbackRate))
                     .font(.system(size: 12, weight: .bold, design: .monospaced))
                     .padding(.horizontal, 10)
-                    .padding(.vertical, 4)
-                    .background(Color.white.opacity(0.1), in: Capsule())
-                    .overlay(Capsule().stroke(AmberTheme.borderSpecular, lineWidth: 0.5))
+                    .padding(.vertical, 5)
+                    .liquidGlassCapsule()
                     .foregroundStyle(AmberTheme.labelPrimary)
             }
-            .amberPressable()
+            .tactilePress()
 
             Spacer()
 
@@ -411,17 +413,16 @@ public struct FullPlayerView: View {
             } label: {
                 HStack(spacing: 4) {
                     Image(systemName: player.isVocalBoostEnabled ? "waveform.badge.magnifyingglass" : "waveform")
-                        .font(.system(size: 15))
+                        .font(.system(size: 14))
                     Text(player.isVocalBoostEnabled ? "人声增强" : "原声模式")
                         .font(.system(size: 11, weight: .medium))
                 }
                 .padding(.horizontal, 10)
-                .padding(.vertical, 4)
-                .background(player.isVocalBoostEnabled ? AmberTheme.primaryAmber.opacity(0.18) : Color.white.opacity(0.06), in: Capsule())
-                .overlay(Capsule().stroke(player.isVocalBoostEnabled ? AmberTheme.primaryAmber.opacity(0.4) : AmberTheme.borderSpecular, lineWidth: 0.5))
+                .padding(.vertical, 5)
+                .liquidGlassCapsule(tint: player.isVocalBoostEnabled ? AmberTheme.primaryAmber : nil)
                 .foregroundStyle(player.isVocalBoostEnabled ? AmberTheme.primaryAmber : AmberTheme.labelTertiary)
             }
-            .amberPressable()
+            .tactilePress()
 
             Spacer()
 
@@ -453,7 +454,7 @@ public struct FullPlayerView: View {
                         player.setPlaybackRate(Float(rate))
                         showSpeedSheet = false
                     }
-                    .listRowBackground(Color(white: 0.1))
+                    .listRowBackground(AmberTheme.glassSurface)
                 }
             }
             .scrollContentBackground(.hidden)

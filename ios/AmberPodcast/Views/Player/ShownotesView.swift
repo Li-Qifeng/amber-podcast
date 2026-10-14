@@ -16,8 +16,7 @@ public struct ShownotesView: View {
                 tabButton(title: "AI 深度精读笔记", tag: 1, icon: "sparkles")
             }
             .padding(3)
-            .background(Color.white.opacity(0.06), in: Capsule())
-            .overlay(Capsule().stroke(AmberTheme.borderSpecular, lineWidth: 0.5))
+            .liquidGlassCapsule()
             .padding(.horizontal, 24)
             .padding(.top, 10)
             .padding(.bottom, 16)
@@ -58,11 +57,7 @@ public struct ShownotesView: View {
                                         }
                                         .padding(.horizontal, 12)
                                         .padding(.vertical, 8)
-                                        .background(AmberTheme.cardSurfaceElevated.opacity(0.8), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                                .stroke(AmberTheme.borderSpecular, lineWidth: 0.5)
-                                        )
+                                        .liquidGlassCard(cornerRadius: 12)
                                     }
                                     .buttonStyle(.plain)
                                     .amberPressable(scale: 0.98)
@@ -115,11 +110,7 @@ public struct ShownotesView: View {
                                     .textSelection(.enabled)
                             }
                             .padding(18)
-                            .background(AmberTheme.cardSurface.opacity(0.7), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                                    .stroke(AmberTheme.borderSpecular, lineWidth: 0.5)
-                            )
+                            .liquidGlassCard(cornerRadius: 18)
                         }
                     }
                 }

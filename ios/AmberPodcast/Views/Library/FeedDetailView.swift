@@ -75,10 +75,10 @@ public struct FeedDetailView: View {
                             .resizable()
                             .scaledToFill()
                             .frame(width: 108, height: 108)
-                            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                            .clipShape(RoundedRectangle(cornerRadius: AmberTheme.radiusCoverHero, style: .continuous))
                             .overlay(
-                                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                    .stroke(Color.white.opacity(0.12), lineWidth: 0.5)
+                                RoundedRectangle(cornerRadius: AmberTheme.radiusCoverHero, style: .continuous)
+                                    .strokeBorder(LinearGradient(colors: [Color.white.opacity(0.35), Color.white.opacity(0.08)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 0.8)
                             )
                             .shadow(color: Color.black.opacity(0.4), radius: 10, y: 5)
                     } placeholder: {
@@ -104,16 +104,16 @@ public struct FeedDetailView: View {
                             .font(.system(size: 10, weight: .bold, design: .rounded))
                             .foregroundStyle(AmberTheme.primaryAmber)
                             .padding(.horizontal, 8)
-                            .padding(.vertical, 3)
-                            .background(AmberTheme.primaryAmber.opacity(0.15), in: Capsule())
+                            .padding(.vertical, 3.5)
+                            .liquidGlassCapsule(tint: AmberTheme.primaryAmber)
 
                         if autoTranslate {
                             Text("已开启自动双轨")
                                 .font(.system(size: 10, weight: .bold, design: .rounded))
                                 .foregroundStyle(AmberTheme.accentElectric)
                                 .padding(.horizontal, 8)
-                                .padding(.vertical, 3)
-                                .background(AmberTheme.accentElectric.opacity(0.12), in: Capsule())
+                                .padding(.vertical, 3.5)
+                                .liquidGlassCapsule(tint: AmberTheme.accentElectric)
                         }
 
                         Spacer()

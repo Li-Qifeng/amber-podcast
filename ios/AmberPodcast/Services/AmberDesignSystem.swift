@@ -1,46 +1,145 @@
 import SwiftUI
 
-// MARK: - Amber Design Tokens (Inspired by Forward / Rex & Apple HIG)
+// MARK: - Apple Liquid Glass & Forward Design Tokens
 public enum AmberTheme {
-    // Colors
-    public static let background = Color(red: 0.0, green: 0.0, blue: 0.0) // True OLED Black
-    public static let cardSurface = Color(red: 0.07, green: 0.07, blue: 0.08) // #121214
-    public static let cardSurfaceElevated = Color(red: 0.11, green: 0.11, blue: 0.13) // #1C1C21
+    // Canvas: OLED True Black
+    public static let background = Color(red: 0.0, green: 0.0, blue: 0.0)
+    public static let canvasSurface = Color(red: 0.04, green: 0.04, blue: 0.05)
+    
+    // Glass Base Surfaces
+    public static let glassSurface = Color(white: 0.10).opacity(0.40)
+    public static let glassSurfaceElevated = Color(white: 0.16).opacity(0.55)
+    public static let glassHighlight = Color.white.opacity(0.28)
     
     // Accents
     public static let primaryAmber = Color(red: 0.96, green: 0.62, blue: 0.04) // Amber Gold #F59E0B
-    public static let accentElectric = Color(red: 0.20, green: 0.78, blue: 0.35) // Forward Electric Lime #32C759
-    public static let accentPurple = Color(red: 0.68, green: 0.42, blue: 0.98) // Audio track accent
+    public static let accentElectric = Color(red: 0.20, green: 0.78, blue: 0.35) // Electric Lime #32C759
+    public static let accentPurple = Color(red: 0.68, green: 0.42, blue: 0.98)
     
-    // Label Hierarchies
+    // Apple HIG Typographic Hierarchy
     public static let labelPrimary = Color.white
-    public static let labelSecondary = Color(white: 0.92, opacity: 0.65)
-    public static let labelTertiary = Color(white: 0.92, opacity: 0.35)
-    public static let borderSpecular = Color.white.opacity(0.12)
+    public static let labelSecondary = Color(white: 0.92, opacity: 0.72)
+    public static let labelTertiary = Color(white: 0.92, opacity: 0.42)
+    public static let labelQuaternary = Color(white: 0.92, opacity: 0.22)
     
-    // Corner Radius System (Concentric hierarchy)
-    public static let radiusCard: CGFloat = 20.0
-    public static let radiusCover: CGFloat = 16.0
-    public static let radiusPill: CGFloat = 30.0
-    public static let radiusSmall: CGFloat = 8.0
+    // Concentric Squircle Radius System
+    public static let radiusCoverHero: CGFloat = 22.0
+    public static let radiusCardShelf: CGFloat = 16.0
+    public static let radiusDock: CGFloat = 28.0
+    public static let radiusBadge: CGFloat = 6.0
     
-    // Springs
-    public static let fluidSpring = Animation.spring(response: 0.36, dampingFraction: 0.82)
-    public static let bouncySpring = Animation.spring(response: 0.42, dampingFraction: 0.76)
-    public static let quickSpring = Animation.spring(response: 0.22, dampingFraction: 0.88)
+    // Exact Layout Proportions (From Forward / Rex CV Measurements)
+    public static let heroBannerRatio: CGFloat = 0.618 // 61.8% Screen Height
+    public static let cardShelfWidthRatio: CGFloat = 0.575 // 57.5% Screen Width
+    public static let cardShelfAspectRatio: CGFloat = 16.0 / 9.0 // 16:9
+    public static let dockWidthRatio: CGFloat = 0.910 // 91% Screen Width
+    public static let dockHeight: CGFloat = 58.0 // 58 pt
+    public static let dockBottomGap: CGFloat = 32.0 // 32 pt clearance for Home Bar
+    public static let pageMargin: CGFloat = 18.0 // 18 pt
+    public static let cardGap: CGFloat = 12.0 // 12 pt
 }
 
-// MARK: - View Modifiers for Forward-style Tactile UI
-public struct AmberPressableModifier: ViewModifier {
+// MARK: - Fluid Physics Motion System (120Hz ProMotion Tuned)
+public enum ForwardMotion {
+    public static let touchDown = Animation.spring(response: 0.18, dampingFraction: 0.92)
+    public static let touchUp   = Animation.spring(response: 0.30, dampingFraction: 0.80)
+    public static let fluidSheet = Animation.spring(response: 0.40, dampingFraction: 0.78)
+    public static let snapSpring = Animation.interactiveSpring(response: 0.32, dampingFraction: 0.85)
+}
+
+// MARK: - Liquid Glass Specular Rim Border
+public struct LiquidGlassBorder: View {
+    public var cornerRadius: CGFloat
+    public var isCapsule: Bool = false
+    public var lineWidth: CGFloat = 0.75
+    
+    private var rimGradient: LinearGradient {
+        LinearGradient(
+            colors: [
+                Color.white.opacity(0.38), // Top-left specular key light
+                Color.white.opacity(0.14),
+                Color.white.opacity(0.04), // Bottom-right shadow edge
+                Color.white.opacity(0.10)
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+
+    public var body: some View {
+        Group {
+            if isCapsule {
+                Capsule()
+                    .strokeBorder(rimGradient, lineWidth: lineWidth)
+            } else {
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .strokeBorder(rimGradient, lineWidth: lineWidth)
+            }
+        }
+    }
+}
+
+// MARK: - Liquid Glass Modifiers
+public struct LiquidGlassCardModifier: ViewModifier {
+    public var cornerRadius: CGFloat = AmberTheme.radiusCardShelf
+    public var tint: Color? = nil
+
+    public func body(content: Content) -> some View {
+        content
+            .background(
+                ZStack {
+                    RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                        .fill(tint?.opacity(0.12) ?? AmberTheme.glassSurface)
+                    
+                    RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                        .fill(.ultraThinMaterial)
+                }
+            )
+            .overlay(
+                LiquidGlassBorder(cornerRadius: cornerRadius, isCapsule: false)
+            )
+            .shadow(color: Color.black.opacity(0.40), radius: 16, x: 0, y: 8)
+            .shadow(color: Color.black.opacity(0.20), radius: 4, x: 0, y: 2)
+    }
+}
+
+public struct LiquidGlassCapsuleModifier: ViewModifier {
+    public var tint: Color? = nil
+
+    public func body(content: Content) -> some View {
+        content
+            .background(
+                ZStack {
+                    Capsule()
+                        .fill(tint?.opacity(0.14) ?? AmberTheme.glassSurfaceElevated)
+                    
+                    Capsule()
+                        .fill(.ultraThinMaterial)
+                }
+            )
+            .overlay(
+                LiquidGlassBorder(cornerRadius: 0, isCapsule: true)
+            )
+            .shadow(color: Color.black.opacity(0.45), radius: 20, x: 0, y: 10)
+            .shadow(color: Color.black.opacity(0.25), radius: 5, x: 0, y: 2)
+    }
+}
+
+// MARK: - Tactile Touch-Down Feedback Modifier
+public struct TactilePressableModifier: ViewModifier {
     @State private var isPressed = false
-    public var scale: CGFloat = 0.96
+    public var scale: CGFloat = 0.95
     public var action: (() -> Void)?
+    private let impactFeedback = UIImpactFeedbackGenerator(style: .light)
 
     public func body(content: Content) -> some View {
         content
             .scaleEffect(isPressed ? scale : 1.0)
-            .animation(AmberTheme.quickSpring, value: isPressed)
+            .animation(isPressed ? ForwardMotion.touchDown : ForwardMotion.touchUp, value: isPressed)
             ._onButtonGesture { pressing in
+                if pressing {
+                    impactFeedback.impactOccurred()
+                }
                 isPressed = pressing
             } perform: {
                 action?()
@@ -48,30 +147,45 @@ public struct AmberPressableModifier: ViewModifier {
     }
 }
 
-public struct FrostedGlassCard: ViewModifier {
-    public var cornerRadius: CGFloat = AmberTheme.radiusCard
-    public var strokeColor: Color = AmberTheme.borderSpecular
+// MARK: - Ambient Backlight Glow
+public struct AmbientBacklightGlow: ViewModifier {
+    public var glowColor: Color = AmberTheme.primaryAmber
+    public var opacity: Double = 0.25
+    public var radius: CGFloat = 60
 
     public func body(content: Content) -> some View {
         content
             .background(
-                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .fill(Color(white: 0.12).opacity(0.45))
-                    .background(.ultraThinMaterial)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .stroke(strokeColor, lineWidth: 0.5)
+                glowColor
+                    .blur(radius: radius)
+                    .opacity(opacity)
             )
     }
 }
 
+// MARK: - View Extensions
 public extension View {
-    func amberPressable(scale: CGFloat = 0.96, action: (() -> Void)? = nil) -> some View {
-        self.modifier(AmberPressableModifier(scale: scale, action: action))
+    func amberPressable(scale: CGFloat = 0.95, action: (() -> Void)? = nil) -> some View {
+        self.modifier(TactilePressableModifier(scale: scale, action: action))
     }
     
-    func frostedGlassCard(cornerRadius: CGFloat = AmberTheme.radiusCard) -> some View {
-        self.modifier(FrostedGlassCard(cornerRadius: cornerRadius))
+    func frostedGlassCard(cornerRadius: CGFloat = AmberTheme.radiusCardShelf) -> some View {
+        self.modifier(LiquidGlassCardModifier(cornerRadius: cornerRadius))
+    }
+    
+    func liquidGlassCard(cornerRadius: CGFloat = AmberTheme.radiusCardShelf, tint: Color? = nil) -> some View {
+        self.modifier(LiquidGlassCardModifier(cornerRadius: cornerRadius, tint: tint))
+    }
+    
+    func liquidGlassCapsule(tint: Color? = nil) -> some View {
+        self.modifier(LiquidGlassCapsuleModifier(tint: tint))
+    }
+    
+    func tactilePress(scale: CGFloat = 0.95, action: (() -> Void)? = nil) -> some View {
+        self.modifier(TactilePressableModifier(scale: scale, action: action))
+    }
+    
+    func ambientGlow(color: Color = AmberTheme.primaryAmber, opacity: Double = 0.25, radius: CGFloat = 60) -> some View {
+        self.modifier(AmbientBacklightGlow(glowColor: color, opacity: opacity, radius: radius))
     }
 }
