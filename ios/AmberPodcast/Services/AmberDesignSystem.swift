@@ -21,6 +21,12 @@ public enum AmberTheme {
     public static let labelSecondary = Color(white: 0.92, opacity: 0.72)
     public static let labelTertiary = Color(white: 0.92, opacity: 0.42)
     public static let labelQuaternary = Color(white: 0.92, opacity: 0.22)
+    public static let borderSpecular = Color.white.opacity(0.12)
+    
+    // Legacy Spring Aliases
+    public static let quickSpring = Animation.spring(response: 0.22, dampingFraction: 0.88)
+    public static let fluidSpring = Animation.spring(response: 0.36, dampingFraction: 0.82)
+    public static let bouncySpring = Animation.spring(response: 0.42, dampingFraction: 0.76)
     
     // Concentric Squircle Radius System
     public static let radiusCoverHero: CGFloat = 22.0

@@ -14,65 +14,16 @@ public struct LyricsSubtitleView: View {
                     Color.clear.frame(height: 24)
 
                     ForEach(player.fullMapping) { seg in
-                        let isCurrent = seg.index == player.currentSegmentIndex
-                        let distance = abs(seg.index - player.currentSegmentIndex)
-
-                        VStack(alignment: .leading, spacing: 10) {
-                            // Speaker & Timestamp Pill
-                            HStack(spacing: 8) {
-                                Text(seg.speaker)
-                                    .font(.system(size: 11, weight: .semibold, design: .rounded))
-                                    .foregroundStyle(isCurrent ? AmberTheme.primaryAmber : AmberTheme.labelTertiary)
-                                    .padding(.horizontal, 8)
-                                    .padding(.vertical, 3)
-                                    .background(
-                                        Capsule()
-                                            .fill(isCurrent ? AmberTheme.primaryAmber.opacity(0.18) : Color.white.opacity(0.06))
-                                    )
-
-                                Text(formatSeconds(player.trackMode == .chinese ? seg.zhRange.start : seg.enRange.start))
-                                    .font(.system(size: 11, weight: .regular, design: .monospaced))
-                                    .foregroundStyle(AmberTheme.labelTertiary)
-
-                                Spacer()
+                        SubtitleSegmentRow(
+                            seg: seg,
+                            currentSegmentIndex: player.currentSegmentIndex,
+                            trackMode: player.trackMode,
+                            onTap: {
+                                impactFeedback.impactOccurred()
+                                let targetTime = (player.trackMode == .chinese) ? seg.zhRange.start : seg.enRange.start
+                                player.seek(to: targetTime)
                             }
-
-                            // Primary Subtitle Typography (Apple Music Depth of Field)
-                            if player.trackMode == .chinese {
-                                Text(seg.zhDisplay)
-                                    .font(.system(size: isCurrent ? 25 : 19, weight: isCurrent ? .bold : .medium, design: .rounded))
-                                    .foregroundStyle(isCurrent ? AmberTheme.labelPrimary : AmberTheme.labelSecondary.opacity(max(0.18, 0.55 - Double(distance) * 0.12)))
-                                    .lineSpacing(6)
-                                    .blur(radius: isCurrent ? 0 : min(1.8, Double(distance) * 0.45))
-                                    .scaleEffect(isCurrent ? 1.02 : 1.0, anchor: .leading)
-                                    .animation(AmberTheme.fluidSpring, value: isCurrent)
-
-                                Text(seg.enText)
-                                    .font(.system(size: 13, weight: .regular))
-                                    .foregroundStyle(AmberTheme.labelTertiary.opacity(isCurrent ? 0.75 : 0.3))
-                                    .lineSpacing(3)
-                            } else {
-                                Text(seg.enText)
-                                    .font(.system(size: isCurrent ? 25 : 19, weight: isCurrent ? .bold : .medium, design: .rounded))
-                                    .foregroundStyle(isCurrent ? AmberTheme.labelPrimary : AmberTheme.labelSecondary.opacity(max(0.18, 0.55 - Double(distance) * 0.12)))
-                                    .lineSpacing(6)
-                                    .blur(radius: isCurrent ? 0 : min(1.8, Double(distance) * 0.45))
-                                    .scaleEffect(isCurrent ? 1.02 : 1.0, anchor: .leading)
-                                    .animation(AmberTheme.fluidSpring, value: isCurrent)
-
-                                Text(seg.zhDisplay)
-                                    .font(.system(size: 13, weight: .regular))
-                                    .foregroundStyle(AmberTheme.labelTertiary.opacity(isCurrent ? 0.75 : 0.3))
-                                    .lineSpacing(3)
-                            }
-                        }
-                        .id(seg.index)
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            impactFeedback.impactOccurred()
-                            let targetTime = (player.trackMode == .chinese) ? seg.zhRange.start : seg.enRange.start
-                            player.seek(to: targetTime)
-                        }
+                        )
                     }
 
                     Color.clear.frame(height: 80)
@@ -95,6 +46,87 @@ public struct LyricsSubtitleView: View {
                     }
                 }
             }
+        }
+    }
+}
+
+// MARK: - Subtitle Segment Row (Decoupled for instantaneous Swift compiler type-checking)
+private struct SubtitleSegmentRow: View {
+    let seg: FullMappingSegment
+    let currentSegmentIndex: Int
+    let trackMode: TrackMode
+    let onTap: () -> Void
+
+    private var isCurrent: Bool {
+        seg.index == currentSegmentIndex
+    }
+
+    private var distance: Int {
+        abs(seg.index - currentSegmentIndex)
+    }
+
+    private var secondaryOpacity: Double {
+        max(0.18, 0.55 - Double(distance) * 0.12)
+    }
+
+    private var blurRadius: CGFloat {
+        isCurrent ? 0 : min(1.8, CGFloat(distance) * 0.45)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            // Speaker & Timestamp Pill
+            HStack(spacing: 8) {
+                Text(seg.speaker)
+                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+                    .foregroundStyle(isCurrent ? AmberTheme.primaryAmber : AmberTheme.labelTertiary)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(
+                        Capsule()
+                            .fill(isCurrent ? AmberTheme.primaryAmber.opacity(0.18) : Color.white.opacity(0.06))
+                    )
+
+                Text(formatSeconds(trackMode == .chinese ? seg.zhRange.start : seg.enRange.start))
+                    .font(.system(size: 11, weight: .regular, design: .monospaced))
+                    .foregroundStyle(AmberTheme.labelTertiary)
+
+                Spacer()
+            }
+
+            // Primary Subtitle Typography
+            if trackMode == .chinese {
+                Text(seg.zhDisplay)
+                    .font(.system(size: isCurrent ? 25 : 19, weight: isCurrent ? .bold : .medium, design: .rounded))
+                    .foregroundStyle(isCurrent ? AmberTheme.labelPrimary : AmberTheme.labelSecondary.opacity(secondaryOpacity))
+                    .lineSpacing(6)
+                    .blur(radius: blurRadius)
+                    .scaleEffect(isCurrent ? 1.02 : 1.0, anchor: .leading)
+                    .animation(AmberTheme.fluidSpring, value: isCurrent)
+
+                Text(seg.enText)
+                    .font(.system(size: 13, weight: .regular))
+                    .foregroundStyle(AmberTheme.labelTertiary.opacity(isCurrent ? 0.75 : 0.3))
+                    .lineSpacing(3)
+            } else {
+                Text(seg.enText)
+                    .font(.system(size: isCurrent ? 25 : 19, weight: isCurrent ? .bold : .medium, design: .rounded))
+                    .foregroundStyle(isCurrent ? AmberTheme.labelPrimary : AmberTheme.labelSecondary.opacity(secondaryOpacity))
+                    .lineSpacing(6)
+                    .blur(radius: blurRadius)
+                    .scaleEffect(isCurrent ? 1.02 : 1.0, anchor: .leading)
+                    .animation(AmberTheme.fluidSpring, value: isCurrent)
+
+                Text(seg.zhDisplay)
+                    .font(.system(size: 13, weight: .regular))
+                    .foregroundStyle(AmberTheme.labelTertiary.opacity(isCurrent ? 0.75 : 0.3))
+                    .lineSpacing(3)
+            }
+        }
+        .id(seg.index)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            onTap()
         }
     }
 
