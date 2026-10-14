@@ -4,7 +4,11 @@ public struct MiniPlayerView: View {
     @ObservedObject var player = DualTrackAudioPlayer.shared
     @Binding var showFullPlayer: Bool
 
-    private let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+    @State private var dragOffsetY: CGFloat = 0
+    @State private var isDragging: Bool = false
+    @State private var isPressed: Bool = false
+
+    private let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
 
     public init(showFullPlayer: Binding<Bool>) {
         self._showFullPlayer = showFullPlayer
@@ -127,11 +131,50 @@ public struct MiniPlayerView: View {
                 .frame(height: 2)
                 .clipShape(Capsule())
             }
-            .liquidGlassCapsule()
+            .liquidGlassCapsule(isPressed: isPressed || isDragging)
+            .offset(y: dragOffsetY)
+            .scaleEffect(isDragging ? 1.02 : (isPressed ? 0.97 : 1.0))
+            .animation(isDragging ? .interactiveSpring() : ForwardMotion.spring, value: dragOffsetY)
+            .animation(ForwardMotion.touchDown, value: isPressed)
             .contentShape(Rectangle())
+            .gesture(
+                DragGesture(minimumDistance: 10)
+                    .onChanged { value in
+                        isDragging = true
+                        let dy = value.translation.height
+                        if dy < 0 {
+                            // Upward drag follows finger with light resistance
+                            dragOffsetY = dy * 0.82
+                        } else {
+                            // Downward drag has strong rubber-band resistance
+                            dragOffsetY = dy * 0.18
+                        }
+                    }
+                    .onEnded { value in
+                        let dy = value.translation.height
+                        let predictedY = value.predictedEndTranslation.height
+                        if dy < -50 || predictedY < -110 {
+                            // Fling or drag upwards triggers fluid full player launch
+                            impactFeedback.impactOccurred()
+                            withAnimation(ForwardMotion.fluidSheet) {
+                                showFullPlayer = true
+                                dragOffsetY = 0
+                                isDragging = false
+                            }
+                        } else {
+                            // Snap back
+                            withAnimation(ForwardMotion.spring) {
+                                dragOffsetY = 0
+                                isDragging = false
+                            }
+                        }
+                    }
+            )
             .onTapGesture {
                 impactFeedback.impactOccurred()
-                showFullPlayer = true
+                withAnimation(ForwardMotion.fluidSheet) {
+                    showFullPlayer = true
+                }
             }
         }
     }

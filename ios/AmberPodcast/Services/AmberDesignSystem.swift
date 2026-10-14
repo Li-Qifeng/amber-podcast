@@ -85,10 +85,54 @@ public struct LiquidGlassBorder: View {
     }
 }
 
+// MARK: - Liquid Glass Specular Border with Interactive Bloom & 3D Optics
+public struct LiquidGlassBorder: View {
+    public var cornerRadius: CGFloat
+    public var isCapsule: Bool
+    public var lineWidth: CGFloat = 0.75
+    public var isPressed: Bool = false
+    public var specularCenter: UnitPoint = .topLeading
+
+    private var activeLineWidth: CGFloat {
+        isPressed ? max(1.2, lineWidth * 1.5) : lineWidth
+    }
+
+    private var rimGradient: LinearGradient {
+        LinearGradient(
+            colors: isPressed ? [
+                Color.white.opacity(0.85), // Specular bloom when pressed
+                Color.white.opacity(0.35),
+                Color.white.opacity(0.12),
+                Color.white.opacity(0.25)
+            ] : [
+                Color.white.opacity(0.42), // Ambient key light
+                Color.white.opacity(0.14),
+                Color.white.opacity(0.04), // Ambient shadow boundary
+                Color.white.opacity(0.12)
+            ],
+            startPoint: specularCenter,
+            endPoint: .bottomTrailing
+        )
+    }
+
+    public var body: some View {
+        Group {
+            if isCapsule {
+                Capsule()
+                    .strokeBorder(rimGradient, lineWidth: activeLineWidth)
+            } else {
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .strokeBorder(rimGradient, lineWidth: activeLineWidth)
+            }
+        }
+    }
+}
+
 // MARK: - Liquid Glass Modifiers (Forward & Apple Optics)
 public struct LiquidGlassCardModifier: ViewModifier {
     public var cornerRadius: CGFloat = AmberTheme.radiusCardShelf
     public var tint: Color? = nil
+    public var isPressed: Bool = false
 
     public func body(content: Content) -> some View {
         content
@@ -100,19 +144,44 @@ public struct LiquidGlassCardModifier: ViewModifier {
 
                     // Ambient inner tint & refraction depth
                     RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                        .fill(tint?.opacity(0.14) ?? AmberTheme.glassSurface)
+                        .fill(tint?.opacity(isPressed ? 0.24 : 0.14) ?? AmberTheme.glassSurface)
+
+                    // Specular Inner Light Bloom along top edge
+                    RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(isPressed ? 0.20 : 0.08),
+                                    Color.clear
+                                ],
+                                startPoint: .top,
+                                endPoint: .center
+                            )
+                        )
                 }
             )
             .overlay(
-                LiquidGlassBorder(cornerRadius: cornerRadius, isCapsule: false)
+                LiquidGlassBorder(cornerRadius: cornerRadius, isCapsule: false, isPressed: isPressed)
             )
-            .shadow(color: Color.black.opacity(0.40), radius: 16, x: 0, y: 8)
-            .shadow(color: Color.black.opacity(0.20), radius: 4, x: 0, y: 2)
+            // 3D Depth Physics: Drop shadow compresses into surface when pressed
+            .shadow(
+                color: Color.black.opacity(isPressed ? 0.25 : 0.40),
+                radius: isPressed ? 6 : 16,
+                x: 0,
+                y: isPressed ? 2 : 8
+            )
+            .shadow(
+                color: Color.black.opacity(isPressed ? 0.15 : 0.20),
+                radius: isPressed ? 2 : 4,
+                x: 0,
+                y: isPressed ? 1 : 2
+            )
     }
 }
 
 public struct LiquidGlassCapsuleModifier: ViewModifier {
     public var tint: Color? = nil
+    public var isPressed: Bool = false
 
     public func body(content: Content) -> some View {
         content
@@ -124,23 +193,47 @@ public struct LiquidGlassCapsuleModifier: ViewModifier {
 
                     // Ambient inner tint & chromatic luminescence
                     Capsule()
-                        .fill(tint?.opacity(0.16) ?? AmberTheme.glassSurfaceElevated)
+                        .fill(tint?.opacity(isPressed ? 0.26 : 0.16) ?? AmberTheme.glassSurfaceElevated)
+
+                    // Specular Top Glare
+                    Capsule()
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(isPressed ? 0.22 : 0.10),
+                                    Color.clear
+                                ],
+                                startPoint: .top,
+                                endPoint: .center
+                            )
+                        )
                 }
             )
             .overlay(
-                LiquidGlassBorder(cornerRadius: 0, isCapsule: true)
+                LiquidGlassBorder(cornerRadius: 0, isCapsule: true, isPressed: isPressed)
             )
-            .shadow(color: Color.black.opacity(0.45), radius: 20, x: 0, y: 10)
-            .shadow(color: Color.black.opacity(0.25), radius: 5, x: 0, y: 2)
+            // 3D Depth Physics: Capsule sinks closer to background upon depression
+            .shadow(
+                color: Color.black.opacity(isPressed ? 0.30 : 0.45),
+                radius: isPressed ? 8 : 20,
+                x: 0,
+                y: isPressed ? 3 : 10
+            )
+            .shadow(
+                color: Color.black.opacity(isPressed ? 0.18 : 0.25),
+                radius: isPressed ? 2 : 5,
+                x: 0,
+                y: isPressed ? 1 : 2
+            )
     }
 }
 
-// MARK: - Native Liquid Glass ButtonStyle
+// MARK: - Native Liquid Glass ButtonStyle (3D Depth & Specular Bloom)
 public struct LiquidGlassButtonStyle: ButtonStyle {
     public var tint: Color? = nil
     public var isCapsule: Bool = true
     public var cornerRadius: CGFloat = AmberTheme.radiusCardShelf
-    private let impact = UIImpactFeedbackGenerator(style: .light)
+    private let impact = UIImpactFeedbackGenerator(style: .medium)
 
     public init(tint: Color? = nil, isCapsule: Bool = true, cornerRadius: CGFloat = AmberTheme.radiusCardShelf) {
         self.tint = tint
@@ -150,20 +243,30 @@ public struct LiquidGlassButtonStyle: ButtonStyle {
 
     public func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
+            .scaleEffect(configuration.isPressed ? 0.96 : 1.0)
             .background(
                 Group {
                     if isCapsule {
                         Capsule().fill(.ultraThinMaterial)
-                            .overlay(Capsule().fill(configuration.isPressed ? (tint?.opacity(0.25) ?? Color.white.opacity(0.12)) : (tint?.opacity(0.12) ?? Color.white.opacity(0.04))))
+                            .overlay(Capsule().fill(configuration.isPressed ? (tint?.opacity(0.28) ?? Color.white.opacity(0.16)) : (tint?.opacity(0.12) ?? Color.white.opacity(0.04))))
                     } else {
                         RoundedRectangle(cornerRadius: cornerRadius, style: .continuous).fill(.ultraThinMaterial)
-                            .overlay(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous).fill(configuration.isPressed ? (tint?.opacity(0.25) ?? Color.white.opacity(0.12)) : (tint?.opacity(0.12) ?? Color.white.opacity(0.04))))
+                            .overlay(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous).fill(configuration.isPressed ? (tint?.opacity(0.28) ?? Color.white.opacity(0.16)) : (tint?.opacity(0.12) ?? Color.white.opacity(0.04))))
                     }
                 }
             )
             .overlay(
-                LiquidGlassBorder(cornerRadius: cornerRadius, isCapsule: isCapsule, lineWidth: configuration.isPressed ? 1.0 : 0.75)
+                LiquidGlassBorder(
+                    cornerRadius: cornerRadius,
+                    isCapsule: isCapsule,
+                    lineWidth: configuration.isPressed ? 1.2 : 0.75,
+                    isPressed: configuration.isPressed
+                )
+            )
+            .shadow(
+                color: Color.black.opacity(configuration.isPressed ? 0.20 : 0.35),
+                radius: configuration.isPressed ? 4 : 12,
+                y: configuration.isPressed ? 2 : 6
             )
             .animation(configuration.isPressed ? ForwardMotion.touchDown : ForwardMotion.touchUp, value: configuration.isPressed)
             .onChange(of: configuration.isPressed) { isPressed in
@@ -277,16 +380,16 @@ public extension View {
         }
     }
     
-    func frostedGlassCard(cornerRadius: CGFloat = AmberTheme.radiusCardShelf) -> some View {
-        self.modifier(LiquidGlassCardModifier(cornerRadius: cornerRadius))
+    func frostedGlassCard(cornerRadius: CGFloat = AmberTheme.radiusCardShelf, isPressed: Bool = false) -> some View {
+        self.modifier(LiquidGlassCardModifier(cornerRadius: cornerRadius, isPressed: isPressed))
     }
     
-    func liquidGlassCard(cornerRadius: CGFloat = AmberTheme.radiusCardShelf, tint: Color? = nil) -> some View {
-        self.modifier(LiquidGlassCardModifier(cornerRadius: cornerRadius, tint: tint))
+    func liquidGlassCard(cornerRadius: CGFloat = AmberTheme.radiusCardShelf, tint: Color? = nil, isPressed: Bool = false) -> some View {
+        self.modifier(LiquidGlassCardModifier(cornerRadius: cornerRadius, tint: tint, isPressed: isPressed))
     }
     
-    func liquidGlassCapsule(tint: Color? = nil) -> some View {
-        self.modifier(LiquidGlassCapsuleModifier(tint: tint))
+    func liquidGlassCapsule(tint: Color? = nil, isPressed: Bool = false) -> some View {
+        self.modifier(LiquidGlassCapsuleModifier(tint: tint, isPressed: isPressed))
     }
     
     @ViewBuilder
