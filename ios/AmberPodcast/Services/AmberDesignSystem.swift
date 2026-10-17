@@ -27,6 +27,11 @@ public enum AmberTheme {
     public static let labelQuaternary = Color(white: 0.92, opacity: 0.22)
     public static let borderSpecular = Color.white.opacity(0.12)
     
+    // Legacy Motion System Aliases
+    public static let quickSpring = Animation.spring(response: 0.22, dampingFraction: 0.88)
+    public static let fluidSpring = Animation.spring(response: 0.36, dampingFraction: 0.82)
+    public static let bouncySpring = Animation.spring(response: 0.42, dampingFraction: 0.76)
+
     // Concentric Squircle Geometry
     public static let radiusCoverHero: CGFloat = 22.0
     public static let radiusCardShelf: CGFloat = 16.0
