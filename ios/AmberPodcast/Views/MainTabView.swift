@@ -13,66 +13,72 @@ public struct MainTabView: View {
     public var body: some View {
         GeometryReader { geo in
             ZStack(alignment: .bottom) {
-                // Main Content Switching by selectedTab
-                Group {
-                    switch selectedTab {
-                    case 0:
-                        HomeLibraryView()
-                    case 1:
-                        SearchView()
-                    case 2:
-                        SettingsView()
-                    default:
-                        HomeLibraryView()
-                    }
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .ignoresSafeArea()
+                // Background Layer: Dark Obsidian
+                AmberTheme.background
+                    .ignoresSafeArea()
 
-                // Bottom Floating Stack: MiniPlayer + Liquid Glass Dock
-                VStack(spacing: 8) {
-                    // Floating MiniPlayer (Liquid Glass Capsule Island)
+                // Main Content Switching Layer
+                contentView
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .ignoresSafeArea()
+
+                // Bottom Floating Island Stack: MiniPlayer + Liquid Glass Dock
+                VStack(spacing: 10) {
                     if player.currentEpisode != nil {
                         MiniPlayerView(showFullPlayer: $showFullPlayer)
                             .frame(width: geo.size.width * AmberTheme.dockWidthRatio)
                             .transition(.move(edge: .bottom).combined(with: .opacity))
                     }
 
-                    // Floating Liquid Glass Navigation Dock
-                    floatingNavigationDock(geometry: geo)
+                    floatingLiquidDock(geometry: geo)
                 }
-                .padding(.bottom, geo.safeAreaInsets.bottom > 0 ? max(10, geo.safeAreaInsets.bottom - 4) : AmberTheme.dockBottomGap)
+                .padding(.bottom, bottomClearance(for: geo))
                 .animation(ForwardMotion.fluidSheet, value: player.currentEpisode?.id)
             }
             .ignoresSafeArea()
         }
         .ignoresSafeArea()
         .preferredColorScheme(.dark)
-        // Immersive Apple Fluid Full Screen Player
         .fullScreenCover(isPresented: $showFullPlayer) {
             FullPlayerView(isPresented: $showFullPlayer)
         }
     }
 
-    // MARK: - Floating Liquid Glass Dock
-    private func floatingNavigationDock(geometry: GeometryProxy) -> some View {
+    // MARK: - Content View
+    @ViewBuilder
+    private var contentView: some View {
+        switch selectedTab {
+        case 0:
+            HomeLibraryView()
+        case 1:
+            SearchView()
+        case 2:
+            SettingsView()
+        default:
+            HomeLibraryView()
+        }
+    }
+
+    // MARK: - Native Liquid Glass Dock
+    private func floatingLiquidDock(geometry: GeometryProxy) -> some View {
         let dockWidth = geometry.size.width * AmberTheme.dockWidthRatio
 
         return HStack(spacing: 0) {
-            dockTabButton(index: 0, icon: "square.stack.fill", title: "资料库")
-            dockTabButton(index: 1, icon: "magnifyingglass", title: "发现")
-            dockTabButton(index: 2, icon: "gearshape.fill", title: "设置")
+            dockItem(index: 0, icon: "square.stack.fill", title: "资料库")
+            dockItem(index: 1, icon: "magnifyingglass", title: "发现")
+            dockItem(index: 2, icon: "gearshape.fill", title: "设置")
         }
         .padding(4)
         .frame(width: dockWidth, height: AmberTheme.dockHeight)
         .liquidGlassCapsule()
     }
 
-    private func dockTabButton(index: Int, icon: String, title: String) -> some View {
+    private func dockItem(index: Int, icon: String, title: String) -> some View {
         let isSelected = selectedTab == index
+
         return Button {
             impactFeedback.impactOccurred()
-            withAnimation(.spring(response: 0.32, dampingFraction: 0.82)) {
+            withAnimation(ForwardMotion.mercuryTab) {
                 selectedTab = index
             }
         } label: {
@@ -82,8 +88,8 @@ public struct MainTabView: View {
                         .fill(
                             LinearGradient(
                                 colors: [
-                                    AmberTheme.primaryAmber.opacity(0.26),
-                                    AmberTheme.primaryAmber.opacity(0.10)
+                                    AmberTheme.primaryAmber.opacity(0.30),
+                                    AmberTheme.primaryAmber.opacity(0.12)
                                 ],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
@@ -94,9 +100,9 @@ public struct MainTabView: View {
                                 .strokeBorder(
                                     LinearGradient(
                                         colors: [
-                                            Color.white.opacity(0.65),
-                                            AmberTheme.primaryAmber.opacity(0.50),
-                                            Color.white.opacity(0.15)
+                                            Color.white.opacity(0.70),
+                                            AmberTheme.primaryAmber.opacity(0.55),
+                                            Color.white.opacity(0.18)
                                         ],
                                         startPoint: .topLeading,
                                         endPoint: .bottomTrailing
@@ -104,7 +110,7 @@ public struct MainTabView: View {
                                     lineWidth: 0.8
                                 )
                         )
-                        .shadow(color: AmberTheme.primaryAmber.opacity(0.35), radius: 6, y: 2)
+                        .shadow(color: AmberTheme.primaryAmber.opacity(0.40), radius: 8, y: 2)
                         .matchedGeometryEffect(id: "activeDockIndicator", in: dockNamespace)
                 }
 
@@ -122,6 +128,13 @@ public struct MainTabView: View {
             }
             .contentShape(Rectangle())
         }
-        .buttonStyle(TactileButtonStyle(scale: 0.93))
+        .buttonStyle(TactileButtonStyle(scale: 0.94))
+    }
+
+    private func bottomClearance(for geo: GeometryProxy) -> CGFloat {
+        if geo.safeAreaInsets.bottom > 0 {
+            return max(10, geo.safeAreaInsets.bottom - 4)
+        }
+        return AmberTheme.dockBottomGap
     }
 }

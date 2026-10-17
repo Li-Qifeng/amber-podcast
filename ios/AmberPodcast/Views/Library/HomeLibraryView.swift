@@ -21,24 +21,18 @@ public struct HomeLibraryView: View {
         NavigationStack {
             GeometryReader { geo in
                 ZStack {
+                    // Deep Obsidian Canvas
                     AmberTheme.background
                         .ignoresSafeArea()
 
                     if isLoading && feeds.isEmpty {
-                        VStack(spacing: 16) {
-                            ProgressView()
-                                .scaleEffect(1.2)
-                            Text("正在载入流媒体库...")
-                                .font(.system(size: 13, weight: .medium, design: .rounded))
-                                .foregroundStyle(AmberTheme.labelSecondary)
-                        }
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        loadingStateView
                     } else if feeds.isEmpty {
                         emptyStateView
                     } else {
                         ScrollView(.vertical, showsIndicators: false) {
                             VStack(alignment: .leading, spacing: 0) {
-                                // 1. Forward-style 61.8% Hero Banner
+                                // 1. Forward-style 61.8% Golden Ratio Hero Banner
                                 heroBannerSection(geometry: geo)
 
                                 // 2. Shelf: "继续收听" (16:9 Landscape Carousel with Peek)
@@ -49,13 +43,14 @@ public struct HomeLibraryView: View {
                                 subscribedChannelsShelf(geometry: geo)
                                     .padding(.top, 30)
 
-                                Color.clear.frame(height: 120) // Clearance for floating liquid glass Dock
+                                // Bottom Clearance for floating liquid glass Dock & MiniPlayer
+                                Color.clear.frame(height: 160)
                             }
                         }
                         .ignoresSafeArea(edges: .top)
                     }
 
-                    // Top Floating Minimalist Bar (Channels Switcher & Add Button)
+                    // Top Floating Minimalist Bar (Liquid Glass Capsule Island)
                     topFloatingToolbar(geometry: geo)
                 }
                 .ignoresSafeArea()
@@ -76,6 +71,18 @@ public struct HomeLibraryView: View {
         }
     }
 
+    // MARK: - Loading State
+    private var loadingStateView: some View {
+        VStack(spacing: 16) {
+            ProgressView()
+                .scaleEffect(1.2)
+            Text("正在载入流媒体库...")
+                .font(.system(size: 13, weight: .medium, design: .rounded))
+                .foregroundStyle(AmberTheme.labelSecondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
     // MARK: - 1. 61.8% Hero Banner
     @ViewBuilder
     private func heroBannerSection(geometry: GeometryProxy) -> some View {
@@ -92,9 +99,7 @@ public struct HomeLibraryView: View {
                             .scaledToFill()
                             .frame(width: geometry.size.width, height: heroHeight)
                             .clipped()
-                    case .failure, .empty:
-                        ambientHeroArtworkPlaceholder(width: geometry.size.width, height: heroHeight)
-                    @unknown default:
+                    default:
                         ambientHeroArtworkPlaceholder(width: geometry.size.width, height: heroHeight)
                     }
                 }
@@ -102,10 +107,10 @@ public struct HomeLibraryView: View {
                 ambientHeroArtworkPlaceholder(width: geometry.size.width, height: heroHeight)
             }
 
-            // Dual Falloff Linear Gradient (0% clear -> 35% falloff start -> 65% dark -> 98% pure OLED black)
+            // Dual Falloff Linear Gradient (0% clear -> 35% falloff -> 70% dark -> 98% pure OLED black)
             LinearGradient(
                 stops: [
-                    .init(color: .black.opacity(0.10), location: 0.0),
+                    .init(color: .black.opacity(0.08), location: 0.0),
                     .init(color: .black.opacity(0.25), location: 0.35),
                     .init(color: .black.opacity(0.85), location: 0.70),
                     .init(color: AmberTheme.background, location: 0.98)
@@ -115,7 +120,7 @@ public struct HomeLibraryView: View {
             )
             .frame(width: geometry.size.width, height: heroHeight)
 
-            // Hero Metadata Overlay (Floating on Gradient)
+            // Hero Metadata Overlay
             VStack(alignment: .leading, spacing: 10) {
                 // Category & Badges Line
                 HStack(spacing: 8) {
@@ -126,15 +131,15 @@ public struct HomeLibraryView: View {
                             .font(.system(size: 10.5, weight: .bold, design: .rounded))
                     }
                     .foregroundStyle(AmberTheme.primaryAmber)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 3.5)
+                    .padding(.horizontal, 9)
+                    .padding(.vertical, 4)
                     .liquidGlassCapsule(tint: AmberTheme.primaryAmber)
 
                     Text(heroFeed?.sourceType == "xiaoyuzhou" ? "小宇宙精选" : "Apple 播客")
                         .font(.system(size: 10.5, weight: .semibold, design: .rounded))
                         .foregroundStyle(AmberTheme.labelSecondary)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3.5)
+                        .padding(.horizontal, 9)
+                        .padding(.vertical, 4)
                         .liquidGlassCapsule()
                 }
 
@@ -155,7 +160,7 @@ public struct HomeLibraryView: View {
                         .shadow(color: Color.black.opacity(0.5), radius: 4, y: 2)
                 }
 
-                // Direct Play Hero CTA Pill
+                // Direct Play Hero CTA Pill (Native Liquid Glass Interaction)
                 Button {
                     if let ep = heroEpisode, let f = heroFeed {
                         playEpisode(ep, feed: f)
@@ -173,8 +178,8 @@ public struct HomeLibraryView: View {
                     .padding(.horizontal, 20)
                     .padding(.vertical, 10)
                     .background(Color.white, in: Capsule())
-                    .overlay(Capsule().stroke(Color.white.opacity(0.35), lineWidth: 0.5))
-                    .shadow(color: Color.white.opacity(0.16), radius: 16, y: 6)
+                    .overlay(Capsule().stroke(Color.white.opacity(0.40), lineWidth: 0.5))
+                    .shadow(color: Color.white.opacity(0.18), radius: 16, y: 6)
                 }
                 .buttonStyle(TactileButtonStyle(scale: 0.94))
                 .padding(.top, 4)
@@ -269,7 +274,7 @@ public struct HomeLibraryView: View {
             }
             .padding(.horizontal, AmberTheme.pageMargin)
 
-            // Horizontal Scroll Carousel with Peek
+            // Horizontal Scroll Carousel with Magnetic Snapping
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(spacing: AmberTheme.cardGap) {
                     ForEach(recentEpisodes) { ep in
@@ -287,87 +292,89 @@ public struct HomeLibraryView: View {
 
     private func landscapeCard(episode: Episode, feed: PodcastFeed, width: CGFloat, height: CGFloat) -> some View {
         let isPlayingThis = player.currentEpisode?.id == episode.id
-        return VStack(alignment: .leading, spacing: 6) {
-            // 16:9 Liquid Glass Cover with Micro Time Badge
-            ZStack(alignment: .bottomLeading) {
-                if let url = URL(string: feed.coverUrl), !feed.coverUrl.isEmpty {
-                    AsyncImage(url: url) { phase in
-                        switch phase {
-                        case .success(let img):
-                            img
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: width, height: height)
-                                .clipped()
-                        default:
-                            coverPlaceholder(width: width, height: height, title: feed.title)
-                        }
-                    }
-                } else {
-                    coverPlaceholder(width: width, height: height, title: feed.title)
-                }
 
-                // Dark Gradient Rim
-                LinearGradient(colors: [.clear, .black.opacity(0.7)], startPoint: .top, endPoint: .bottom)
-
-                // Bottom Left Liquid Glass Timecode Capsule
-                HStack(spacing: 4) {
-                    Circle()
-                        .fill(isPlayingThis ? AmberTheme.primaryAmber : Color.white)
-                        .frame(width: 5, height: 5)
-
-                    Text(formatDuration(Double(episode.duration)))
-                        .font(.system(size: 10, weight: .bold, design: .monospaced))
-                        .foregroundStyle(AmberTheme.labelPrimary)
-                }
-                .padding(.horizontal, 7)
-                .padding(.vertical, 3)
-                .liquidGlassCapsule()
-                .padding(8)
-
-                // Hairline Progress Bar along card bottom edge
-                if episode.progress > 0 {
-                    GeometryReader { pGeo in
-                        ZStack(alignment: .leading) {
-                            Rectangle().fill(Color.white.opacity(0.15))
-                            Rectangle()
-                                .fill(AmberTheme.primaryAmber)
-                                .frame(width: pGeo.size.width * CGFloat(Double(episode.progress) / 100.0))
-                        }
-                    }
-                    .frame(height: 2.5)
-                }
-            }
-            .frame(width: width, height: height)
-            .clipShape(RoundedRectangle(cornerRadius: AmberTheme.radiusCardShelf, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: AmberTheme.radiusCardShelf, style: .continuous)
-                    .strokeBorder(
-                        isPlayingThis ?
-                        LinearGradient(colors: [AmberTheme.primaryAmber, AmberTheme.primaryAmber.opacity(0.3)], startPoint: .topLeading, endPoint: .bottomTrailing) :
-                        LinearGradient(colors: [Color.white.opacity(0.25), Color.white.opacity(0.04)], startPoint: .topLeading, endPoint: .bottomTrailing),
-                        lineWidth: 0.8
-                    )
-            )
-            .shadow(color: Color.black.opacity(0.4), radius: 10, y: 5)
-
-            // L3 Card Title (13.5pt Semibold)
-            Text(episode.title)
-                .font(.system(size: 13.5, weight: .semibold, design: .rounded))
-                .foregroundStyle(isPlayingThis ? AmberTheme.primaryAmber : AmberTheme.labelPrimary)
-                .lineLimit(1)
-                .frame(width: width, alignment: .leading)
-
-            // L5 Subtitle
-            Text(feed.title)
-                .font(.system(size: 11.5, weight: .medium))
-                .foregroundStyle(AmberTheme.labelTertiary)
-                .lineLimit(1)
-                .frame(width: width, alignment: .leading)
-        }
-        .tactilePress(scale: 0.96) {
+        return Button {
             playEpisode(episode, feed: feed)
+        } label: {
+            VStack(alignment: .leading, spacing: 6) {
+                // 16:9 Liquid Glass Cover with Micro Time Badge
+                ZStack(alignment: .bottomLeading) {
+                    if let url = URL(string: feed.coverUrl), !feed.coverUrl.isEmpty {
+                        AsyncImage(url: url) { phase in
+                            switch phase {
+                            case .success(let img):
+                                img
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: width, height: height)
+                                    .clipped()
+                            default:
+                                coverPlaceholder(width: width, height: height, title: feed.title)
+                            }
+                        }
+                    } else {
+                        coverPlaceholder(width: width, height: height, title: feed.title)
+                    }
+
+                    // Bottom Falloff
+                    LinearGradient(colors: [.clear, .black.opacity(0.75)], startPoint: .top, endPoint: .bottom)
+
+                    // Bottom Left Liquid Glass Timecode Capsule
+                    HStack(spacing: 4) {
+                        Circle()
+                            .fill(isPlayingThis ? AmberTheme.primaryAmber : Color.white)
+                            .frame(width: 5, height: 5)
+
+                        Text(formatDuration(Double(episode.duration)))
+                            .font(.system(size: 10, weight: .bold, design: .monospaced))
+                            .foregroundStyle(AmberTheme.labelPrimary)
+                    }
+                    .padding(.horizontal, 7)
+                    .padding(.vertical, 3)
+                    .liquidGlassCapsule()
+                    .padding(8)
+
+                    // Hairline Progress Bar along card bottom edge
+                    if episode.progress > 0 {
+                        GeometryReader { pGeo in
+                            ZStack(alignment: .leading) {
+                                Rectangle().fill(Color.white.opacity(0.15))
+                                Rectangle()
+                                    .fill(AmberTheme.primaryAmber)
+                                    .frame(width: pGeo.size.width * CGFloat(Double(episode.progress) / 100.0))
+                            }
+                        }
+                        .frame(height: 2.5)
+                    }
+                }
+                .frame(width: width, height: height)
+                .clipShape(RoundedRectangle(cornerRadius: AmberTheme.radiusCardShelf, style: .continuous))
+                .overlay(
+                    LiquidGlassBorder(
+                        cornerRadius: AmberTheme.radiusCardShelf,
+                        isCapsule: false,
+                        lineWidth: isPlayingThis ? 1.0 : 0.75,
+                        isPressed: false
+                    )
+                )
+                .shadow(color: Color.black.opacity(0.40), radius: 10, y: 5)
+
+                // L3 Card Title (13.5pt Semibold)
+                Text(episode.title)
+                    .font(.system(size: 13.5, weight: .semibold, design: .rounded))
+                    .foregroundStyle(isPlayingThis ? AmberTheme.primaryAmber : AmberTheme.labelPrimary)
+                    .lineLimit(1)
+                    .frame(width: width, alignment: .leading)
+
+                // L5 Subtitle
+                Text(feed.title)
+                    .font(.system(size: 11.5, weight: .medium))
+                    .foregroundStyle(AmberTheme.labelTertiary)
+                    .lineLimit(1)
+                    .frame(width: width, alignment: .leading)
+            }
         }
+        .buttonStyle(TactileButtonStyle(scale: 0.95))
     }
 
     // MARK: - 3. "订阅频道" (2:3 Portrait Carousel)
@@ -416,16 +423,15 @@ public struct HomeLibraryView: View {
                                     Text(feed.sourceType == "xiaoyuzhou" ? "小宇宙" : "Apple")
                                         .font(.system(size: 8.5, weight: .bold, design: .rounded))
                                         .foregroundStyle(Color.white)
-                                        .padding(.horizontal, 5)
-                                        .padding(.vertical, 2)
+                                        .padding(.horizontal, 6)
+                                        .padding(.vertical, 2.5)
                                         .liquidGlassCapsule()
                                         .padding(6)
                                 }
                                 .frame(width: posterWidth, height: posterHeight)
                                 .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                                 .overlay(
-                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                        .strokeBorder(LinearGradient(colors: [Color.white.opacity(0.25), Color.white.opacity(0.04)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 0.75)
+                                    LiquidGlassBorder(cornerRadius: 14, isCapsule: false, lineWidth: 0.75)
                                 )
                                 .shadow(color: Color.black.opacity(0.35), radius: 8, y: 4)
 
@@ -490,8 +496,7 @@ public struct HomeLibraryView: View {
                         .frame(width: 34, height: 34)
                         .liquidGlassCapsule()
                 }
-                .buttonStyle(.plain)
-                .tactilePress(scale: 0.90)
+                .buttonStyle(TactileButtonStyle(scale: 0.90))
             }
             .padding(.horizontal, AmberTheme.pageMargin)
             .padding(.top, topSafeOffset)
@@ -535,7 +540,7 @@ public struct HomeLibraryView: View {
                     .padding(.vertical, 10)
                     .background(AmberTheme.primaryAmber, in: Capsule())
             }
-            .tactilePress()
+            .buttonStyle(TactileButtonStyle(scale: 0.95))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }

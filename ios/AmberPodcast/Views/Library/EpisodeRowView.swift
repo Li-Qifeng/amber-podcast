@@ -123,7 +123,7 @@ public struct EpisodeRowView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 14)
-        .lightweightCard(cornerRadius: 16, tint: isCurrentPlaying ? AmberTheme.primaryAmber : nil)
+        .liquidGlassCard(cornerRadius: 16, tint: isCurrentPlaying ? AmberTheme.primaryAmber : nil)
         .contentShape(Rectangle())
         .onTapGesture {
             playEpisode()
