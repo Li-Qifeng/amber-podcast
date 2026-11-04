@@ -83,41 +83,44 @@ public struct SearchView: View {
             }
         }
         .padding(.horizontal, 14)
-        .padding(.vertical, 10)
-        .liquidGlassCard(cornerRadius: 14)
+        .padding(.vertical, 9)
+        .background(AmberTheme.surfaceCard, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .strokeBorder(AmberTheme.borderHairline, lineWidth: 0.5)
+        )
     }
 
-    // MARK: - Forward / Rex Style Search Result Card
+    // MARK: - Search Result Card
     private func searchResultCard(item: PodcastFeed) -> some View {
-        HStack(spacing: 14) {
+        HStack(spacing: 12) {
             // Squircle Cover Artwork with Drop Shadow
             if let url = URL(string: item.coverUrl), !item.coverUrl.isEmpty {
                 AsyncImage(url: url) { img in
                     img
                         .resizable()
                         .scaledToFill()
-                        .frame(width: 60, height: 60)
-                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        .frame(width: 52, height: 52)
+                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                         .overlay(
-                            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                .stroke(Color.white.opacity(0.12), lineWidth: 0.5)
+                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                .stroke(AmberTheme.borderHairline, lineWidth: 0.5)
                         )
-                        .shadow(color: Color.black.opacity(0.3), radius: 6, y: 3)
                 } placeholder: {
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
                         .fill(Color(white: 0.12))
-                        .frame(width: 60, height: 60)
+                        .frame(width: 52, height: 52)
                 }
             }
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(item.title)
-                    .font(.system(size: 14.5, weight: .semibold, design: .rounded))
+                    .font(.system(size: 14, weight: .medium, design: .rounded))
                     .foregroundStyle(AmberTheme.labelPrimary)
                     .lineLimit(1)
 
                 Text(item.author)
-                    .font(.system(size: 12, weight: .medium))
+                    .font(.system(size: 11.5, weight: .regular))
                     .foregroundStyle(AmberTheme.labelSecondary)
                     .lineLimit(1)
 
@@ -131,45 +134,44 @@ public struct SearchView: View {
 
             Spacer(minLength: 4)
 
-            // Subscribe Button Capsule
+            // Subscribe Button
             Button {
                 subscribeItem(item)
             } label: {
                 if subscribingId == item.id {
                     ProgressView()
-                        .scaleEffect(0.65)
-                        .frame(width: 58, height: 28)
+                        .scaleEffect(0.60)
+                        .frame(width: 54, height: 26)
                 } else if subscribedIds.contains(item.id) {
-                    HStack(spacing: 4) {
+                    HStack(spacing: 3) {
                         Image(systemName: "checkmark")
-                            .font(.system(size: 10, weight: .bold))
+                            .font(.system(size: 9, weight: .bold))
                         Text("已订阅")
-                            .font(.system(size: 11.5, weight: .semibold, design: .rounded))
+                            .font(.system(size: 11, weight: .medium, design: .rounded))
                     }
                     .foregroundStyle(AmberTheme.accentElectric)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
-                    .background(AmberTheme.accentElectric.opacity(0.12), in: Capsule())
+                    .padding(.horizontal, 9)
+                    .padding(.vertical, 4.5)
+                    .background(AmberTheme.accentElectric.opacity(0.12), in: RoundedRectangle(cornerRadius: 6, style: .continuous))
                 } else {
-                    HStack(spacing: 4) {
+                    HStack(spacing: 3) {
                         Image(systemName: "plus")
-                            .font(.system(size: 10, weight: .bold))
+                            .font(.system(size: 9, weight: .bold))
                         Text("订阅")
-                            .font(.system(size: 11.5, weight: .bold, design: .rounded))
+                            .font(.system(size: 11, weight: .medium, design: .rounded))
                     }
                     .foregroundStyle(Color.black)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 5.5)
-                    .background(AmberTheme.primaryAmber, in: Capsule())
+                    .padding(.horizontal, 11)
+                    .padding(.vertical, 4.5)
+                    .background(Color.white, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
                 }
             }
-            .buttonStyle(.plain)
+            .buttonStyle(TactileButtonStyle(scale: 0.96))
             .disabled(subscribingId == item.id || subscribedIds.contains(item.id))
-            .amberPressable(scale: 0.94)
         }
-        .padding(.horizontal, 14)
+        .padding(.horizontal, 12)
         .padding(.vertical, 10)
-        .liquidGlassCard(cornerRadius: 16)
+        .lightweightCard(cornerRadius: 12)
     }
 
     // MARK: - Suggestions or Empty View
@@ -177,19 +179,13 @@ public struct SearchView: View {
         VStack(spacing: 24) {
             Spacer()
 
-            ZStack {
-                Circle()
-                    .fill(AmberTheme.primaryAmber.opacity(0.1))
-                    .frame(width: 76, height: 76)
-
-                Image(systemName: "magnifyingglass")
-                    .font(.system(size: 32, weight: .semibold))
-                    .foregroundStyle(AmberTheme.primaryAmber)
-            }
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 36, weight: .light))
+                .foregroundStyle(AmberTheme.labelTertiary)
 
             VStack(spacing: 6) {
                 Text("直连 Apple 播客官方目录")
-                    .font(.system(size: 17, weight: .bold, design: .rounded))
+                    .font(.system(size: 16, weight: .semibold, design: .rounded))
                     .foregroundStyle(AmberTheme.labelPrimary)
 
                 Text("输入节目名称或主播，一键订阅并享受双轨配音")
@@ -198,9 +194,9 @@ public struct SearchView: View {
             }
 
             // Quick discovery suggestion chips
-            VStack(spacing: 10) {
-                Text("热门海外精选")
-                    .font(.system(size: 11, weight: .bold))
+            VStack(spacing: 8) {
+                Text("热门精选")
+                    .font(.system(size: 11, weight: .medium))
                     .foregroundStyle(AmberTheme.labelTertiary)
 
                 HStack(spacing: 8) {
@@ -231,12 +227,15 @@ public struct SearchView: View {
             Text(text)
                 .font(.system(size: 12, weight: .medium, design: .rounded))
                 .foregroundStyle(AmberTheme.labelSecondary)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .liquidGlassCapsule()
+                .padding(.horizontal, 11)
+                .padding(.vertical, 5.5)
+                .background(AmberTheme.surfaceCard, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        .strokeBorder(AmberTheme.borderHairline, lineWidth: 0.5)
+                )
         }
-        .buttonStyle(.plain)
-        .amberPressable(scale: 0.95)
+        .buttonStyle(TactileButtonStyle(scale: 0.96))
     }
 
     // MARK: - Actions

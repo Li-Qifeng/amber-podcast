@@ -32,11 +32,15 @@ public struct FeedDetailView: View {
                                 .padding(.leading, 6)
                         } else {
                             Text("\(episodes.count) 集")
-                                .font(.system(size: 13, weight: .bold, design: .rounded))
-                                .foregroundStyle(AmberTheme.primaryAmber)
-                                .padding(.horizontal, 8)
+                                .font(.system(size: 11.5, weight: .medium, design: .monospaced))
+                                .foregroundStyle(AmberTheme.labelSecondary)
+                                .padding(.horizontal, 7)
                                 .padding(.vertical, 2.5)
-                                .background(AmberTheme.primaryAmber.opacity(0.15), in: Capsule())
+                                .background(AmberTheme.surfaceRaised, in: RoundedRectangle(cornerRadius: 4, style: .continuous))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 4, style: .continuous)
+                                        .strokeBorder(AmberTheme.borderHairline, lineWidth: 0.5)
+                                )
                         }
 
                         Spacer()
@@ -78,7 +82,7 @@ public struct FeedDetailView: View {
                             .clipShape(RoundedRectangle(cornerRadius: AmberTheme.radiusCoverHero, style: .continuous))
                             .overlay(
                                 RoundedRectangle(cornerRadius: AmberTheme.radiusCoverHero, style: .continuous)
-                                    .strokeBorder(LinearGradient(colors: [Color.white.opacity(0.35), Color.white.opacity(0.08)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 0.8)
+                                    .strokeBorder(AmberTheme.borderHairline, lineWidth: 0.5)
                             )
                             .shadow(color: Color.black.opacity(0.4), radius: 10, y: 5)
                     } placeholder: {
@@ -101,19 +105,27 @@ public struct FeedDetailView: View {
 
                     HStack(spacing: 6) {
                         Text(feed.sourceType == "xiaoyuzhou" ? "小宇宙" : "Apple 播客")
-                            .font(.system(size: 10, weight: .bold, design: .rounded))
+                            .font(.system(size: 10, weight: .medium, design: .rounded))
                             .foregroundStyle(AmberTheme.primaryAmber)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 3.5)
-                            .liquidGlassCapsule(tint: AmberTheme.primaryAmber)
+                            .padding(.horizontal, 7)
+                            .padding(.vertical, 3)
+                            .background(AmberTheme.primaryAmber.opacity(0.12), in: RoundedRectangle(cornerRadius: 4, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 4, style: .continuous)
+                                    .strokeBorder(AmberTheme.primaryAmber.opacity(0.25), lineWidth: 0.5)
+                            )
 
                         if autoTranslate {
                             Text("已开启自动双轨")
-                                .font(.system(size: 10, weight: .bold, design: .rounded))
+                                .font(.system(size: 10, weight: .medium, design: .rounded))
                                 .foregroundStyle(AmberTheme.accentElectric)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 3.5)
-                                .liquidGlassCapsule(tint: AmberTheme.accentElectric)
+                                .padding(.horizontal, 7)
+                                .padding(.vertical, 3)
+                                .background(AmberTheme.accentElectric.opacity(0.12), in: RoundedRectangle(cornerRadius: 4, style: .continuous))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 4, style: .continuous)
+                                        .strokeBorder(AmberTheme.accentElectric.opacity(0.25), lineWidth: 0.5)
+                                )
                         }
 
                         Spacer()

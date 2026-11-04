@@ -75,16 +75,20 @@ private struct SubtitleSegmentRow: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            // Speaker & Timestamp Pill
+            // Speaker & Timestamp Tag
             HStack(spacing: 8) {
                 Text(seg.speaker)
-                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+                    .font(.system(size: 11, weight: .medium, design: .rounded))
                     .foregroundStyle(isCurrent ? AmberTheme.primaryAmber : AmberTheme.labelTertiary)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 3)
+                    .padding(.horizontal, 7)
+                    .padding(.vertical, 2.5)
                     .background(
-                        Capsule()
-                            .fill(isCurrent ? AmberTheme.primaryAmber.opacity(0.18) : Color.white.opacity(0.06))
+                        RoundedRectangle(cornerRadius: 4, style: .continuous)
+                            .fill(isCurrent ? AmberTheme.primaryAmber.opacity(0.12) : AmberTheme.surfaceRaised)
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 4, style: .continuous)
+                            .strokeBorder(isCurrent ? AmberTheme.primaryAmber.opacity(0.25) : AmberTheme.borderHairline, lineWidth: 0.5)
                     )
 
                 Text(formatSeconds(trackMode == .chinese ? seg.zhRange.start : seg.enRange.start))

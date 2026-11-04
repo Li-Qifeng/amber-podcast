@@ -64,13 +64,13 @@ public struct SettingsView: View {
                                     HStack {
                                         Spacer()
                                         Text("保存服务设置")
-                                            .font(.system(size: 14, weight: .bold, design: .rounded))
+                                            .font(.system(size: 14, weight: .semibold, design: .rounded))
                                             .foregroundStyle(AmberTheme.primaryAmber)
                                         Spacer()
                                     }
-                                    .padding(.vertical, 4)
+                                    .padding(.vertical, 6)
                                 }
-                                .amberPressable(scale: 0.96)
+                                .buttonStyle(TactileButtonStyle(scale: 0.96))
                             }
                             .padding(16)
                             .liquidGlassCard(cornerRadius: 16)

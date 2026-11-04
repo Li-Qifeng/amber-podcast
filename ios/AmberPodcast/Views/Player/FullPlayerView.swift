@@ -368,9 +368,9 @@ public struct FullPlayerView: View {
                         .font(.system(size: 26, weight: .semibold))
                         .foregroundStyle(AmberTheme.labelSecondary)
                 }
-                .tactilePress(scale: 0.92)
+                .buttonStyle(TactileButtonStyle(scale: 0.94))
 
-                // Play / Pause Button with Specular Glow Ring
+                // Play / Pause Button
                 Button {
                     player.togglePlayPause()
                     impactFeedback.impactOccurred()
@@ -378,20 +378,16 @@ public struct FullPlayerView: View {
                     ZStack {
                         Circle()
                             .fill(Color.white)
-                            .frame(width: 72, height: 72)
-                            .overlay(
-                                Circle()
-                                    .strokeBorder(LinearGradient(colors: [Color.white, Color.white.opacity(0.4)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1)
-                            )
-                            .shadow(color: Color.white.opacity(0.2), radius: 14, y: 4)
+                            .frame(width: 70, height: 70)
+                            .shadow(color: Color.black.opacity(0.35), radius: 8, y: 4)
 
                         Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
-                            .font(.system(size: 30, weight: .bold))
+                            .font(.system(size: 28, weight: .bold))
                             .foregroundStyle(Color.black)
                             .offset(x: player.isPlaying ? 0 : 2)
                     }
                 }
-                .tactilePress(scale: 0.90)
+                .buttonStyle(TactileButtonStyle(scale: 0.94))
 
                 // Skip forward 30s
                 Button {
@@ -402,7 +398,7 @@ public struct FullPlayerView: View {
                         .font(.system(size: 26, weight: .semibold))
                         .foregroundStyle(AmberTheme.labelSecondary)
                 }
-                .tactilePress(scale: 0.92)
+                .buttonStyle(TactileButtonStyle(scale: 0.94))
             }
         }
     }
