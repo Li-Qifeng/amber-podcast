@@ -10,10 +10,10 @@ public struct ShownotesView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            // Forward-style Pill Tab Switcher
+            // Segmented Tab Switcher
             HStack(spacing: 4) {
-                tabButton(title: "原版 Shownotes", tag: 0)
-                tabButton(title: "AI 深度精读笔记", tag: 1, icon: "sparkles")
+                tabButton(title: "原版节目单", tag: 0)
+                tabButton(title: "精读笔记", tag: 1, icon: "doc.text")
             }
             .padding(3)
             .liquidGlassCapsule()
@@ -73,15 +73,15 @@ public struct ShownotesView: View {
                         // AI Generated Article Notes with Apple Books Editorial Typography
                         if player.articleMarkdown.isEmpty {
                             VStack(spacing: 14) {
-                                Image(systemName: "sparkles")
-                                    .font(.system(size: 40))
-                                    .foregroundStyle(AmberTheme.primaryAmber.opacity(0.6))
+                                Image(systemName: "doc.text")
+                                    .font(.system(size: 36, weight: .thin))
+                                    .foregroundStyle(AmberTheme.labelTertiary)
 
                                 Text("该单集尚未生成精读笔记")
                                     .font(.system(size: 15, weight: .medium))
                                     .foregroundStyle(AmberTheme.labelSecondary)
 
-                                Text("单集完成 AI 双轨转译后，将在此自动生成全文脉络、金句摘录与概念详解。")
+                                Text("单集完成双轨转译后，将在此生成全文脉络、金句摘录与概念详解。")
                                     .font(.system(size: 12.5))
                                     .foregroundStyle(AmberTheme.labelTertiary)
                                     .multilineTextAlignment(.center)
@@ -93,15 +93,15 @@ public struct ShownotesView: View {
                             VStack(alignment: .leading, spacing: 14) {
                                 // Editorial Header Tag
                                 HStack(spacing: 6) {
-                                    Image(systemName: "sparkles")
-                                        .font(.system(size: 11))
-                                    Text("AI 全文脉络精读")
-                                        .font(.system(size: 11, weight: .bold, design: .rounded))
+                                    Image(systemName: "doc.plaintext")
+                                        .font(.system(size: 10, weight: .medium))
+                                    Text("全文脉络精读")
+                                        .font(.system(size: 11, weight: .medium, design: .rounded))
                                 }
                                 .foregroundStyle(AmberTheme.primaryAmber)
                                 .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-                                .background(AmberTheme.primaryAmber.opacity(0.12), in: Capsule())
+                                .padding(.vertical, 3.5)
+                                .background(AmberTheme.primaryAmber.opacity(0.12), in: RoundedRectangle(cornerRadius: 4, style: .continuous))
 
                                 Text(player.articleMarkdown)
                                     .font(.system(size: 15, weight: .regular))

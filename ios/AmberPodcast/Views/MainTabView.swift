@@ -85,43 +85,22 @@ public struct MainTabView: View {
             ZStack {
                 if isSelected {
                     Capsule()
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    AmberTheme.primaryAmber.opacity(0.30),
-                                    AmberTheme.primaryAmber.opacity(0.12)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
+                        .fill(AmberTheme.surfaceRaised)
                         .overlay(
                             Capsule()
-                                .strokeBorder(
-                                    LinearGradient(
-                                        colors: [
-                                            Color.white.opacity(0.70),
-                                            AmberTheme.primaryAmber.opacity(0.55),
-                                            Color.white.opacity(0.18)
-                                        ],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    ),
-                                    lineWidth: 0.8
-                                )
+                                .strokeBorder(Color.white.opacity(0.12), lineWidth: 0.5)
                         )
-                        .shadow(color: AmberTheme.primaryAmber.opacity(0.40), radius: 8, y: 2)
                         .matchedGeometryEffect(id: "activeDockIndicator", in: dockNamespace)
                 }
 
                 VStack(spacing: 3) {
                     Image(systemName: icon)
-                        .font(.system(size: 18, weight: isSelected ? .bold : .medium))
-                        .foregroundStyle(isSelected ? Color.white : AmberTheme.labelTertiary)
-                        .scaleEffect(isSelected ? 1.08 : 1.0)
+                        .font(.system(size: 17, weight: isSelected ? .semibold : .regular))
+                        .foregroundStyle(isSelected ? AmberTheme.labelPrimary : AmberTheme.labelTertiary)
+                        .scaleEffect(isSelected ? 1.04 : 1.0)
 
                     Text(title)
-                        .font(.system(size: 10, weight: isSelected ? .bold : .medium, design: .rounded))
+                        .font(.system(size: 10, weight: isSelected ? .medium : .regular, design: .rounded))
                         .foregroundStyle(isSelected ? AmberTheme.primaryAmber : AmberTheme.labelTertiary)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)

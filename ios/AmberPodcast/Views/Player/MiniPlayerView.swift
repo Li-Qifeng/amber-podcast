@@ -40,7 +40,7 @@ public struct MiniPlayerView: View {
 
                     Spacer(minLength: 4)
 
-                    // 3. Play / Pause Button with Specular Ring
+                    // 3. Play / Pause Button with Clean Touch Target
                     Button {
                         player.togglePlayPause()
                         impactFeedback.impactOccurred()
@@ -48,16 +48,16 @@ public struct MiniPlayerView: View {
                         ZStack {
                             Circle()
                                 .fill(Color.white)
-                                .frame(width: 34, height: 34)
-                                .shadow(color: Color.white.opacity(0.25), radius: 6, y: 2)
+                                .frame(width: 32, height: 32)
+                                .shadow(color: Color.black.opacity(0.25), radius: 4, y: 2)
 
                             Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
-                                .font(.system(size: 14, weight: .bold))
+                                .font(.system(size: 13, weight: .bold))
                                 .foregroundStyle(Color.black)
                                 .offset(x: player.isPlaying ? 0 : 1)
                         }
                     }
-                    .buttonStyle(TactileButtonStyle(scale: 0.90))
+                    .buttonStyle(TactileButtonStyle(scale: 0.94))
 
                     // 4. Skip forward 30s
                     Button {
@@ -65,11 +65,11 @@ public struct MiniPlayerView: View {
                         impactFeedback.impactOccurred()
                     } label: {
                         Image(systemName: "goforward.30")
-                            .font(.system(size: 17, weight: .medium))
+                            .font(.system(size: 16, weight: .regular))
                             .foregroundStyle(AmberTheme.labelSecondary)
-                            .frame(width: 32, height: 32)
+                            .frame(width: 30, height: 30)
                     }
-                    .buttonStyle(TactileButtonStyle(scale: 0.90))
+                    .buttonStyle(TactileButtonStyle(scale: 0.94))
                 }
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8)
@@ -150,21 +150,19 @@ public struct MiniPlayerView: View {
     }
 
     private var trackModeBadge: some View {
-        HStack(spacing: 3) {
-            if player.trackMode == .chinese {
-                Image(systemName: "sparkles")
-                    .font(.system(size: 7.5, weight: .bold))
-            }
-            Text(player.trackMode.title)
-                .font(.system(size: 9, weight: .bold, design: .rounded))
-        }
-        .foregroundStyle(player.trackMode == .chinese ? AmberTheme.primaryAmber : AmberTheme.labelTertiary)
-        .padding(.horizontal, 6)
-        .padding(.vertical, 2)
-        .background(
-            Capsule()
-                .fill(player.trackMode == .chinese ? AmberTheme.primaryAmber.opacity(0.15) : Color.white.opacity(0.06))
-        )
+        Text(player.trackMode.title)
+            .font(.system(size: 9.5, weight: .medium, design: .rounded))
+            .foregroundStyle(player.trackMode == .chinese ? AmberTheme.primaryAmber : AmberTheme.labelTertiary)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .background(
+                RoundedRectangle(cornerRadius: 4, style: .continuous)
+                    .fill(player.trackMode == .chinese ? AmberTheme.primaryAmber.opacity(0.12) : AmberTheme.surfaceRaised)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 4, style: .continuous)
+                    .strokeBorder(player.trackMode == .chinese ? AmberTheme.primaryAmber.opacity(0.25) : AmberTheme.borderHairline, lineWidth: 0.5)
+            )
     }
 
     private var progressBarView: some View {

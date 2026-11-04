@@ -256,13 +256,8 @@ public struct FullPlayerView: View {
                     }
                 } label: {
                     HStack(spacing: 5) {
-                        if mode == .chinese {
-                            Image(systemName: "sparkles")
-                                .font(.system(size: 10.5, weight: .bold))
-                                .foregroundStyle(isSelected ? AmberTheme.primaryAmber : AmberTheme.labelTertiary)
-                        }
                         Text(mode.title)
-                            .font(.system(size: 12, weight: isSelected ? .bold : .medium, design: .rounded))
+                            .font(.system(size: 12, weight: isSelected ? .semibold : .regular, design: .rounded))
                             .foregroundStyle(isSelected ? AmberTheme.labelPrimary : AmberTheme.labelSecondary)
                     }
                     .padding(.horizontal, 14)

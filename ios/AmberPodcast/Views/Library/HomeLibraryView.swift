@@ -13,7 +13,7 @@ public struct HomeLibraryView: View {
     @State private var errorMessage: String? = nil
 
     @ObservedObject var player = DualTrackAudioPlayer.shared
-    private let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+    private let impactFeedback = UIImpactFeedbackGenerator(style: .light)
 
     public init() {}
 
@@ -21,7 +21,7 @@ public struct HomeLibraryView: View {
         NavigationStack {
             GeometryReader { geo in
                 ZStack {
-                    // Deep Obsidian Canvas
+                    // Deep Graphite Canvas
                     AmberTheme.background
                         .ignoresSafeArea()
 
@@ -32,25 +32,25 @@ public struct HomeLibraryView: View {
                     } else {
                         ScrollView(.vertical, showsIndicators: false) {
                             VStack(alignment: .leading, spacing: 0) {
-                                // 1. Forward-style 61.8% Golden Ratio Hero Banner
+                                // 1. Quiet Acoustic Hero Banner (58% Balanced Proportion)
                                 heroBannerSection(geometry: geo)
 
-                                // 2. Shelf: "继续收听" (16:9 Landscape Carousel with Peek)
+                                // 2. Shelf: "继续收听" (16:9 Precision Carousel)
                                 continueListeningShelf(geometry: geo)
-                                    .padding(.top, 24)
+                                    .padding(.top, 20)
 
                                 // 3. Shelf: "订阅频道" (2:3 Portrait Carousel)
                                 subscribedChannelsShelf(geometry: geo)
-                                    .padding(.top, 30)
+                                    .padding(.top, 28)
 
-                                // Bottom Clearance for floating liquid glass Dock & MiniPlayer
-                                Color.clear.frame(height: 160)
+                                // Bottom Clearance for floating Dock & MiniPlayer
+                                Color.clear.frame(height: 140)
                             }
                         }
                         .ignoresSafeArea(edges: .top)
                     }
 
-                    // Top Floating Minimalist Bar (Liquid Glass Capsule Island)
+                    // Top Minimalist Header
                     topFloatingToolbar(geometry: geo)
                 }
                 .ignoresSafeArea()
@@ -73,23 +73,23 @@ public struct HomeLibraryView: View {
 
     // MARK: - Loading State
     private var loadingStateView: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 12) {
             ProgressView()
-                .scaleEffect(1.2)
-            Text("正在载入流媒体库...")
-                .font(.system(size: 13, weight: .medium, design: .rounded))
+                .scaleEffect(1.0)
+            Text("载入中")
+                .font(.system(size: 13, weight: .regular))
                 .foregroundStyle(AmberTheme.labelSecondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    // MARK: - 1. 61.8% Hero Banner
+    // MARK: - 1. Acoustic Hero Banner
     @ViewBuilder
     private func heroBannerSection(geometry: GeometryProxy) -> some View {
         let heroHeight = geometry.size.height * AmberTheme.heroBannerRatio
 
         ZStack(alignment: .bottomLeading) {
-            // Ambient Backdrop Artwork
+            // High-Resolution Artwork Layer
             if let coverUrl = heroFeed?.coverUrl, let url = URL(string: coverUrl), !coverUrl.isEmpty {
                 AsyncImage(url: url) { phase in
                     switch phase {
@@ -107,12 +107,12 @@ public struct HomeLibraryView: View {
                 ambientHeroArtworkPlaceholder(width: geometry.size.width, height: heroHeight)
             }
 
-            // Dual Falloff Linear Gradient (0% clear -> 35% falloff -> 70% dark -> 98% pure OLED black)
+            // Natural Tone Falloff (Calm contrast transition to pure OLED black)
             LinearGradient(
                 stops: [
-                    .init(color: .black.opacity(0.08), location: 0.0),
-                    .init(color: .black.opacity(0.25), location: 0.35),
-                    .init(color: .black.opacity(0.85), location: 0.70),
+                    .init(color: .black.opacity(0.04), location: 0.0),
+                    .init(color: .black.opacity(0.20), location: 0.40),
+                    .init(color: .black.opacity(0.80), location: 0.72),
                     .init(color: AmberTheme.background, location: 0.98)
                 ],
                 startPoint: .top,
@@ -120,72 +120,74 @@ public struct HomeLibraryView: View {
             )
             .frame(width: geometry.size.width, height: heroHeight)
 
-            // Hero Metadata Overlay
-            VStack(alignment: .leading, spacing: 10) {
-                // Category & Badges Line
-                HStack(spacing: 8) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "sparkles")
-                            .font(.system(size: 10, weight: .bold))
-                        Text("AI 旗舰双轨")
-                            .font(.system(size: 10.5, weight: .bold, design: .rounded))
-                    }
-                    .foregroundStyle(AmberTheme.primaryAmber)
-                    .padding(.horizontal, 9)
-                    .padding(.vertical, 4)
-                    .liquidGlassCapsule(tint: AmberTheme.primaryAmber)
+            // Hero Typography Overlay
+            VStack(alignment: .leading, spacing: 8) {
+                // Honest Technical Badges (No Sparkle Slop)
+                HStack(spacing: 6) {
+                    Text("双轨同传")
+                        .font(.system(size: 10, weight: .medium, design: .rounded))
+                        .foregroundStyle(AmberTheme.primaryAmber)
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 3)
+                        .background(AmberTheme.primaryAmber.opacity(0.12), in: RoundedRectangle(cornerRadius: AmberTheme.radiusBadge, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: AmberTheme.radiusBadge, style: .continuous)
+                                .strokeBorder(AmberTheme.primaryAmber.opacity(0.25), lineWidth: 0.5)
+                        )
 
                     Text(heroFeed?.sourceType == "xiaoyuzhou" ? "小宇宙精选" : "Apple 播客")
-                        .font(.system(size: 10.5, weight: .semibold, design: .rounded))
+                        .font(.system(size: 10, weight: .regular))
                         .foregroundStyle(AmberTheme.labelSecondary)
-                        .padding(.horizontal, 9)
-                        .padding(.vertical, 4)
-                        .liquidGlassCapsule()
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 3)
+                        .background(AmberTheme.surfaceRaised, in: RoundedRectangle(cornerRadius: AmberTheme.radiusBadge, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: AmberTheme.radiusBadge, style: .continuous)
+                                .strokeBorder(AmberTheme.borderHairline, lineWidth: 0.5)
+                        )
                 }
 
-                // L1 Hero Title (~26pt Bold)
+                // L1 Hero Title (San Francisco, 24pt Medium-Bold)
                 Text(heroEpisode?.title ?? (heroFeed?.title ?? "精选播客"))
-                    .font(.system(size: 26, weight: .bold, design: .rounded))
+                    .font(.system(size: 24, weight: .bold, design: .rounded))
                     .foregroundStyle(AmberTheme.labelPrimary)
                     .lineLimit(2)
-                    .shadow(color: Color.black.opacity(0.6), radius: 8, y: 4)
+                    .shadow(color: Color.black.opacity(0.7), radius: 6, y: 3)
 
-                // L4 Synopsis (2 lines max)
+                // L4 Synopsis (Clean, calm reading snippet)
                 if let shownotes = heroEpisode?.shownotes, !shownotes.isEmpty {
                     Text(cleanSnippet(shownotes))
                         .font(.system(size: 12.5, weight: .regular))
                         .foregroundStyle(AmberTheme.labelSecondary)
-                        .lineSpacing(3.5)
+                        .lineSpacing(3)
                         .lineLimit(2)
-                        .shadow(color: Color.black.opacity(0.5), radius: 4, y: 2)
+                        .shadow(color: Color.black.opacity(0.5), radius: 3, y: 1)
                 }
 
-                // Direct Play Hero CTA Pill (Native Liquid Glass Interaction)
+                // Primary CTA (Solid White, Nested Radius, No Glow Aura)
                 Button {
                     if let ep = heroEpisode, let f = heroFeed {
                         playEpisode(ep, feed: f)
                     }
                 } label: {
-                    HStack(spacing: 8) {
+                    HStack(spacing: 6) {
                         Image(systemName: isHeroPlaying ? "pause.fill" : "play.fill")
-                            .font(.system(size: 12, weight: .bold))
-                            .foregroundStyle(Color.black)
+                            .font(.system(size: 11, weight: .bold))
 
-                        Text(isHeroPlaying ? "正在播放" : "立即收听双轨")
-                            .font(.system(size: 13, weight: .bold, design: .rounded))
-                            .foregroundStyle(Color.black)
+                        Text(isHeroPlaying ? "正在播放" : "收听双轨")
+                            .font(.system(size: 13, weight: .semibold, design: .rounded))
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 10)
-                    .background(Color.white, in: Capsule())
-                    .overlay(Capsule().stroke(Color.white.opacity(0.40), lineWidth: 0.5))
-                    .shadow(color: Color.white.opacity(0.18), radius: 16, y: 6)
+                    .foregroundStyle(Color.black)
+                    .padding(.horizontal, 18)
+                    .padding(.vertical, 9)
+                    .background(Color.white, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .shadow(color: Color.black.opacity(0.25), radius: 6, y: 3)
                 }
-                .buttonStyle(TactileButtonStyle(scale: 0.94))
+                .buttonStyle(TactileButtonStyle(scale: 0.96))
                 .padding(.top, 4)
             }
             .padding(.horizontal, AmberTheme.pageMargin)
-            .padding(.bottom, 20)
+            .padding(.bottom, 16)
         }
         .frame(width: geometry.size.width, height: heroHeight)
         .contentShape(Rectangle())
@@ -200,31 +202,18 @@ public struct HomeLibraryView: View {
         ZStack {
             LinearGradient(
                 colors: [
-                    Color(red: 0.16, green: 0.10, blue: 0.04),
-                    Color(red: 0.08, green: 0.06, blue: 0.12),
-                    Color.black
+                    Color(red: 0.12, green: 0.12, blue: 0.14),
+                    Color(red: 0.06, green: 0.06, blue: 0.07)
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
             .frame(width: width, height: height)
 
-            Circle()
-                .fill(AmberTheme.primaryAmber.opacity(0.18))
-                .frame(width: width * 0.7, height: width * 0.7)
-                .blur(radius: 50)
-                .offset(y: -40)
-
-            Image(systemName: "waveform.circle.fill")
-                .font(.system(size: 72, weight: .light))
-                .foregroundStyle(
-                    LinearGradient(
-                        colors: [AmberTheme.primaryAmber.opacity(0.5), Color.white.opacity(0.1)],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
-                .offset(y: -30)
+            Image(systemName: "waveform.circle")
+                .font(.system(size: 64, weight: .thin))
+                .foregroundStyle(AmberTheme.labelTertiary.opacity(0.40))
+                .offset(y: -24)
         }
     }
 
@@ -234,42 +223,38 @@ public struct HomeLibraryView: View {
 
     private func coverPlaceholder(width: CGFloat, height: CGFloat, title: String) -> some View {
         ZStack {
-            LinearGradient(
-                colors: [Color(white: 0.18), Color(white: 0.08)],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
+            Color(red: 0.10, green: 0.10, blue: 0.12)
             VStack(spacing: 6) {
-                Image(systemName: "headphones.circle.fill")
-                    .font(.system(size: min(width, height) * 0.28))
-                    .foregroundStyle(AmberTheme.primaryAmber.opacity(0.85))
+                Image(systemName: "headphones")
+                    .font(.system(size: min(width, height) * 0.24, weight: .light))
+                    .foregroundStyle(AmberTheme.labelTertiary)
                 Text(title)
-                    .font(.system(size: 11, weight: .bold, design: .rounded))
-                    .foregroundStyle(Color.white.opacity(0.75))
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(AmberTheme.labelSecondary)
                     .lineLimit(1)
-                    .padding(.horizontal, 10)
+                    .padding(.horizontal, 8)
             }
         }
         .frame(width: width, height: height)
     }
 
-    // MARK: - 2. "继续收听" (16:9 Landscape Carousel with Peek 35%)
+    // MARK: - 2. "继续收听" (16:9 Landscape Carousel)
     @ViewBuilder
     private func continueListeningShelf(geometry: GeometryProxy) -> some View {
         let cardWidth = geometry.size.width * AmberTheme.cardShelfWidthRatio
         let cardHeight = cardWidth / AmberTheme.cardShelfAspectRatio
 
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 12) {
             // L2 Section Header
             HStack(alignment: .firstTextBaseline) {
                 Text("继续收听")
-                    .font(.system(size: 18, weight: .bold, design: .rounded))
+                    .font(.system(size: 17, weight: .semibold, design: .rounded))
                     .foregroundStyle(AmberTheme.labelPrimary)
 
                 Spacer()
 
                 Text("最新 \(recentEpisodes.count)")
-                    .font(.system(size: 11.5, weight: .semibold, design: .monospaced))
+                    .font(.system(size: 11, weight: .medium, design: .monospaced))
                     .foregroundStyle(AmberTheme.labelTertiary)
             }
             .padding(.horizontal, AmberTheme.pageMargin)
@@ -297,7 +282,7 @@ public struct HomeLibraryView: View {
             playEpisode(episode, feed: feed)
         } label: {
             VStack(alignment: .leading, spacing: 6) {
-                // 16:9 Liquid Glass Cover with Micro Time Badge
+                // 16:9 Card Artwork
                 ZStack(alignment: .bottomLeading) {
                     if let url = URL(string: feed.coverUrl), !feed.coverUrl.isEmpty {
                         AsyncImage(url: url) { phase in
@@ -316,85 +301,81 @@ public struct HomeLibraryView: View {
                         coverPlaceholder(width: width, height: height, title: feed.title)
                     }
 
-                    // Bottom Falloff
-                    LinearGradient(colors: [.clear, .black.opacity(0.75)], startPoint: .top, endPoint: .bottom)
+                    // Subtle Bottom Vignette
+                    LinearGradient(colors: [.clear, .black.opacity(0.65)], startPoint: .top, endPoint: .bottom)
 
-                    // Bottom Left Liquid Glass Timecode Capsule
-                    HStack(spacing: 4) {
-                        Circle()
-                            .fill(isPlayingThis ? AmberTheme.primaryAmber : Color.white)
-                            .frame(width: 5, height: 5)
-
+                    // Minimal Acoustic Timecode Tag (No Floating Pill Slop)
+                    HStack(spacing: 3) {
                         Text(formatDuration(Double(episode.duration)))
-                            .font(.system(size: 10, weight: .bold, design: .monospaced))
+                            .font(.system(size: 9.5, weight: .medium, design: .monospaced))
                             .foregroundStyle(AmberTheme.labelPrimary)
                     }
-                    .padding(.horizontal, 7)
-                    .padding(.vertical, 3)
-                    .liquidGlassCapsule()
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2.5)
+                    .background(Color.black.opacity(0.70), in: RoundedRectangle(cornerRadius: 4, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 4, style: .continuous)
+                            .strokeBorder(Color.white.opacity(0.10), lineWidth: 0.5)
+                    )
                     .padding(8)
 
-                    // Hairline Progress Bar along card bottom edge
+                    // Hairline Progress Bar
                     if episode.progress > 0 {
                         GeometryReader { pGeo in
                             ZStack(alignment: .leading) {
-                                Rectangle().fill(Color.white.opacity(0.15))
+                                Rectangle().fill(Color.white.opacity(0.12))
                                 Rectangle()
                                     .fill(AmberTheme.primaryAmber)
                                     .frame(width: pGeo.size.width * CGFloat(Double(episode.progress) / 100.0))
                             }
                         }
-                        .frame(height: 2.5)
+                        .frame(height: 2)
                     }
                 }
                 .frame(width: width, height: height)
                 .clipShape(RoundedRectangle(cornerRadius: AmberTheme.radiusCardShelf, style: .continuous))
                 .overlay(
-                    LiquidGlassBorder(
-                        cornerRadius: AmberTheme.radiusCardShelf,
-                        isCapsule: false,
-                        lineWidth: isPlayingThis ? 1.0 : 0.75,
-                        isPressed: false
-                    )
+                    RoundedRectangle(cornerRadius: AmberTheme.radiusCardShelf, style: .continuous)
+                        .strokeBorder(isPlayingThis ? AmberTheme.primaryAmber.opacity(0.40) : AmberTheme.borderHairline, lineWidth: 0.5)
                 )
-                .shadow(color: Color.black.opacity(0.40), radius: 10, y: 5)
+                .shadow(color: Color.black.opacity(0.30), radius: 6, y: 3)
 
-                // L3 Card Title (13.5pt Semibold)
+                // L3 Title (13pt, Medium weight)
                 Text(episode.title)
-                    .font(.system(size: 13.5, weight: .semibold, design: .rounded))
+                    .font(.system(size: 13, weight: .medium, design: .rounded))
                     .foregroundStyle(isPlayingThis ? AmberTheme.primaryAmber : AmberTheme.labelPrimary)
                     .lineLimit(1)
                     .frame(width: width, alignment: .leading)
 
-                // L5 Subtitle
+                // L5 Subtitle (11pt, Muted)
                 Text(feed.title)
-                    .font(.system(size: 11.5, weight: .medium))
+                    .font(.system(size: 11, weight: .regular))
                     .foregroundStyle(AmberTheme.labelTertiary)
                     .lineLimit(1)
                     .frame(width: width, alignment: .leading)
             }
         }
-        .buttonStyle(TactileButtonStyle(scale: 0.95))
+        .buttonStyle(TactileButtonStyle(scale: 0.97))
     }
 
     // MARK: - 3. "订阅频道" (2:3 Portrait Carousel)
     @ViewBuilder
     private func subscribedChannelsShelf(geometry: GeometryProxy) -> some View {
-        let posterWidth: CGFloat = 114.0
+        let posterWidth: CGFloat = 110.0
         let posterHeight = posterWidth * 1.45
 
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text("订阅频道")
-                    .font(.system(size: 18, weight: .bold, design: .rounded))
+                    .font(.system(size: 17, weight: .semibold, design: .rounded))
                     .foregroundStyle(AmberTheme.labelPrimary)
 
                 Spacer()
 
                 NavigationLink(destination: AllChannelsListView(feeds: feeds)) {
-                    Text("查看全部 >")
-                        .font(.system(size: 12, weight: .semibold, design: .rounded))
-                        .foregroundStyle(AmberTheme.primaryAmber)
+                    Text("全部")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(AmberTheme.labelSecondary)
                 }
             }
             .padding(.horizontal, AmberTheme.pageMargin)
@@ -419,36 +400,37 @@ public struct HomeLibraryView: View {
                                         coverPlaceholder(width: posterWidth, height: posterHeight, title: feed.title)
                                     }
 
-                                    // Source Tag
+                                    // Quiet Source Tag
                                     Text(feed.sourceType == "xiaoyuzhou" ? "小宇宙" : "Apple")
-                                        .font(.system(size: 8.5, weight: .bold, design: .rounded))
-                                        .foregroundStyle(Color.white)
-                                        .padding(.horizontal, 6)
-                                        .padding(.vertical, 2.5)
-                                        .liquidGlassCapsule()
-                                        .padding(6)
+                                        .font(.system(size: 8.5, weight: .regular))
+                                        .foregroundStyle(Color.white.opacity(0.85))
+                                        .padding(.horizontal, 5)
+                                        .padding(.vertical, 2)
+                                        .background(Color.black.opacity(0.70), in: RoundedRectangle(cornerRadius: 3, style: .continuous))
+                                        .padding(5)
                                 }
                                 .frame(width: posterWidth, height: posterHeight)
-                                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                                 .overlay(
-                                    LiquidGlassBorder(cornerRadius: 14, isCapsule: false, lineWidth: 0.75)
+                                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                        .strokeBorder(AmberTheme.borderHairline, lineWidth: 0.5)
                                 )
-                                .shadow(color: Color.black.opacity(0.35), radius: 8, y: 4)
+                                .shadow(color: Color.black.opacity(0.25), radius: 5, y: 2)
 
                                 Text(feed.title)
-                                    .font(.system(size: 12.5, weight: .semibold, design: .rounded))
+                                    .font(.system(size: 12, weight: .medium))
                                     .foregroundStyle(AmberTheme.labelPrimary)
                                     .lineLimit(1)
                                     .frame(width: posterWidth, alignment: .leading)
 
                                 Text(feed.author)
-                                    .font(.system(size: 11, weight: .medium))
+                                    .font(.system(size: 10.5, weight: .regular))
                                     .foregroundStyle(AmberTheme.labelTertiary)
                                     .lineLimit(1)
                                     .frame(width: posterWidth, alignment: .leading)
                             }
                         }
-                        .buttonStyle(TactileButtonStyle(scale: 0.95))
+                        .buttonStyle(TactileButtonStyle(scale: 0.97))
                     }
                 }
                 .padding(.horizontal, AmberTheme.pageMargin)
@@ -458,31 +440,36 @@ public struct HomeLibraryView: View {
         }
     }
 
-    // MARK: - Top Floating Toolbar (Glass Capsule)
+    // MARK: - Top Floating Minimalist Bar
     private var topSafeOffset: CGFloat {
         if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
            let window = scene.windows.first(where: { $0.isKeyWindow }) {
             let top = window.safeAreaInsets.top
-            return top > 0 ? top + 8 : 58
+            return top > 0 ? top + 6 : 54
         }
-        return 58
+        return 54
     }
 
     private func topFloatingToolbar(geometry: GeometryProxy) -> some View {
         VStack {
             HStack {
-                HStack(spacing: 6) {
+                // Quiet Brand Signature: Sentence case, no screaming uppercase
+                HStack(spacing: 8) {
                     Image(systemName: "waveform")
-                        .font(.system(size: 11, weight: .bold))
+                        .font(.system(size: 13, weight: .semibold))
                         .foregroundStyle(AmberTheme.primaryAmber)
 
-                    Text("AMBER PODCAST")
-                        .font(.system(size: 11, weight: .bold, design: .rounded))
+                    Text("Amber")
+                        .font(.system(size: 15, weight: .semibold, design: .rounded))
                         .foregroundStyle(AmberTheme.labelPrimary)
                 }
                 .padding(.horizontal, 12)
-                .padding(.vertical, 7)
-                .liquidGlassCapsule()
+                .padding(.vertical, 6)
+                .background(AmberTheme.surfaceCard, in: RoundedRectangle(cornerRadius: AmberTheme.radiusControl, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: AmberTheme.radiusControl, style: .continuous)
+                        .strokeBorder(AmberTheme.borderHairline, lineWidth: 0.5)
+                )
 
                 Spacer()
 
@@ -491,12 +478,16 @@ public struct HomeLibraryView: View {
                     showSubscribeSheet = true
                 } label: {
                     Image(systemName: "plus")
-                        .font(.system(size: 13, weight: .bold))
+                        .font(.system(size: 13, weight: .medium))
                         .foregroundStyle(AmberTheme.labelPrimary)
-                        .frame(width: 34, height: 34)
-                        .liquidGlassCapsule()
+                        .frame(width: 32, height: 32)
+                        .background(AmberTheme.surfaceCard, in: RoundedRectangle(cornerRadius: AmberTheme.radiusControl, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: AmberTheme.radiusControl, style: .continuous)
+                                .strokeBorder(AmberTheme.borderHairline, lineWidth: 0.5)
+                        )
                 }
-                .buttonStyle(TactileButtonStyle(scale: 0.90))
+                .buttonStyle(TactileButtonStyle(scale: 0.95))
             }
             .padding(.horizontal, AmberTheme.pageMargin)
             .padding(.top, topSafeOffset)
@@ -505,27 +496,20 @@ public struct HomeLibraryView: View {
         }
     }
 
-    // MARK: - Empty State
+    // MARK: - Empty State (Quiet & Clear)
     private var emptyStateView: some View {
-        VStack(spacing: 20) {
-            ZStack {
-                Circle()
-                    .fill(AmberTheme.primaryAmber.opacity(0.12))
-                    .frame(width: 84, height: 84)
+        VStack(spacing: 16) {
+            Image(systemName: "headphones")
+                .font(.system(size: 36, weight: .thin))
+                .foregroundStyle(AmberTheme.labelTertiary)
+                .padding(.top, 60)
 
-                Image(systemName: "waveform.badge.plus")
-                    .font(.system(size: 38))
-                    .foregroundStyle(AmberTheme.primaryAmber)
-            }
-            .ambientGlow()
-            .padding(.top, 60)
-
-            Text("流媒体资料库暂无播客")
-                .font(.system(size: 20, weight: .bold, design: .rounded))
+            Text("资料库暂无播客")
+                .font(.system(size: 18, weight: .semibold, design: .rounded))
                 .foregroundStyle(AmberTheme.labelPrimary)
 
-            Text("轻触右上角 ＋ 粘贴 Apple Podcasts 或小宇宙链接，或前往发现页搜索")
-                .font(.system(size: 13))
+            Text("轻触右上角 ＋ 粘贴 Apple Podcasts 或小宇宙链接")
+                .font(.system(size: 13, weight: .regular))
                 .foregroundStyle(AmberTheme.labelTertiary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)
@@ -533,14 +517,14 @@ public struct HomeLibraryView: View {
             Button {
                 showSubscribeSheet = true
             } label: {
-                Text("订阅首个播客")
-                    .font(.system(size: 14, weight: .bold, design: .rounded))
+                Text("订阅播客")
+                    .font(.system(size: 13, weight: .medium, design: .rounded))
                     .foregroundStyle(Color.black)
-                    .padding(.horizontal, 22)
-                    .padding(.vertical, 10)
-                    .background(AmberTheme.primaryAmber, in: Capsule())
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 9)
+                    .background(Color.white, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
             }
-            .buttonStyle(TactileButtonStyle(scale: 0.95))
+            .buttonStyle(TactileButtonStyle(scale: 0.96))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -551,32 +535,40 @@ public struct HomeLibraryView: View {
             ZStack {
                 AmberTheme.background.ignoresSafeArea()
 
-                VStack(spacing: 20) {
-                    VStack(alignment: .leading, spacing: 8) {
+                VStack(spacing: 18) {
+                    VStack(alignment: .leading, spacing: 6) {
                         Text("RSS 订阅源或播客 URL")
-                            .font(.system(size: 12, weight: .bold))
-                            .foregroundStyle(AmberTheme.labelTertiary)
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(AmberTheme.labelSecondary)
 
                         TextField("粘贴 Apple Podcasts / 小宇宙链接", text: $newUrlInput)
                             .font(.system(size: 14))
-                            .padding(14)
-                            .liquidGlassCard(cornerRadius: 14)
+                            .padding(12)
+                            .background(AmberTheme.surfaceCard, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                    .strokeBorder(AmberTheme.borderHairline, lineWidth: 0.5)
+                            )
                             .autocorrectionDisabled()
                             .textInputAutocapitalization(.never)
                     }
 
                     Toggle(isOn: $newAutoTranslate) {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("自动 AI 双轨转译")
-                                .font(.system(size: 14, weight: .semibold))
-                            Text("新单集入库后自动生成中文配音与对齐字幕")
+                            Text("自动双轨转译")
+                                .font(.system(size: 14, weight: .medium))
+                            Text("新单集入库后生成中文配音与对齐字幕")
                                 .font(.system(size: 11))
                                 .foregroundStyle(AmberTheme.labelTertiary)
                         }
                     }
                     .tint(AmberTheme.primaryAmber)
-                    .padding(14)
-                    .liquidGlassCard(cornerRadius: 14)
+                    .padding(12)
+                    .background(AmberTheme.surfaceCard, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .strokeBorder(AmberTheme.borderHairline, lineWidth: 0.5)
+                    )
 
                     if let err = errorMessage {
                         Text(err).font(.caption).foregroundStyle(Color.red)
@@ -590,13 +582,13 @@ public struct HomeLibraryView: View {
                         HStack {
                             Spacer()
                             if isSubscribing { ProgressView().padding(.trailing, 6) }
-                            Text(isSubscribing ? "正在解析添加..." : "确认订阅")
-                                .font(.system(size: 15, weight: .bold, design: .rounded))
+                            Text(isSubscribing ? "正在解析..." : "确认订阅")
+                                .font(.system(size: 14, weight: .semibold, design: .rounded))
                                 .foregroundStyle(Color.black)
                             Spacer()
                         }
-                        .padding(.vertical, 14)
-                        .background(AmberTheme.primaryAmber, in: Capsule())
+                        .padding(.vertical, 12)
+                        .background(Color.white, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                     }
                     .disabled(newUrlInput.trimmingCharacters(in: .whitespaces).isEmpty || isSubscribing)
                 }
@@ -717,18 +709,18 @@ public struct AllChannelsListView: View {
                     HStack(spacing: 12) {
                         if let url = URL(string: f.coverUrl), !f.coverUrl.isEmpty {
                             AsyncImage(url: url) { img in
-                                img.resizable().scaledToFill().frame(width: 44, height: 44).clipShape(RoundedRectangle(cornerRadius: 10))
+                                img.resizable().scaledToFill().frame(width: 44, height: 44).clipShape(RoundedRectangle(cornerRadius: 8))
                             } placeholder: {
                                 Rectangle().fill(Color(white: 0.12)).frame(width: 44, height: 44)
                             }
                         }
                         VStack(alignment: .leading, spacing: 3) {
-                            Text(f.title).font(.system(size: 14, weight: .semibold)).foregroundStyle(AmberTheme.labelPrimary)
+                            Text(f.title).font(.system(size: 14, weight: .medium)).foregroundStyle(AmberTheme.labelPrimary)
                             Text(f.author).font(.system(size: 12)).foregroundStyle(AmberTheme.labelTertiary)
                         }
                     }
                 }
-                .listRowBackground(AmberTheme.glassSurface)
+                .listRowBackground(AmberTheme.surfaceCard)
             }
             .scrollContentBackground(.hidden)
         }

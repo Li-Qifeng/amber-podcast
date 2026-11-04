@@ -66,30 +66,31 @@ public struct EpisodeRowView: View {
 
             // 4. Bottom Action Bar (Forward-Style Minimalist Capsules)
             HStack(spacing: 10) {
-                // Play / Pause Capsule Button
+                // Play / Pause Button
                 Button {
                     playEpisode()
                 } label: {
-                    HStack(spacing: 6) {
+                    HStack(spacing: 5) {
                         Image(systemName: isCurrentPlaying && player.isPlaying ? "pause.fill" : "play.fill")
-                            .font(.system(size: 10, weight: .bold))
+                            .font(.system(size: 9.5, weight: .bold))
                         Text(isCurrentPlaying && player.isPlaying ? "暂停" : (currentStatus == "ready" ? "播放双轨" : "播放原声"))
-                            .font(.system(size: 12, weight: .bold, design: .rounded))
+                            .font(.system(size: 11.5, weight: .medium, design: .rounded))
                     }
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 6)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 5.5)
                     .background(
                         isCurrentPlaying ?
                         AmberTheme.primaryAmber :
-                        Color.white.opacity(0.1),
-                        in: Capsule()
+                        AmberTheme.surfaceRaised,
+                        in: RoundedRectangle(cornerRadius: 6, style: .continuous)
                     )
                     .overlay(
-                        Capsule().stroke(isCurrentPlaying ? AmberTheme.primaryAmber : AmberTheme.borderSpecular, lineWidth: 0.5)
+                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                            .stroke(isCurrentPlaying ? AmberTheme.primaryAmber : AmberTheme.borderHairline, lineWidth: 0.5)
                     )
                     .foregroundStyle(isCurrentPlaying ? Color.black : AmberTheme.labelPrimary)
                 }
-                .buttonStyle(TactileButtonStyle(scale: 0.94))
+                .buttonStyle(TactileButtonStyle(scale: 0.96))
 
                 // AI Translation Trigger Button (if not ready yet)
                 if currentStatus == "idle" || currentStatus == "failed" {
@@ -99,21 +100,24 @@ public struct EpisodeRowView: View {
                         HStack(spacing: 5) {
                             if isTriggering {
                                 ProgressView()
-                                    .scaleEffect(0.65)
+                                    .scaleEffect(0.60)
                             } else {
-                                Image(systemName: "sparkles")
-                                    .font(.system(size: 11, weight: .bold))
+                                Image(systemName: "arrow.triangle.2.circlepath")
+                                    .font(.system(size: 10, weight: .medium))
                             }
-                            Text(currentStatus == "failed" ? "重试双轨转译" : "生成双轨配音")
-                                .font(.system(size: 12, weight: .semibold, design: .rounded))
+                            Text(currentStatus == "failed" ? "重试转译" : "生成双轨")
+                                .font(.system(size: 11.5, weight: .medium, design: .rounded))
                         }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(AmberTheme.primaryAmber.opacity(0.12), in: Capsule())
-                        .overlay(Capsule().stroke(AmberTheme.primaryAmber.opacity(0.35), lineWidth: 0.5))
-                        .foregroundStyle(AmberTheme.primaryAmber)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5.5)
+                        .background(AmberTheme.surfaceRaised, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                .strokeBorder(AmberTheme.borderHairline, lineWidth: 0.5)
+                        )
+                        .foregroundStyle(AmberTheme.labelSecondary)
                     }
-                    .buttonStyle(TactileButtonStyle(scale: 0.94))
+                    .buttonStyle(TactileButtonStyle(scale: 0.96))
                     .disabled(isTriggering)
                 }
 
@@ -141,38 +145,38 @@ public struct EpisodeRowView: View {
         case "ready":
             HStack(spacing: 4) {
                 Image(systemName: "checkmark.circle.fill")
-                    .font(.system(size: 10))
-                Text("双轨已就绪")
-                    .font(.system(size: 10, weight: .bold, design: .rounded))
+                    .font(.system(size: 9.5))
+                Text("双轨就绪")
+                    .font(.system(size: 10, weight: .medium, design: .rounded))
             }
             .foregroundStyle(AmberTheme.accentElectric)
-            .padding(.horizontal, 7)
+            .padding(.horizontal, 6)
             .padding(.vertical, 2.5)
-            .background(AmberTheme.accentElectric.opacity(0.12), in: Capsule())
+            .background(AmberTheme.accentElectric.opacity(0.12), in: RoundedRectangle(cornerRadius: 4, style: .continuous))
 
         case "transcribing", "translating", "synthesizing", "pending":
             HStack(spacing: 4) {
                 ProgressView()
-                    .scaleEffect(0.55)
-                Text("AI 制作中 \(currentProgress)%")
-                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                    .scaleEffect(0.50)
+                Text("转译中 \(currentProgress)%")
+                    .font(.system(size: 10, weight: .medium, design: .monospaced))
             }
             .foregroundStyle(AmberTheme.primaryAmber)
-            .padding(.horizontal, 7)
+            .padding(.horizontal, 6)
             .padding(.vertical, 2.5)
-            .background(AmberTheme.primaryAmber.opacity(0.12), in: Capsule())
+            .background(AmberTheme.primaryAmber.opacity(0.12), in: RoundedRectangle(cornerRadius: 4, style: .continuous))
 
         case "failed":
             HStack(spacing: 4) {
                 Image(systemName: "exclamationmark.circle.fill")
-                    .font(.system(size: 10))
+                    .font(.system(size: 9.5))
                 Text("转译失败")
-                    .font(.system(size: 10, weight: .bold, design: .rounded))
+                    .font(.system(size: 10, weight: .medium, design: .rounded))
             }
             .foregroundStyle(Color.red.opacity(0.85))
-            .padding(.horizontal, 7)
+            .padding(.horizontal, 6)
             .padding(.vertical, 2.5)
-            .background(Color.red.opacity(0.1), in: Capsule())
+            .background(Color.red.opacity(0.10), in: RoundedRectangle(cornerRadius: 4, style: .continuous))
 
         default:
             EmptyView()
