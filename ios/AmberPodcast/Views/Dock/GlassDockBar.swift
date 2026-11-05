@@ -18,7 +18,7 @@ final class GlassDockBarView: UIView {
 
     private let contentPadding: CGFloat = 2
     private let containerSpacing: CGFloat = 8
-    private let bubbleSize = CGSize(width: 64, height: 64)
+    private let bubbleSize = CGSize(width: 56, height: 56)
     private let bubbleView = UIVisualEffectView(effect: UIGlassEffect())
 
     init(items: [AmberDockItem], selectedIndex: Int, onSelect: @escaping (Int) -> Void) {
@@ -39,6 +39,7 @@ final class GlassDockBarView: UIView {
         super.init(frame: .zero)
 
         bubbleView.isUserInteractionEnabled = false
+        bubbleView.autoresizingMask = []
         bubbleView.alpha = 0
         bubbleView.transform = CGAffineTransform(scaleX: 0.4, y: 0.4)
         bubbleView.layer.cornerRadius = bubbleSize.height / 2
@@ -99,7 +100,6 @@ final class GlassDockBarView: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
         barGlassView.cornerConfiguration = .capsule()
-        bubbleView.cornerConfiguration = .capsule()
     }
 
     /// Floats a glass bubble above the touched item, mimicking the native tab bar.
@@ -122,7 +122,7 @@ final class GlassDockBarView: UIView {
         let centerX = control.centerX(for: index) ?? fallbackCenter
         bubbleView.frame = CGRect(
             x: centerX - bubbleSize.width / 2,
-            y: -bubbleSize.height + 14,
+            y: -bubbleSize.height + 18,
             width: bubbleSize.width,
             height: bubbleSize.height
         )
