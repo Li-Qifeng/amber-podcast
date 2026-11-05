@@ -78,6 +78,7 @@ final class DockSegmentedControl: UISegmentedControl {
     private var traceSamples: [CGFloat] = []
     private var didLogSegmentMismatch = false
     private var didLogLayout = false
+    private var layoutPasses = 0
     private var traceEnabled: Bool {
         ProcessInfo.processInfo.arguments.contains("-amberTraceIndicator")
     }
@@ -113,11 +114,12 @@ final class DockSegmentedControl: UISegmentedControl {
         hideStockChrome()
         injectItemViewsIfNeeded()
         #if DEBUG
-        if traceEnabled, !didLogLayout, bounds.width > 0 {
+        layoutPasses += 1
+        if traceEnabled, !didLogLayout, layoutPasses >= 3 {
             didLogLayout = true
             let segs = segmentViews()
             let first = baseViews.first
-            appendTraceLine("layout bounds=\(bounds.size) segments=\(segs.count) segFrame=\(segs.first?.frame ?? .zero) segSubviews=\(segs.first?.subviews.count ?? -1) itemSuper=\(first?.superview != nil) itemFrame=\(first?.frame ?? .zero) itemAlpha=\(first?.alpha ?? -1) itemMask=\(first?.layer.mask != nil) lens=\(findIndicatorView() != nil)")
+            appendTraceLine("layout bounds=\(bounds.size) segments=\(segs.count) segFrame=\(segs.first?.frame ?? .zero) segSubviews=\(segs.first?.subviews.count ?? -1) itemSuper=\(first?.superview != nil) itemFrame=\(first?.frame ?? .zero) itemAlpha=\(first?.alpha ?? -1) itemMask=\(first?.layer.mask != nil) lens=\(findIndicatorView() != nil) converted=\(first.map { $0.convert($0.bounds, to: self) } ?? .zero)")
         }
         #endif
     }
