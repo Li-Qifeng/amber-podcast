@@ -46,6 +46,17 @@ public struct MainTabView: View {
         .fullScreenCover(isPresented: $showFullPlayer) {
             FullPlayerView(isPresented: $showFullPlayer)
         }
+        .onAppear {
+            #if DEBUG
+            if ProcessInfo.processInfo.arguments.contains("-amberDemoTabs") {
+                Timer.scheduledTimer(withTimeInterval: 1.5, repeats: true) { _ in
+                    withAnimation(ForwardMotion.mercuryTab) {
+                        selectedTab = (selectedTab + 1) % 3
+                    }
+                }
+            }
+            #endif
+        }
     }
 
     // MARK: - Content View
