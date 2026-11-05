@@ -44,7 +44,6 @@ final class GlassDockBarView: UIView {
         bubbleView.layer.cornerRadius = bubbleSize.height / 2
         bubbleView.layer.cornerCurve = .continuous
         bubbleView.clipsToBounds = true
-        addSubview(bubbleView)
 
         control.onTouchChanged = { [weak self] index in
             self?.showBubble(for: index)
@@ -52,6 +51,7 @@ final class GlassDockBarView: UIView {
 
         addSubview(containerEffectView)
         containerEffectView.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(bubbleView)
         containerEffectView.contentView.addSubview(barGlassView)
         barGlassView.translatesAutoresizingMaskIntoConstraints = false
         barGlassView.contentView.addSubview(control)
@@ -104,7 +104,7 @@ final class GlassDockBarView: UIView {
 
     /// Floats a glass bubble above the touched item, mimicking the native tab bar.
     private func showBubble(for index: Int?) {
-        guard let index, let centerX = control.centerX(for: index) else {
+        guard let index else {
             UIView.animate(
                 withDuration: 0.18,
                 delay: 0,
@@ -118,6 +118,8 @@ final class GlassDockBarView: UIView {
             return
         }
 
+        let fallbackCenter = bounds.width / CGFloat(max(control.numberOfSegments, 1)) * (CGFloat(index) + 0.5)
+        let centerX = control.centerX(for: index) ?? fallbackCenter
         bubbleView.frame = CGRect(
             x: centerX - bubbleSize.width / 2,
             y: -bubbleSize.height + 14,
