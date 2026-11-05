@@ -227,7 +227,9 @@ final class DockSegmentedControl: UISegmentedControl {
             stableFrames += 1
             if stableFrames >= Self.stableFrameThreshold {
                 displayLink?.isPaused = true
+                #if DEBUG
                 flushTraceIfNeeded()
+                #endif
                 return
             }
         } else {
