@@ -58,6 +58,8 @@ final class GlassTabBarView: UIView, UITabBarDelegate {
         appearance.inlineLayoutAppearance = item
         appearance.compactInlineLayoutAppearance = item
 
+        // Spread the items across the full width instead of centring a narrow group.
+        tabBar.itemPositioning = .fill
         tabBar.standardAppearance = appearance
         tabBar.scrollEdgeAppearance = appearance
         tabBar.isTranslucent = true
