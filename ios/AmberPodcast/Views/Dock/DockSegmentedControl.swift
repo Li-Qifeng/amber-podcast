@@ -117,7 +117,7 @@ final class DockSegmentedControl: UISegmentedControl {
             didLogLayout = true
             let segs = segmentViews()
             let first = baseViews.first
-            appendTraceLine("layout bounds=\(bounds.size) segments=\(segs.count) segFrame=\(segs.first?.frame ?? .zero) itemFrame=\(first?.frame ?? .zero) itemHidden=\(first?.isHidden ?? true) lens=\(findIndicatorView() != nil)")
+            appendTraceLine("layout bounds=\(bounds.size) segments=\(segs.count) segFrame=\(segs.first?.frame ?? .zero) segSubviews=\(segs.first?.subviews.count ?? -1) itemSuper=\(first?.superview != nil) itemFrame=\(first?.frame ?? .zero) itemAlpha=\(first?.alpha ?? -1) itemMask=\(first?.layer.mask != nil) lens=\(findIndicatorView() != nil)")
         }
         #endif
     }
