@@ -114,6 +114,14 @@ final class DockSegmentedControl: UISegmentedControl {
         accentViews.forEach { $0.apply(iconTint: .white, labelTint: activeTint) }
     }
 
+    /// Programmatic selection changes do not touch the display link, which pauses
+    /// itself once the indicator settles — resume it so the accent masks follow.
+    func resumeIndicatorTracking() {
+        displayLink?.isPaused = false
+        stableFrames = 0
+        lastIndicatorRect = .null
+    }
+
     // MARK: - Layout
 
     override func layoutSubviews() {

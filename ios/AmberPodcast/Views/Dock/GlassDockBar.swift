@@ -72,6 +72,7 @@ final class GlassDockBarView: UIView {
     func setSelectedIndex(_ index: Int) {
         guard index != control.selectedSegmentIndex else { return }
         control.selectedSegmentIndex = index
+        control.resumeIndicatorTracking()
     }
 }
 
