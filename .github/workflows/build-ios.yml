@@ -72,7 +72,14 @@ jobs:
           # Allow SwiftUI views and layout animations to complete
           sleep 6
           xcrun simctl io "$DEVICE_UUID" screenshot screenshots/home_screen.png
-          
+
+          # Relaunch with a seeded now-playing state so the mini player and the
+          # shared glass field with the dock can be inspected
+          xcrun simctl terminate "$DEVICE_UUID" com.refoxai.amberpodcast || true
+          xcrun simctl launch "$DEVICE_UUID" com.refoxai.amberpodcast -amberDemoPlaying
+          sleep 6
+          xcrun simctl io "$DEVICE_UUID" screenshot screenshots/miniplayer_state.png
+
           ls -lh screenshots/
 
       - name: Upload Screenshot Artifacts
