@@ -51,6 +51,18 @@ public final class DualTrackAudioPlayer: ObservableObject {
         }
     }
 
+    #if DEBUG
+    /// Seeds a now-playing state so CI can screenshot the mini player and its
+    /// shared glass field with the dock. Never compiled into release builds.
+    public func seedDemoNowPlaying() {
+        guard currentEpisode == nil else { return }
+        currentEpisode = Episode.samples.first
+        currentFeed = PodcastFeed.samples.first
+        currentTime = 92
+        duration = 1800
+    }
+    #endif
+
     // MARK: - Load & Play Episode
     public func loadEpisode(
         episode: Episode,

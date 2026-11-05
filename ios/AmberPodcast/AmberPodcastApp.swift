@@ -29,6 +29,13 @@ struct AmberPodcastApp: App {
         WindowGroup {
             MainTabView()
                 .preferredColorScheme(.dark) // Sleek Apple dark aesthetic by default
+                .onAppear {
+                    #if DEBUG
+                    if ProcessInfo.processInfo.arguments.contains("-amberDemoPlaying") {
+                        DualTrackAudioPlayer.shared.seedDemoNowPlaying()
+                    }
+                    #endif
+                }
         }
     }
 }

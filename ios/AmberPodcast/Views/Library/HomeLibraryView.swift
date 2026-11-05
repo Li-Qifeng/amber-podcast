@@ -452,7 +452,7 @@ public struct HomeLibraryView: View {
 
     private func topFloatingToolbar(geometry: GeometryProxy) -> some View {
         VStack {
-            GlassEffectContainer(spacing: 12) {
+            AmberGlassContainer(spacing: 12) {
                 HStack {
                     // Quiet Brand Signature: Sentence case, no screaming uppercase
                     HStack(spacing: 8) {
@@ -466,7 +466,7 @@ public struct HomeLibraryView: View {
                     }
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
-                    .glassEffect(.regular, in: .rect(cornerRadius: AmberTheme.radiusControl))
+                    .amberGlass(.rect(cornerRadius: AmberTheme.radiusControl))
 
                     Spacer()
 
@@ -478,7 +478,7 @@ public struct HomeLibraryView: View {
                             .font(.system(size: 13, weight: .medium))
                             .foregroundStyle(AmberTheme.labelPrimary)
                             .frame(width: 32, height: 32)
-                            .glassEffect(.regular.interactive(), in: .rect(cornerRadius: AmberTheme.radiusControl))
+                            .amberGlass(.rect(cornerRadius: AmberTheme.radiusControl), isInteractive: true)
                     }
                     .buttonStyle(TactileButtonStyle(scale: 0.95))
                 }

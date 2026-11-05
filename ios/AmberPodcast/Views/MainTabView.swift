@@ -22,15 +22,19 @@ public struct MainTabView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .ignoresSafeArea()
 
-                // Bottom Floating Island Stack: MiniPlayer + Liquid Glass Dock
-                VStack(spacing: 8) {
-                    if player.currentEpisode != nil {
-                        MiniPlayerView(showFullPlayer: $showFullPlayer)
-                            .frame(width: geo.size.width * AmberTheme.dockWidthRatio)
-                            .transition(.move(edge: .bottom).combined(with: .opacity))
-                    }
+                // Bottom Floating Island Stack: one shared Liquid Glass field
+                AmberGlassContainer(spacing: 8) {
+                    VStack(spacing: 12) {
+                        if player.currentEpisode != nil {
+                            MiniPlayerView(showFullPlayer: $showFullPlayer)
+                                .frame(width: geo.size.width * AmberTheme.dockWidthRatio)
+                                .amberGlassID("miniPlayer", in: dockNamespace)
+                                .transition(.move(edge: .bottom).combined(with: .opacity))
+                        }
 
-                    floatingLiquidDock(geometry: geo)
+                        floatingLiquidDock(geometry: geo)
+                            .amberGlassID("dock", in: dockNamespace)
+                    }
                 }
                 .padding(.bottom, max(geo.safeAreaInsets.bottom, 8))
                 .animation(ForwardMotion.fluidSheet, value: player.currentEpisode?.id)
@@ -59,20 +63,18 @@ public struct MainTabView: View {
         }
     }
 
-    // MARK: - Native Liquid Glass Dock (GlassEffectContainer)
+    // MARK: - Native Liquid Glass Dock (glass field supplied by the parent container)
     private func floatingLiquidDock(geometry: GeometryProxy) -> some View {
         let dockWidth = geometry.size.width * AmberTheme.dockWidthRatio
 
-        return GlassEffectContainer(spacing: 8) {
-            HStack(spacing: 0) {
-                dockItem(index: 0, icon: "square.stack.fill", title: "资料库")
-                dockItem(index: 1, icon: "magnifyingglass", title: "发现")
-                dockItem(index: 2, icon: "gearshape.fill", title: "设置")
-            }
-            .padding(4)
-            .frame(width: dockWidth, height: AmberTheme.dockHeight)
-            .glassEffect(.regular.interactive(), in: .capsule)
+        return HStack(spacing: 0) {
+            dockItem(index: 0, icon: "square.stack.fill", title: "资料库")
+            dockItem(index: 1, icon: "magnifyingglass", title: "发现")
+            dockItem(index: 2, icon: "gearshape.fill", title: "设置")
         }
+        .padding(4)
+        .frame(width: dockWidth, height: AmberTheme.dockHeight)
+        .amberGlass(.capsule, isInteractive: true)
     }
 
     private func dockItem(index: Int, icon: String, title: String) -> some View {
@@ -86,13 +88,10 @@ public struct MainTabView: View {
         } label: {
             ZStack {
                 if isSelected {
+                    // Selection blob is real glass so it blends with the dock's field
                     Capsule()
-                        .fill(AmberTheme.surfaceRaised)
-                        .overlay(
-                            Capsule()
-                                .strokeBorder(Color.white.opacity(0.12), lineWidth: 0.5)
-                        )
-                        .glassEffectID("activeDockIndicator", in: dockNamespace)
+                        .amberGlass(.capsule, tint: AmberTheme.primaryAmber.opacity(0.07))
+                        .amberGlassID("activeDockIndicator", in: dockNamespace)
                 }
 
                 VStack(spacing: 3) {
@@ -109,7 +108,7 @@ public struct MainTabView: View {
             }
             .contentShape(Rectangle())
         }
-        .buttonStyle(TactileButtonStyle(scale: 0.94))
+        .buttonStyle(.plain)
     }
 
     private func bottomClearance(for geo: GeometryProxy) -> CGFloat {
