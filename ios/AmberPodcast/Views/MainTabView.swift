@@ -91,7 +91,7 @@ public struct MainTabView: View {
                 if isSelected {
                     // Selection blob is real glass so it blends with the dock's field
                     Capsule()
-                        .amberGlass(.capsule, tint: AmberTheme.primaryAmber.opacity(0.16), isInteractive: true)
+                        .amberGlass(.capsule, tint: AmberTheme.primaryAmber.opacity(0.07))
                         .amberGlassID("activeDockIndicator", in: dockNamespace)
                 }
 
