@@ -30,6 +30,8 @@ final class GlassDockBarView: UIView {
 
         control = DockSegmentedControl(items: items.map { .init(icon: $0.icon, title: $0.title) })
         control.selectedSegmentIndex = selectedIndex
+        control.activeTint = UIColor(AmberTheme.primaryAmber)
+        control.inactiveTint = UIColor(AmberTheme.labelTertiary)
         control.onSelect = onSelect
 
         super.init(frame: .zero)

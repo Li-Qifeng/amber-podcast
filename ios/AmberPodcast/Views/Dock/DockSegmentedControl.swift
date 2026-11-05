@@ -40,9 +40,9 @@ final class DockItemView: UIView {
 
     override var intrinsicContentSize: CGSize { CGSize(width: 68, height: 40) }
 
-    func apply(tint: UIColor) {
-        iconView.tintColor = tint
-        titleLabel.textColor = tint
+    func apply(iconTint: UIColor, labelTint: UIColor) {
+        iconView.tintColor = iconTint
+        titleLabel.textColor = labelTint
     }
 }
 
@@ -99,8 +99,8 @@ final class DockSegmentedControl: UISegmentedControl {
 
         baseViews = items.map { DockItemView(icon: $0.icon, title: $0.title) }
         accentViews = items.map { DockItemView(icon: $0.icon, title: $0.title) }
-        baseViews.forEach { $0.apply(tint: inactiveTint) }
-        accentViews.forEach { $0.apply(tint: activeTint) }
+        baseViews.forEach { $0.apply(iconTint: inactiveTint, labelTint: inactiveTint) }
+        accentViews.forEach { $0.apply(iconTint: .white, labelTint: activeTint) }
     }
 
     @available(*, unavailable)
@@ -124,6 +124,7 @@ final class DockSegmentedControl: UISegmentedControl {
             didLogLayout = true
             let segs = segmentViews()
             let first = baseViews.first
+            appendTraceLine("views=" + subviews.map { String(describing: type(of: $0)) }.joined(separator: "|"))
             appendTraceLine("layout bounds=\(bounds.size) segments=\(segs.count) segFrame=\(segs.first?.frame ?? .zero) segSubviews=\(segs.first?.subviews.count ?? -1) itemSuper=\(first?.superview != nil) itemFrame=\(first?.frame ?? .zero) itemAlpha=\(first?.alpha ?? -1) itemMask=\(first?.layer.mask != nil) lens=\(findIndicatorView() != nil) converted=\(first.map { $0.convert($0.bounds, to: self) } ?? .zero)")
         }
         #endif
