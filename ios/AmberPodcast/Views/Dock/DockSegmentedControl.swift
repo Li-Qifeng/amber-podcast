@@ -132,7 +132,6 @@ final class DockSegmentedControl: UISegmentedControl {
             layoutItem(entry.base, in: entry.segment)
             layoutItem(entry.accent, in: entry.segment)
         }
-        #if DEBUG
     }
 
     override func didMoveToWindow() {
