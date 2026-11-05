@@ -80,6 +80,15 @@ jobs:
           sleep 6
           xcrun simctl io "$DEVICE_UUID" screenshot screenshots/miniplayer_state.png
 
+          # Burst-capture the dock while tabs cycle, so the selection transition
+          # can be inspected frame by frame
+          xcrun simctl terminate "$DEVICE_UUID" com.refoxai.amberpodcast || true
+          xcrun simctl launch "$DEVICE_UUID" com.refoxai.amberpodcast -amberDemoTabs -amberSlowMotion
+          sleep 3
+          for i in $(seq -w 1 14); do
+            xcrun simctl io "$DEVICE_UUID" screenshot "screenshots/tab_$i.png" > /dev/null 2>&1
+          done
+
           ls -lh screenshots/
 
       - name: Upload Screenshot Artifacts

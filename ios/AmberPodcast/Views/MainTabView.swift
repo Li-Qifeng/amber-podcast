@@ -8,6 +8,22 @@ public struct MainTabView: View {
 
     private let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
 
+    #if DEBUG
+    /// Stretches the tab spring so headless frame capture can see mid-transition.
+    private var demoTabsSlowMotion: Bool {
+        ProcessInfo.processInfo.arguments.contains("-amberSlowMotion")
+    }
+    #endif
+
+    private var demoTabAnimation: Animation {
+        #if DEBUG
+        if demoTabsSlowMotion {
+            return .spring(response: 2.0, dampingFraction: 0.82)
+        }
+        #endif
+        return ForwardMotion.mercuryTab
+    }
+
     public init() {}
 
     public var body: some View {
@@ -46,6 +62,18 @@ public struct MainTabView: View {
         .fullScreenCover(isPresented: $showFullPlayer) {
             FullPlayerView(isPresented: $showFullPlayer)
         }
+        .onAppear {
+            #if DEBUG
+            if ProcessInfo.processInfo.arguments.contains("-amberDemoTabs") {
+                let interval: TimeInterval = demoTabsSlowMotion ? 4.0 : 1.5
+                Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { _ in
+                    withAnimation(demoTabAnimation) {
+                        selectedTab = (selectedTab + 1) % 3
+                    }
+                }
+            }
+            #endif
+        }
     }
 
     // MARK: - Content View
@@ -75,6 +103,19 @@ public struct MainTabView: View {
         .padding(4)
         .frame(width: dockWidth, height: AmberTheme.dockHeight)
         .amberGlass(.capsule, isInteractive: true)
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { value in
+                    let itemWidth = dockWidth / 3
+                    let raw = Int(value.location.x / itemWidth)
+                    let index = min(2, max(0, raw))
+                    guard index != selectedTab else { return }
+                    impactFeedback.impactOccurred(intensity: 0.6)
+                    withAnimation(demoTabAnimation) {
+                        selectedTab = index
+                    }
+                }
+        )
     }
 
     private func dockItem(index: Int, icon: String, title: String) -> some View {
@@ -82,7 +123,7 @@ public struct MainTabView: View {
 
         return Button {
             impactFeedback.impactOccurred()
-            withAnimation(ForwardMotion.mercuryTab) {
+            withAnimation(demoTabAnimation) {
                 selectedTab = index
             }
         } label: {
@@ -91,7 +132,7 @@ public struct MainTabView: View {
                     // Selection blob is real glass so it blends with the dock's field
                     Capsule()
                         .amberGlass(.capsule, tint: AmberTheme.primaryAmber.opacity(0.07))
-                        .amberGlassID("activeDockIndicator", in: dockNamespace)
+                        .matchedGeometryEffect(id: "activeDockIndicator", in: dockNamespace)
                 }
 
                 VStack(spacing: 3) {
