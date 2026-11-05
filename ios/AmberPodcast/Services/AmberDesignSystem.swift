@@ -549,4 +549,24 @@ public extension View {
     func amberGlass(_ shape: AmberGlassShape = .capsule, tint: Color? = nil, isInteractive: Bool = false) -> some View {
         modifier(AmberGlassModifier(shape: shape, tint: tint, isInteractive: isInteractive))
     }
+
+    /// Associates a glass identity so sibling effects morph into one another on iOS 26+.
+    @ViewBuilder
+    func amberGlassID(_ id: some Hashable & Sendable, in namespace: Namespace.ID) -> some View {
+        if #available(iOS 26.0, *) {
+            self.glassEffectID(id, in: namespace)
+        } else {
+            self.matchedGeometryEffect(id: id, in: namespace)
+        }
+    }
+
+    /// Uses the system matched-geometry glass transition when effects appear or disappear.
+    @ViewBuilder
+    func amberGlassMatchedGeometry() -> some View {
+        if #available(iOS 26.0, *) {
+            self.glassEffectTransition(.matchedGeometry)
+        } else {
+            self
+        }
+    }
 }
