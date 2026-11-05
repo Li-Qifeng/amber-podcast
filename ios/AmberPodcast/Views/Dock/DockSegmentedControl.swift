@@ -74,6 +74,13 @@ final class DockSegmentedControl: UISegmentedControl {
     private var originalIndex: Int?
     private weak var cachedIndicator: UIView?
 
+    #if DEBUG
+    private var traceSamples: [CGFloat] = []
+    private var traceEnabled: Bool {
+        ProcessInfo.processInfo.arguments.contains("-amberTraceIndicator")
+    }
+    #endif
+
     private static let baseTag = 7_001
     private static let accentTag = 7_002
     private static let stableFrameThreshold = 3
@@ -220,12 +227,19 @@ final class DockSegmentedControl: UISegmentedControl {
             stableFrames += 1
             if stableFrames >= Self.stableFrameThreshold {
                 displayLink?.isPaused = true
+                flushTraceIfNeeded()
                 return
             }
         } else {
             stableFrames = 0
             lastIndicatorRect = indicatorRect
         }
+
+        #if DEBUG
+        if traceEnabled, traceSamples.last != indicatorRect.minX {
+            traceSamples.append(indicatorRect.minX)
+        }
+        #endif
 
         CATransaction.begin()
         CATransaction.setDisableActions(true)
@@ -273,6 +287,26 @@ final class DockSegmentedControl: UISegmentedControl {
             base.layer.mask = nil
         }
     }
+
+    #if DEBUG
+    /// Writes the observed indicator x positions to Documents so CI can prove the
+    /// lens travelled through intermediate positions instead of snapping.
+    private func flushTraceIfNeeded() {
+        guard traceEnabled, !traceSamples.isEmpty else { return }
+        let line = traceSamples.map { String(format: "%.1f", $0) }.joined(separator: ",")
+        traceSamples.removeAll()
+        guard let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else { return }
+        let url = dir.appendingPathComponent("indicator_trace.txt")
+        let payload = (line + "\n").data(using: .utf8) ?? Data()
+        if let handle = try? FileHandle(forWritingTo: url) {
+            handle.seekToEndOfFile()
+            handle.write(payload)
+            try? handle.close()
+        } else {
+            try? payload.write(to: url)
+        }
+    }
+    #endif
 
     // MARK: - Touch handling
 

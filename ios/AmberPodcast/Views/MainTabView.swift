@@ -6,7 +6,6 @@ public struct MainTabView: View {
     @State private var showFullPlayer: Bool = false
     @Namespace private var dockNamespace
 
-    private let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
 
     #if DEBUG
     /// Stretches the tab spring so headless frame capture can see mid-transition.
@@ -49,7 +48,6 @@ public struct MainTabView: View {
                         }
 
                         floatingLiquidDock(geometry: geo)
-                            .amberGlassID("dock", in: dockNamespace)
                     }
                 }
                 .padding(.bottom, max(geo.safeAreaInsets.bottom, 8))
@@ -91,65 +89,22 @@ public struct MainTabView: View {
         }
     }
 
-    // MARK: - Native Liquid Glass Dock (glass field supplied by the parent container)
+    // MARK: - Floating Dock (UIKit glass on iOS 26+, SwiftUI fallback below)
     private func floatingLiquidDock(geometry: GeometryProxy) -> some View {
-        let dockWidth = geometry.size.width * AmberTheme.dockWidthRatio
-
-        return HStack(spacing: 0) {
-            dockItem(index: 0, icon: "square.stack.fill", title: "资料库")
-            dockItem(index: 1, icon: "magnifyingglass", title: "发现")
-            dockItem(index: 2, icon: "gearshape.fill", title: "设置")
-        }
-        .padding(4)
-        .frame(width: dockWidth, height: AmberTheme.dockHeight)
-        .amberGlass(.capsule, isInteractive: true)
-        .simultaneousGesture(
-            DragGesture(minimumDistance: 0)
-                .onChanged { value in
-                    let itemWidth = dockWidth / 3
-                    let raw = Int(value.location.x / itemWidth)
-                    let index = min(2, max(0, raw))
-                    guard index != selectedTab else { return }
-                    impactFeedback.impactOccurred(intensity: 0.6)
-                    withAnimation(demoTabAnimation) {
-                        selectedTab = index
-                    }
-                }
+        AmberTabBarRendering.dock(
+            items: dockItems,
+            selection: $selectedTab,
+            width: geometry.size.width * AmberTheme.dockWidthRatio,
+            height: AmberTheme.dockHeight
         )
     }
 
-    private func dockItem(index: Int, icon: String, title: String) -> some View {
-        let isSelected = selectedTab == index
-
-        return Button {
-            impactFeedback.impactOccurred()
-            withAnimation(demoTabAnimation) {
-                selectedTab = index
-            }
-        } label: {
-            ZStack {
-                if isSelected {
-                    // Selection blob is real glass so it blends with the dock's field
-                    Capsule()
-                        .amberGlass(.capsule, tint: AmberTheme.primaryAmber.opacity(0.07))
-                        .matchedGeometryEffect(id: "activeDockIndicator", in: dockNamespace)
-                }
-
-                VStack(spacing: 3) {
-                    Image(systemName: icon)
-                        .font(.system(size: 17, weight: isSelected ? .semibold : .regular))
-                        .foregroundStyle(isSelected ? AmberTheme.labelPrimary : AmberTheme.labelTertiary)
-                        .scaleEffect(isSelected ? 1.04 : 1.0)
-
-                    Text(title)
-                        .font(.system(size: 10, weight: isSelected ? .medium : .regular, design: .rounded))
-                        .foregroundStyle(isSelected ? AmberTheme.primaryAmber : AmberTheme.labelTertiary)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            }
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
+    private var dockItems: [AmberDockItem] {
+        [
+            AmberDockItem(icon: "square.stack.fill", title: "资料库"),
+            AmberDockItem(icon: "magnifyingglass", title: "发现"),
+            AmberDockItem(icon: "gearshape.fill", title: "设置"),
+        ]
     }
 
     private func bottomClearance(for geo: GeometryProxy) -> CGFloat {
