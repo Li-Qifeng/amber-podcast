@@ -113,6 +113,13 @@ final class DockSegmentedControl: UISegmentedControl {
         stableFrames = 0
         hideStockChrome()
         injectItemViewsIfNeeded()
+        for segment in segmentViews() {
+            for tag in [Self.baseTag, Self.accentTag] {
+                if let item = segment.viewWithTag(tag) as? DockItemView {
+                    layoutItem(item, in: segment)
+                }
+            }
+        }
         #if DEBUG
         layoutPasses += 1
         if traceEnabled, !didLogLayout, layoutPasses >= 3 {
@@ -192,14 +199,21 @@ final class DockSegmentedControl: UISegmentedControl {
 
     private func attach(_ item: DockItemView, to segment: UIView, tag: Int) {
         item.tag = tag
-        item.translatesAutoresizingMaskIntoConstraints = false
+        item.translatesAutoresizingMaskIntoConstraints = true
         segment.addSubview(item)
-        NSLayoutConstraint.activate([
-            item.centerXAnchor.constraint(equalTo: segment.centerXAnchor),
-            item.centerYAnchor.constraint(equalTo: segment.centerYAnchor),
-            item.widthAnchor.constraint(equalToConstant: 68),
-            item.heightAnchor.constraint(equalToConstant: 40),
-        ])
+        layoutItem(item, in: segment)
+    }
+
+    /// Auto Layout inside UISegmentedControl's private segment views does not
+    /// resolve, so the cells are positioned manually.
+    private func layoutItem(_ item: DockItemView, in segment: UIView) {
+        let size = CGSize(width: 68, height: 40)
+        item.frame = CGRect(
+            x: (segment.bounds.width - size.width) / 2,
+            y: (segment.bounds.height - size.height) / 2,
+            width: size.width,
+            height: size.height
+        )
     }
 
     // MARK: - Indicator tracking
