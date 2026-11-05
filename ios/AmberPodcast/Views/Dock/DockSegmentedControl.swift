@@ -253,6 +253,15 @@ final class DockSegmentedControl: UISegmentedControl {
     }
 
     private func findIndicatorView() -> UIView? {
+        // Primary: the indicator is a sibling of the segments container inside the
+        // same wrapper, and unlike the segments container it carries subviews.
+        if let container = segmentViews().first?.superview,
+           let wrapper = container.superview {
+            if let indicator = wrapper.subviews.first(where: { $0 !== container && !$0.subviews.isEmpty }) {
+                return indicator
+            }
+        }
+        // Fallback: match by class name.
         var stack: [UIView] = subviews
         while let view = stack.popLast() {
             let name = String(describing: type(of: view))
