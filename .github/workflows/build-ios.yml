@@ -16,13 +16,12 @@ jobs:
 
       - name: Select Xcode 26
         run: |
-          for xcode_path in /Applications/Xcode_26*.app /Applications/Xcode.app; do
-            if [ -d "$xcode_path" ]; then
-              echo "Selecting $xcode_path"
-              sudo xcode-select -s "$xcode_path"
-              break
-            fi
-          done
+          XCODE_PATH=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1)
+          if [ -z "$XCODE_PATH" ]; then
+            XCODE_PATH=/Applications/Xcode.app
+          fi
+          echo "Selecting $XCODE_PATH"
+          sudo xcode-select -s "$XCODE_PATH"
           xcodebuild -version
           xcrun simctl list runtimes
 
