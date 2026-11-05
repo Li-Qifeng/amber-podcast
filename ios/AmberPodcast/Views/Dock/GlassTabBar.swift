@@ -57,6 +57,13 @@ final class GlassTabBarView: UIView, UITabBarDelegate {
             .foregroundColor: UIColor(AmberTheme.primaryAmber),
             .font: UIFont.systemFont(ofSize: 10.5, weight: .semibold),
         ]
+        // The iOS 26 capsule only ever reserves ~48pt, so the stacked icon and
+        // title collide; nudge the title down to keep a visible gap.
+        let titleOffset = UIOffset(horizontal: 0, vertical: 5)
+        item.normal.titlePositionAdjustment = titleOffset
+        item.selected.titlePositionAdjustment = titleOffset
+        item.focused.titlePositionAdjustment = titleOffset
+
         appearance.stackedLayoutAppearance = item
         appearance.inlineLayoutAppearance = item
         appearance.compactInlineLayoutAppearance = item
