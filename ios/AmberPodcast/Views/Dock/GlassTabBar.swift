@@ -22,7 +22,7 @@ final class GlassTabBarView: UIView, UITabBarDelegate {
                 title: item.title,
                 image: UIImage(
                     systemName: item.icon,
-                    withConfiguration: UIImage.SymbolConfiguration(pointSize: 21, weight: .regular)
+                    withConfiguration: UIImage.SymbolConfiguration(pointSize: 19, weight: .regular)
                 ),
                 tag: index
             )
@@ -50,12 +50,12 @@ final class GlassTabBarView: UIView, UITabBarDelegate {
         item.normal.iconColor = UIColor(AmberTheme.labelTertiary)
         item.normal.titleTextAttributes = [
             .foregroundColor: UIColor(AmberTheme.labelTertiary),
-            .font: UIFont.systemFont(ofSize: 11, weight: .medium),
+            .font: UIFont.systemFont(ofSize: 10.5, weight: .medium),
         ]
         item.selected.iconColor = .white
         item.selected.titleTextAttributes = [
             .foregroundColor: UIColor(AmberTheme.primaryAmber),
-            .font: UIFont.systemFont(ofSize: 11, weight: .semibold),
+            .font: UIFont.systemFont(ofSize: 10.5, weight: .semibold),
         ]
         appearance.stackedLayoutAppearance = item
         appearance.inlineLayoutAppearance = item
