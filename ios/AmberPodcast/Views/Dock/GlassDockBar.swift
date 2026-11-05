@@ -23,7 +23,7 @@ final class DockContainerView: UIView {
     private let barGlassView = UIVisualEffectView(effect: UIGlassEffect())
     private let bubbleGlassView = UIVisualEffectView(effect: UIGlassEffect())
 
-    private let barHeight: CGFloat = 56
+    private let barHeight: CGFloat = 60
     private let bubbleHeight: CGFloat = 42
     private let bubbleTopPadding: CGFloat = 6
 
