@@ -66,6 +66,7 @@ final class DockSegmentedControl: UISegmentedControl {
     var onSelect: ((Int) -> Void)?
 
     private var baseViews: [DockItemView] = []
+    private var injected: [(segment: UIView, base: DockItemView, accent: DockItemView)] = []
     private var accentViews: [DockItemView] = []
     private var displayLink: CADisplayLink?
     private var proxy: DisplayLinkProxy?
@@ -113,12 +114,9 @@ final class DockSegmentedControl: UISegmentedControl {
         stableFrames = 0
         hideStockChrome()
         injectItemViewsIfNeeded()
-        for segment in segmentViews() {
-            for tag in [Self.baseTag, Self.accentTag] {
-                if let item = segment.viewWithTag(tag) as? DockItemView {
-                    layoutItem(item, in: segment)
-                }
-            }
+        for entry in injected {
+            layoutItem(entry.base, in: entry.segment)
+            layoutItem(entry.accent, in: entry.segment)
         }
         #if DEBUG
         layoutPasses += 1
@@ -183,6 +181,7 @@ final class DockSegmentedControl: UISegmentedControl {
         #endif
         guard segments.count == baseViews.count else { return }
 
+        injected.removeAll()
         for (index, segment) in segments.enumerated() {
             if segment.viewWithTag(Self.baseTag) == nil {
                 attach(baseViews[index], to: segment, tag: Self.baseTag)
@@ -194,6 +193,7 @@ final class DockSegmentedControl: UISegmentedControl {
                 mask.path = UIBezierPath(rect: .zero).cgPath
                 accent.layer.mask = mask
             }
+            injected.append((segment, baseViews[index], accentViews[index]))
         }
     }
 
