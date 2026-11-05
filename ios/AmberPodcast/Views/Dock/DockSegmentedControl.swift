@@ -200,17 +200,18 @@ final class DockSegmentedControl: UISegmentedControl {
     private func attach(_ item: DockItemView, to segment: UIView, tag: Int) {
         item.tag = tag
         item.translatesAutoresizingMaskIntoConstraints = true
-        segment.addSubview(item)
+        // Cells live on the control itself: segment subviews sit in a private
+        // coordinate space that does not match the control's bounds.
+        addSubview(item)
         layoutItem(item, in: segment)
     }
 
-    /// Auto Layout inside UISegmentedControl's private segment views does not
-    /// resolve, so the cells are positioned manually.
     private func layoutItem(_ item: DockItemView, in segment: UIView) {
+        let rect = segment.convert(segment.bounds, to: self)
         let size = CGSize(width: 68, height: 40)
         item.frame = CGRect(
-            x: (segment.bounds.width - size.width) / 2,
-            y: (segment.bounds.height - size.height) / 2,
+            x: rect.midX - size.width / 2,
+            y: rect.midY - size.height / 2,
             width: size.width,
             height: size.height
         )
