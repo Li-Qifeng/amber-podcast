@@ -78,6 +78,24 @@ final class GlassDockBarView: UIView {
     @available(*, unavailable)
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+        #if DEBUG
+        // Holds the bubble open so CI can screenshot it; touches cannot be
+        // synthesised on a headless simulator.
+        if window != nil, ProcessInfo.processInfo.arguments.contains("-amberDemoBubble"), !didShowDemoBubble {
+            didShowDemoBubble = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
+                self?.showBubble(for: 1)
+            }
+        }
+        #endif
+    }
+
+    #if DEBUG
+    private var didShowDemoBubble = false
+    #endif
+
     override func layoutSubviews() {
         super.layoutSubviews()
         barGlassView.cornerConfiguration = .capsule()
