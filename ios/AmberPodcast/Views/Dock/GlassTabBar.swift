@@ -22,7 +22,7 @@ final class GlassTabBarView: UIView, UITabBarDelegate {
                 title: item.title,
                 image: UIImage(
                     systemName: item.icon,
-                    withConfiguration: UIImage.SymbolConfiguration(pointSize: 24, weight: .regular)
+                    withConfiguration: UIImage.SymbolConfiguration(pointSize: 21, weight: .regular)
                 ),
                 tag: index
             )
