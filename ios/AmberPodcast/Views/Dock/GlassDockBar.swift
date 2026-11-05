@@ -36,6 +36,8 @@ final class GlassDockBarView: UIView {
         control.inactiveTint = UIColor(AmberTheme.labelTertiary)
         control.onSelect = onSelect
 
+        super.init(frame: .zero)
+
         bubbleView.isUserInteractionEnabled = false
         bubbleView.alpha = 0
         bubbleView.transform = CGAffineTransform(scaleX: 0.4, y: 0.4)
@@ -47,8 +49,6 @@ final class GlassDockBarView: UIView {
         control.onTouchChanged = { [weak self] index in
             self?.showBubble(for: index)
         }
-
-        super.init(frame: .zero)
 
         addSubview(containerEffectView)
         containerEffectView.translatesAutoresizingMaskIntoConstraints = false
