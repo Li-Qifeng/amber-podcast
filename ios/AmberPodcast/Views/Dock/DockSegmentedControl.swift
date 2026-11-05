@@ -77,6 +77,7 @@ final class DockSegmentedControl: UISegmentedControl {
     #if DEBUG
     private var traceSamples: [CGFloat] = []
     private var didLogSegmentMismatch = false
+    private var didLogLayout = false
     private var traceEnabled: Bool {
         ProcessInfo.processInfo.arguments.contains("-amberTraceIndicator")
     }
@@ -111,6 +112,14 @@ final class DockSegmentedControl: UISegmentedControl {
         stableFrames = 0
         hideStockChrome()
         injectItemViewsIfNeeded()
+        #if DEBUG
+        if traceEnabled, !didLogLayout, bounds.width > 0 {
+            didLogLayout = true
+            let segs = segmentViews()
+            let first = baseViews.first
+            appendTraceLine("layout bounds=\(bounds.size) segments=\(segs.count) segFrame=\(segs.first?.frame ?? .zero) itemFrame=\(first?.frame ?? .zero) itemHidden=\(first?.isHidden ?? true) lens=\(findIndicatorView() != nil)")
+        }
+        #endif
     }
 
     override func didMoveToWindow() {
