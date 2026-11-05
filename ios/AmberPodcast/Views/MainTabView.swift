@@ -23,8 +23,8 @@ public struct MainTabView: View {
                     .ignoresSafeArea()
 
                 // Bottom Floating Island Stack: one shared Liquid Glass field
-                AmberGlassContainer(spacing: 14) {
-                    VStack(spacing: 8) {
+                AmberGlassContainer(spacing: 8) {
+                    VStack(spacing: 12) {
                         if player.currentEpisode != nil {
                             MiniPlayerView(showFullPlayer: $showFullPlayer)
                                 .frame(width: geo.size.width * AmberTheme.dockWidthRatio)
@@ -35,7 +35,6 @@ public struct MainTabView: View {
                         floatingLiquidDock(geometry: geo)
                             .amberGlassID("dock", in: dockNamespace)
                     }
-                    .amberGlassMatchedGeometry()
                 }
                 .padding(.bottom, max(geo.safeAreaInsets.bottom, 8))
                 .animation(ForwardMotion.fluidSheet, value: player.currentEpisode?.id)

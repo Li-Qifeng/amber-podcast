@@ -559,14 +559,4 @@ public extension View {
             self.matchedGeometryEffect(id: id, in: namespace)
         }
     }
-
-    /// Uses the system matched-geometry glass transition when effects appear or disappear.
-    @ViewBuilder
-    func amberGlassMatchedGeometry() -> some View {
-        if #available(iOS 26.0, *) {
-            self.glassEffectTransition(.matchedGeometry)
-        } else {
-            self
-        }
-    }
 }
