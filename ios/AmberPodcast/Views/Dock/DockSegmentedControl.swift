@@ -454,3 +454,44 @@ private final class DisplayLinkProxy: NSObject {
         control.updateMasks()
     }
 }
+
+extension DockSegmentedControl {
+    convenience init(items: [AmberDockItem]) {
+        self.init(items: items.map { Item(icon: $0.icon, title: $0.title) })
+    }
+
+    /// Applies a new item set / selection coming from SwiftUI. The item list is
+    /// static in practice, so a mismatch (not a content diff) triggers a rebuild.
+    func sync(items: [AmberDockItem], selectedIndex: Int) {
+        if baseViews.count != items.count {
+            baseViews.forEach { $0.removeFromSuperview() }
+            accentViews.forEach { $0.removeFromSuperview() }
+            injected.removeAll()
+            removeAllSegments()
+            for _ in items { insertSegment(withTitle: "", at: numberOfSegments, animated: false) }
+            baseViews = items.map { DockItemView(icon: $0.icon, title: $0.title) }
+            accentViews = items.map { DockItemView(icon: $0.icon, title: $0.title) }
+            applyTints()
+        }
+        if selectedIndex >= 0, selectedIndex < numberOfSegments, selectedSegmentIndex != selectedIndex {
+            selectedSegmentIndex = selectedIndex
+            resumeIndicatorTracking()
+        }
+        setNeedsLayout()
+    }
+
+    /// Centres of each segment in this control's coordinate space.
+    func segmentCentersInSelf() -> [CGPoint] {
+        let segments = segmentViews()
+        if segments.count == numberOfSegments, !segments.isEmpty {
+            return segments.map {
+                let rect = $0.convert($0.bounds, to: self)
+                return CGPoint(x: rect.midX, y: rect.midY)
+            }
+        }
+        let count = max(numberOfSegments, 1)
+        return (0..<max(numberOfSegments, 0)).map {
+            CGPoint(x: bounds.width / CGFloat(count) * (CGFloat($0) + 0.5), y: bounds.midY)
+        }
+    }
+}

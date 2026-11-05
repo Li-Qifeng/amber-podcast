@@ -77,7 +77,7 @@ final class DockContainerView: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
         barGlassView.cornerConfiguration = .capsule()
-        bubbleGlassView.cornerConfiguration = .capsule()
+        bubbleGlassView.layer.cornerRadius = bubbleGlassView.bounds.height / 2
     }
 
     override var intrinsicContentSize: CGSize {
