@@ -4,8 +4,9 @@ import UIKit
 /// A wide, lifted glass dock that keeps the native segmented lens and adds a
 /// compact floating bubble above the touched item. The bubble lives in its own
 /// non-clipping overlay so `UIGlassEffect` sizing never inflates it.
+@available(iOS 26.0, *)
 struct GlassDockBar: UIViewRepresentable {
-    let items: [AmberTabItem]
+    let items: [AmberDockItem]
     @Binding var selectedIndex: Int
 
     func makeUIView(context: Context) -> DockContainerView {
@@ -17,6 +18,7 @@ struct GlassDockBar: UIViewRepresentable {
     }
 }
 
+@available(iOS 26.0, *)
 @MainActor
 final class DockContainerView: UIView {
     private let control: DockSegmentedControl
@@ -29,7 +31,7 @@ final class DockContainerView: UIView {
 
     private var hideTimer: Timer?
 
-    init(items: [AmberTabItem], onSelect: @escaping (Int) -> Void) {
+    init(items: [AmberDockItem], onSelect: @escaping (Int) -> Void) {
         control = DockSegmentedControl(items: items)
         super.init(frame: .zero)
 
@@ -68,7 +70,7 @@ final class DockContainerView: UIView {
 
     required init?(coder: NSCoder) { fatalError() }
 
-    func sync(items: [AmberTabItem], selectedIndex: Int) {
+    func sync(items: [AmberDockItem], selectedIndex: Int) {
         control.sync(items: items, selectedIndex: selectedIndex)
     }
 
