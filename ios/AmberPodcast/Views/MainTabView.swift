@@ -23,18 +23,16 @@ public struct MainTabView: View {
                     .ignoresSafeArea()
 
                 // Bottom Floating Island Stack: MiniPlayer + Liquid Glass Dock
-                ZStack(alignment: .bottom) {
-                    floatingLiquidDock(geometry: geo)
-
+                VStack(spacing: 8) {
                     if player.currentEpisode != nil {
                         MiniPlayerView(showFullPlayer: $showFullPlayer)
                             .frame(width: geo.size.width * AmberTheme.dockWidthRatio)
                             .transition(.move(edge: .bottom).combined(with: .opacity))
-                            .padding(.bottom, AmberTheme.dockHeight + AmberTheme.dockBottomGap + 6)
-                            .zIndex(1)
                     }
+
+                    floatingLiquidDock(geometry: geo)
                 }
-                .padding(.bottom, bottomClearance(for: geo))
+                .padding(.bottom, max(geo.safeAreaInsets.bottom, 8))
                 .animation(ForwardMotion.fluidSheet, value: player.currentEpisode?.id)
             }
             .ignoresSafeArea()
