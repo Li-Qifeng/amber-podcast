@@ -8,6 +8,22 @@ public struct MainTabView: View {
 
     private let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
 
+    #if DEBUG
+    /// Stretches the tab spring so headless frame capture can see mid-transition.
+    private var demoTabsSlowMotion: Bool {
+        ProcessInfo.processInfo.arguments.contains("-amberSlowMotion")
+    }
+    #endif
+
+    private var demoTabAnimation: Animation {
+        #if DEBUG
+        if demoTabsSlowMotion {
+            return .spring(response: 2.0, dampingFraction: 0.82)
+        }
+        #endif
+        return ForwardMotion.mercuryTab
+    }
+
     public init() {}
 
     public var body: some View {
@@ -49,8 +65,9 @@ public struct MainTabView: View {
         .onAppear {
             #if DEBUG
             if ProcessInfo.processInfo.arguments.contains("-amberDemoTabs") {
-                Timer.scheduledTimer(withTimeInterval: 1.5, repeats: true) { _ in
-                    withAnimation(ForwardMotion.mercuryTab) {
+                let interval: TimeInterval = demoTabsSlowMotion ? 4.0 : 1.5
+                Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { _ in
+                    withAnimation(demoTabAnimation) {
                         selectedTab = (selectedTab + 1) % 3
                     }
                 }
@@ -93,7 +110,7 @@ public struct MainTabView: View {
 
         return Button {
             impactFeedback.impactOccurred()
-            withAnimation(ForwardMotion.mercuryTab) {
+            withAnimation(demoTabAnimation) {
                 selectedTab = index
             }
         } label: {
