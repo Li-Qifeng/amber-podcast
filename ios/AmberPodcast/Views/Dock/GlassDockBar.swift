@@ -18,8 +18,6 @@ final class GlassDockBarView: UIView {
 
     private let contentPadding: CGFloat = 2
     private let containerSpacing: CGFloat = 8
-    private let bubbleSize = CGSize(width: 56, height: 56)
-    private let bubbleView = UIVisualEffectView(effect: UIGlassEffect())
 
     init(items: [AmberDockItem], selectedIndex: Int, onSelect: @escaping (Int) -> Void) {
         let containerEffect = UIGlassContainerEffect()
@@ -38,21 +36,9 @@ final class GlassDockBarView: UIView {
 
         super.init(frame: .zero)
 
-        bubbleView.isUserInteractionEnabled = false
-        bubbleView.autoresizingMask = []
-        bubbleView.alpha = 0
-        bubbleView.transform = CGAffineTransform(scaleX: 0.4, y: 0.4)
-        bubbleView.layer.cornerRadius = bubbleSize.height / 2
-        bubbleView.layer.cornerCurve = .continuous
-        bubbleView.clipsToBounds = true
-
-        control.onTouchChanged = { [weak self] index in
-            self?.showBubble(for: index)
-        }
 
         addSubview(containerEffectView)
         containerEffectView.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(bubbleView)
         containerEffectView.contentView.addSubview(barGlassView)
         barGlassView.translatesAutoresizingMaskIntoConstraints = false
         barGlassView.contentView.addSubview(control)
@@ -79,65 +65,11 @@ final class GlassDockBarView: UIView {
     @available(*, unavailable)
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
-    override func didMoveToWindow() {
-        super.didMoveToWindow()
-        #if DEBUG
-        // Holds the bubble open so CI can screenshot it; touches cannot be
-        // synthesised on a headless simulator.
-        if window != nil, ProcessInfo.processInfo.arguments.contains("-amberDemoBubble"), !didShowDemoBubble {
-            didShowDemoBubble = true
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
-                self?.showBubble(for: 1)
-            }
-        }
-        #endif
-    }
-
-    #if DEBUG
-    private var didShowDemoBubble = false
-    #endif
-
     override func layoutSubviews() {
         super.layoutSubviews()
         barGlassView.cornerConfiguration = .capsule()
     }
 
-    /// Floats a glass bubble above the touched item, mimicking the native tab bar.
-    private func showBubble(for index: Int?) {
-        guard let index else {
-            UIView.animate(
-                withDuration: 0.18,
-                delay: 0,
-                usingSpringWithDamping: 0.9,
-                initialSpringVelocity: 0,
-                options: [.beginFromCurrentState, .allowUserInteraction]
-            ) {
-                self.bubbleView.alpha = 0
-                self.bubbleView.transform = CGAffineTransform(scaleX: 0.4, y: 0.4)
-            }
-            return
-        }
-
-        let fallbackCenter = bounds.width / CGFloat(max(control.numberOfSegments, 1)) * (CGFloat(index) + 0.5)
-        let centerX = control.centerX(for: index) ?? fallbackCenter
-        bubbleView.frame = CGRect(
-            x: centerX - bubbleSize.width / 2,
-            y: -bubbleSize.height + 18,
-            width: bubbleSize.width,
-            height: bubbleSize.height
-        )
-
-        UIView.animate(
-            withDuration: 0.32,
-            delay: 0,
-            usingSpringWithDamping: 0.62,
-            initialSpringVelocity: 0.4,
-            options: [.beginFromCurrentState, .allowUserInteraction]
-        ) {
-            self.bubbleView.alpha = 1
-            self.bubbleView.transform = .identity
-        }
-    }
 
     func setSelectedIndex(_ index: Int) {
         guard index != control.selectedSegmentIndex else { return }
