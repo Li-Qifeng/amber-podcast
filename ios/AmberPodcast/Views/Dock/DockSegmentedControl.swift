@@ -13,13 +13,13 @@ final class DockItemView: UIView {
         super.init(frame: .zero)
         isUserInteractionEnabled = false
 
-        let configuration = UIImage.SymbolConfiguration(pointSize: 17, weight: .regular)
+        let configuration = UIImage.SymbolConfiguration(pointSize: 19, weight: .regular)
         iconView.image = UIImage(systemName: icon, withConfiguration: configuration)
         iconView.contentMode = .scaleAspectFit
         iconView.setContentHuggingPriority(.required, for: .vertical)
 
         titleLabel.text = title
-        titleLabel.font = .systemFont(ofSize: 10, weight: .medium)
+        titleLabel.font = .systemFont(ofSize: 10.5, weight: .medium)
         titleLabel.textAlignment = .center
 
         let stack = UIStackView(arrangedSubviews: [iconView, titleLabel])
@@ -31,14 +31,12 @@ final class DockItemView: UIView {
         NSLayoutConstraint.activate([
             stack.centerXAnchor.constraint(equalTo: centerXAnchor),
             stack.centerYAnchor.constraint(equalTo: centerYAnchor),
-            iconView.heightAnchor.constraint(equalToConstant: 20),
+            iconView.heightAnchor.constraint(equalToConstant: 22),
         ])
     }
 
     @available(*, unavailable)
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
-
-    override var intrinsicContentSize: CGSize { CGSize(width: 68, height: 40) }
 
     func apply(iconTint: UIColor, labelTint: UIColor) {
         iconView.tintColor = iconTint
@@ -46,194 +44,168 @@ final class DockItemView: UIView {
     }
 }
 
-/// UIKit dock modelled on the iOS 26 tab bar.
+/// Self-drawn glass dock.
 ///
-/// The interactive glass "bubble" on touch down is only available to `UITabBar`
-/// and `UISegmentedControl`, so this control is built on the latter and hides all
-/// of its stock chrome. The internal liquid-lens indicator is tracked every frame
-/// via `CADisplayLink` so accent colouring follows the glass rather than the
-/// selection state.
+/// Earlier revisions subclassed `UISegmentedControl` to borrow its private liquid
+/// lens, but UIKit stopped exposing the internal `UISegment` views on iOS 26, so
+/// no item views were ever injected and the bar rendered blank. Everything here is
+/// own geometry: even segment frames, a `UIGlassEffect` capsule that springs
+/// between segments, and accent item views masked to that capsule so label colour
+/// changes exactly where the glass passes over it.
 @available(iOS 26.0, *)
-final class DockSegmentedControl: UISegmentedControl {
+final class DockSegmentedControl: UIView {
     struct Item {
         let icon: String
         let title: String
     }
 
-    var activeTint: UIColor = .white {
-        didSet { applyTints() }
-    }
-    var inactiveTint: UIColor = .secondaryLabel {
-        didSet { applyTints() }
-    }
-    /// Fired only on touch up, matching native tab bar commit semantics.
     var onSelect: ((Int) -> Void)?
     /// Reports the pressed item (nil when the touch ends) so the host can float a
-    /// glass bubble above the bar, which UISegmentedControl does not provide.
+    /// glass bubble above the bar.
     var onTouchChanged: ((Int?) -> Void)?
 
+    var activeTint: UIColor = .white { didSet { applyTints() } }
+    var inactiveTint: UIColor = .secondaryLabel { didSet { applyTints() } }
+
+    private(set) var items: [Item] = []
     private var baseViews: [DockItemView] = []
-    private var injected: [(segment: UIView, base: DockItemView, accent: DockItemView)] = []
     private var accentViews: [DockItemView] = []
+
+    private let lens = UIVisualEffectView(effect: UIGlassEffect())
+    private let selectionFeedback = UISelectionFeedbackGenerator()
+
     private var displayLink: CADisplayLink?
     private var proxy: DisplayLinkProxy?
-    private var lastIndicatorRect: CGRect = .zero
+    private var lastLensRect: CGRect = .null
     private var stableFrames = 0
+    private var pressedIndex: Int?
     private var originalIndex: Int?
-    private weak var cachedIndicator: UIView?
 
-    #if DEBUG
-    private var traceSamples: [CGFloat] = []
-    private var didLogSegmentMismatch = false
-    private var traceEnabled: Bool {
-        ProcessInfo.processInfo.arguments.contains("-amberTraceIndicator")
-    }
-    #endif
-
-    private static let baseTag = 7_001
-    private static let accentTag = 7_002
+    private static let lensInset: CGFloat = 4
     private static let stableFrameThreshold = 3
 
-    init(items: [Item]) {
-        super.init(items: items.map { _ in "" })
-        backgroundColor = .clear
-        selectedSegmentTintColor = .clear
-        setBackgroundImage(UIImage(), for: .normal, barMetrics: .default)
-        setBackgroundImage(UIImage(), for: .selected, barMetrics: .default)
-        setDividerImage(UIImage(), forLeftSegmentState: .normal, rightSegmentState: .normal, barMetrics: .default)
+    var numberOfSegments: Int { items.count }
 
-        baseViews = items.map { DockItemView(icon: $0.icon, title: $0.title) }
-        accentViews = items.map { DockItemView(icon: $0.icon, title: $0.title) }
-        applyTints()
+    var selectedSegmentIndex: Int = 0 {
+        didSet {
+            guard oldValue != selectedSegmentIndex else { return }
+            moveLens(to: selectedSegmentIndex, animated: true)
+        }
+    }
+
+    init(items: [Item]) {
+        super.init(frame: .zero)
+        backgroundColor = .clear
+        lens.isUserInteractionEnabled = false
+        lens.clipsToBounds = true
+        lens.layer.cornerCurve = .continuous
+        addSubview(lens)
+        setItems(items)
+    }
+
+    convenience init(items: [AmberDockItem]) {
+        self.init(items: items.map { Item(icon: $0.icon, title: $0.title) })
     }
 
     @available(*, unavailable)
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+    // MARK: - Items
+
+    private func setItems(_ newItems: [Item]) {
+        baseViews.forEach { $0.removeFromSuperview() }
+        accentViews.forEach { $0.removeFromSuperview() }
+        items = newItems
+        baseViews = newItems.map { DockItemView(icon: $0.icon, title: $0.title) }
+        accentViews = newItems.map { DockItemView(icon: $0.icon, title: $0.title) }
+        for view in baseViews + accentViews { insertSubview(view, aboveSubview: lens) }
+        applyTints()
+        setNeedsLayout()
+    }
+
+    func sync(items newItems: [AmberDockItem], selectedIndex: Int) {
+        let mapped = newItems.map { Item(icon: $0.icon, title: $0.title) }
+        let changed = mapped.count != items.count
+            || zip(mapped, items).contains { $0.icon != $1.icon || $0.title != $1.title }
+        if changed { setItems(mapped) }
+
+        let clamped = min(max(selectedIndex, 0), max(numberOfSegments - 1, 0))
+        if clamped != selectedSegmentIndex { selectedSegmentIndex = clamped }
+        resumeIndicatorTracking()
+    }
 
     private func applyTints() {
         baseViews.forEach { $0.apply(iconTint: inactiveTint, labelTint: inactiveTint) }
         accentViews.forEach { $0.apply(iconTint: .white, labelTint: activeTint) }
     }
 
-    /// Programmatic selection changes do not touch the display link, which pauses
-    /// itself once the indicator settles — resume it so the accent masks follow.
     func resumeIndicatorTracking() {
         displayLink?.isPaused = false
         stableFrames = 0
-        lastIndicatorRect = .null
+        lastLensRect = .null
     }
 
-    // MARK: - Layout
+    // MARK: - Geometry
+
+    private func segmentRect(_ index: Int) -> CGRect {
+        let count = max(numberOfSegments, 1)
+        let width = bounds.width / CGFloat(count)
+        return CGRect(x: width * CGFloat(index), y: 0, width: width, height: bounds.height)
+    }
+
+    func lensFrame(for index: Int) -> CGRect {
+        segmentRect(index).insetBy(dx: Self.lensInset, dy: Self.lensInset)
+    }
+
+    /// Centre x of the given item in control coordinates.
+    func centerX(for index: Int) -> CGFloat? {
+        guard index >= 0, index < numberOfSegments else { return nil }
+        return segmentRect(index).midX
+    }
+
+    func segmentCentersInSelf() -> [CGPoint] {
+        (0..<numberOfSegments).map { CGPoint(x: segmentRect($0).midX, y: bounds.midY) }
+    }
 
     override func layoutSubviews() {
         super.layoutSubviews()
-        displayLink?.isPaused = false
-        stableFrames = 0
-        hideStockChrome()
-        injectItemViewsIfNeeded()
-        for entry in injected {
-            layoutItem(entry.base, in: entry.segment)
-            layoutItem(entry.accent, in: entry.segment)
+        for (index, view) in baseViews.enumerated() {
+            view.frame = segmentRect(index)
+            accentViews[index].frame = segmentRect(index)
+        }
+        let lensHeight = max(bounds.height - Self.lensInset * 2, 1)
+        lens.layer.cornerRadius = lensHeight / 2
+        lens.frame = lensFrame(for: min(max(selectedSegmentIndex, 0), max(numberOfSegments - 1, 0)))
+        resumeIndicatorTracking()
+        updateMasks()
+    }
+
+    private func moveLens(to index: Int, animated: Bool) {
+        guard index >= 0, index < numberOfSegments else { return }
+        resumeIndicatorTracking()
+        let target = lensFrame(for: index)
+        guard animated else {
+            lens.frame = target
+            updateMasks()
+            return
+        }
+        UIView.animate(
+            withDuration: 0.34,
+            delay: 0,
+            usingSpringWithDamping: 0.84,
+            initialSpringVelocity: 0.25,
+            options: [.beginFromCurrentState, .allowUserInteraction]
+        ) {
+            self.lens.frame = target
         }
     }
+
+    // MARK: - Lens tracking
 
     override func didMoveToWindow() {
         super.didMoveToWindow()
         if window == nil { stopDisplayLink() } else { startDisplayLink() }
     }
-
-    override func didAddSubview(_ subview: UIView) {
-        super.didAddSubview(subview)
-        hideStockChrome()
-    }
-
-    private func hideStockChrome() {
-        func walk(_ view: UIView) {
-            for subview in view.subviews {
-                // Never touch our own injected cells — they are the visible content.
-                if subview is DockItemView { continue }
-                if subview is UIImageView {
-                    subview.alpha = 0
-                }
-                if let label = subview as? UILabel {
-                    label.isHidden = true
-                }
-                walk(subview)
-            }
-        }
-        walk(self)
-    }
-
-    /// Centre x of the given item in control coordinates.
-    func centerX(for index: Int) -> CGFloat? {
-        let segments = segmentViews()
-        guard index >= 0, index < segments.count else { return nil }
-        let rect = segments[index].convert(segments[index].bounds, to: self)
-        return rect.midX
-    }
-
-    private func segmentViews() -> [UIView] {
-        var result: [UIView] = []
-        func walk(_ view: UIView) {
-            for subview in view.subviews {
-                if String(describing: type(of: subview)) == "UISegment" {
-                    result.append(subview)
-                } else {
-                    walk(subview)
-                }
-            }
-        }
-        walk(self)
-        return result.sorted { $0.frame.origin.x < $1.frame.origin.x }
-    }
-
-    private func injectItemViewsIfNeeded() {
-        let segments = segmentViews()
-        #if DEBUG
-        if traceEnabled, segments.count != baseViews.count, !didLogSegmentMismatch {
-            didLogSegmentMismatch = true
-            appendTraceLine("segments=\(segments.count) expected=\(baseViews.count)")
-        }
-        #endif
-        guard segments.count == baseViews.count else { return }
-
-        injected.removeAll()
-        for (index, segment) in segments.enumerated() {
-            if segment.viewWithTag(Self.baseTag) == nil {
-                attach(baseViews[index], to: segment, tag: Self.baseTag)
-            }
-            if segment.viewWithTag(Self.accentTag) == nil {
-                let accent = accentViews[index]
-                attach(accent, to: segment, tag: Self.accentTag)
-                let mask = CAShapeLayer()
-                mask.path = UIBezierPath(rect: .zero).cgPath
-                accent.layer.mask = mask
-            }
-            injected.append((segment, baseViews[index], accentViews[index]))
-        }
-    }
-
-    private func attach(_ item: DockItemView, to segment: UIView, tag: Int) {
-        item.tag = tag
-        item.translatesAutoresizingMaskIntoConstraints = true
-        // Cells live on the control itself: segment subviews sit in a private
-        // coordinate space that does not match the control's bounds.
-        addSubview(item)
-        layoutItem(item, in: segment)
-    }
-
-    private func layoutItem(_ item: DockItemView, in segment: UIView) {
-        let rect = segment.convert(segment.bounds, to: self)
-        let size = CGSize(width: 68, height: 40)
-        item.frame = CGRect(
-            x: rect.midX - size.width / 2,
-            y: rect.midY - size.height / 2,
-            width: size.width,
-            height: size.height
-        )
-    }
-
-    // MARK: - Indicator tracking
 
     private func startDisplayLink() {
         guard displayLink == nil else { return }
@@ -250,86 +222,35 @@ final class DockSegmentedControl: UISegmentedControl {
         proxy = nil
     }
 
-    private func findIndicatorView() -> UIView? {
-        // Primary: the indicator is a sibling of the segments container inside the
-        // same wrapper, and unlike the segments container it carries subviews.
-        if let container = segmentViews().first?.superview,
-           let wrapper = container.superview {
-            if let indicator = wrapper.subviews.first(where: { $0 !== container && !$0.subviews.isEmpty }) {
-                return indicator
-            }
-        }
-        // Fallback: match by class name.
-        var stack: [UIView] = subviews
-        while let view = stack.popLast() {
-            let name = String(describing: type(of: view))
-            if name.contains("Lens") || name.contains("Indicator") || name.contains("Selection") {
-                return view
-            }
-            stack.append(contentsOf: view.subviews)
-        }
-        return nil
-    }
-
-    private func currentIndicatorRect() -> CGRect {
-        if cachedIndicator == nil { cachedIndicator = findIndicatorView() }
-        if let indicator = cachedIndicator {
-            let indicatorLayer = indicator.layer.presentation() ?? indicator.layer
-            let selfLayer = layer.presentation() ?? layer
-            return selfLayer.convert(indicatorLayer.bounds, from: indicatorLayer)
-        }
-        let segments = segmentViews()
-        guard selectedSegmentIndex >= 0, selectedSegmentIndex < segments.count else { return .zero }
-        return segments[selectedSegmentIndex].frame
-    }
-
     fileprivate func updateMasks() {
-        let indicatorRect = currentIndicatorRect()
+        let lensLayer = lens.layer.presentation() ?? lens.layer
+        let rect = layer.convert(lensLayer.bounds, from: lensLayer)
 
-        if indicatorRect == lastIndicatorRect {
+        if rect == lastLensRect {
             stableFrames += 1
             if stableFrames >= Self.stableFrameThreshold {
                 displayLink?.isPaused = true
-                #if DEBUG
-                flushTraceIfNeeded()
-                #endif
                 return
             }
         } else {
             stableFrames = 0
-            lastIndicatorRect = indicatorRect
+            lastLensRect = rect
         }
-
-        #if DEBUG
-        if traceEnabled, traceSamples.last != indicatorRect.minX {
-            traceSamples.append(indicatorRect.minX)
-        }
-        #endif
 
         CATransaction.begin()
         CATransaction.setDisableActions(true)
-        for index in baseViews.indices {
-            applyMasks(index: index, indicatorRect: indicatorRect)
-        }
+        for index in baseViews.indices { applyMasks(index: index, lensRect: rect) }
         CATransaction.commit()
     }
 
-    private func applyMasks(index: Int, indicatorRect: CGRect) {
+    private func applyMasks(index: Int, lensRect: CGRect) {
         guard index < accentViews.count, index < baseViews.count else { return }
         let base = baseViews[index]
         let accent = accentViews[index]
 
-        let accentLayer = accent.layer.presentation() ?? accent.layer
-        let selfLayer = layer.presentation() ?? layer
-        let viewRect = selfLayer.convert(accentLayer.bounds, from: accentLayer)
-
-        let local = CGRect(
-            x: indicatorRect.minX - viewRect.minX,
-            y: indicatorRect.minY - viewRect.minY,
-            width: indicatorRect.width,
-            height: indicatorRect.height
-        )
-        let capsule = UIBezierPath(roundedRect: local, cornerRadius: indicatorRect.height / 2)
+        let local = lensRect.intersection(base.frame)
+            .offsetBy(dx: -base.frame.minX, dy: -base.frame.minY)
+        let capsule = UIBezierPath(roundedRect: local, cornerRadius: lensRect.height / 2)
 
         let accentMask = (accent.layer.mask as? CAShapeLayer) ?? {
             let mask = CAShapeLayer()
@@ -338,7 +259,7 @@ final class DockSegmentedControl: UISegmentedControl {
         }()
         accentMask.path = capsule.cgPath
 
-        if indicatorRect.intersects(viewRect) {
+        if lensRect.intersects(base.frame) {
             let baseMask = (base.layer.mask as? CAShapeLayer) ?? {
                 let mask = CAShapeLayer()
                 base.layer.mask = mask
@@ -353,30 +274,6 @@ final class DockSegmentedControl: UISegmentedControl {
         }
     }
 
-    #if DEBUG
-    private func appendTraceLine(_ line: String) {
-        guard let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else { return }
-        let url = dir.appendingPathComponent("indicator_trace.txt")
-        let payload = (line + "\n").data(using: .utf8) ?? Data()
-        if let handle = try? FileHandle(forWritingTo: url) {
-            handle.seekToEndOfFile()
-            handle.write(payload)
-            try? handle.close()
-        } else {
-            try? payload.write(to: url)
-        }
-    }
-
-    /// Writes the observed indicator x positions to Documents so CI can prove the
-    /// lens travelled through intermediate positions instead of snapping.
-    private func flushTraceIfNeeded() {
-        guard traceEnabled, !traceSamples.isEmpty else { return }
-        let line = traceSamples.map { String(format: "%.1f", $0) }.joined(separator: ",")
-        traceSamples.removeAll()
-        appendTraceLine(line)
-    }
-    #endif
-
     // MARK: - Touch handling
 
     private func index(at point: CGPoint) -> Int {
@@ -385,55 +282,44 @@ final class DockSegmentedControl: UISegmentedControl {
         return min(max(Int(point.x / width), 0), numberOfSegments - 1)
     }
 
-    private var movesIndicatorOnTouchDown: Bool {
-        !traitCollection.preferredContentSizeCategory.isAccessibilityCategory
-    }
-
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        guard let touch = touches.first else { return super.touchesBegan(touches, with: event) }
-        displayLink?.isPaused = false
-        stableFrames = 0
+        guard let touch = touches.first else { return }
         let index = index(at: touch.location(in: self))
-        if movesIndicatorOnTouchDown {
-            originalIndex = selectedSegmentIndex
+        originalIndex = selectedSegmentIndex
+        pressedIndex = index
+        selectionFeedback.prepare()
+        if index != selectedSegmentIndex {
+            selectionFeedback.selectionChanged()
             selectedSegmentIndex = index
         }
         onTouchChanged?(index)
-        super.touchesBegan(touches, with: event)
     }
 
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        guard let touch = touches.first else { return super.touchesMoved(touches, with: event) }
-        displayLink?.isPaused = false
-        stableFrames = 0
-        let target = index(at: touch.location(in: self))
-        if movesIndicatorOnTouchDown, target != selectedSegmentIndex {
-            selectedSegmentIndex = target
-        }
-        onTouchChanged?(target)
-        super.touchesMoved(touches, with: event)
+        guard let touch = touches.first else { return }
+        let index = index(at: touch.location(in: self))
+        guard index != pressedIndex else { return }
+        pressedIndex = index
+        selectionFeedback.selectionChanged()
+        selectedSegmentIndex = index
+        onTouchChanged?(index)
     }
 
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        displayLink?.isPaused = false
-        stableFrames = 0
+        guard let pressed = pressedIndex else { return }
+        pressedIndex = nil
         onTouchChanged?(nil)
-        if movesIndicatorOnTouchDown, let originalIndex {
-            if selectedSegmentIndex != originalIndex { onSelect?(selectedSegmentIndex) }
-        }
-        originalIndex = nil
-        super.touchesEnded(touches, with: event)
+        if let originalIndex, pressed != originalIndex { onSelect?(pressed) }
+        self.originalIndex = nil
     }
 
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
-        displayLink?.isPaused = false
-        stableFrames = 0
+        pressedIndex = nil
         onTouchChanged?(nil)
-        if movesIndicatorOnTouchDown, let originalIndex {
+        if let originalIndex {
             selectedSegmentIndex = originalIndex
+            self.originalIndex = nil
         }
-        originalIndex = nil
-        super.touchesCancelled(touches, with: event)
     }
 }
 
@@ -452,47 +338,5 @@ private final class DisplayLinkProxy: NSObject {
             return
         }
         control.updateMasks()
-    }
-}
-
-@available(iOS 26.0, *)
-extension DockSegmentedControl {
-    convenience init(items: [AmberDockItem]) {
-        self.init(items: items.map { Item(icon: $0.icon, title: $0.title) })
-    }
-
-    /// Applies a new item set / selection coming from SwiftUI. The item list is
-    /// static in practice, so a mismatch (not a content diff) triggers a rebuild.
-    func sync(items: [AmberDockItem], selectedIndex: Int) {
-        if baseViews.count != items.count {
-            baseViews.forEach { $0.removeFromSuperview() }
-            accentViews.forEach { $0.removeFromSuperview() }
-            injected.removeAll()
-            removeAllSegments()
-            for _ in items { insertSegment(withTitle: "", at: numberOfSegments, animated: false) }
-            baseViews = items.map { DockItemView(icon: $0.icon, title: $0.title) }
-            accentViews = items.map { DockItemView(icon: $0.icon, title: $0.title) }
-            applyTints()
-        }
-        if selectedIndex >= 0, selectedIndex < numberOfSegments, selectedSegmentIndex != selectedIndex {
-            selectedSegmentIndex = selectedIndex
-            resumeIndicatorTracking()
-        }
-        setNeedsLayout()
-    }
-
-    /// Centres of each segment in this control's coordinate space.
-    func segmentCentersInSelf() -> [CGPoint] {
-        let segments = segmentViews()
-        if segments.count == numberOfSegments, !segments.isEmpty {
-            return segments.map {
-                let rect = $0.convert($0.bounds, to: self)
-                return CGPoint(x: rect.midX, y: rect.midY)
-            }
-        }
-        let count = max(numberOfSegments, 1)
-        return (0..<max(numberOfSegments, 0)).map {
-            CGPoint(x: bounds.width / CGFloat(count) * (CGFloat($0) + 0.5), y: bounds.midY)
-        }
     }
 }

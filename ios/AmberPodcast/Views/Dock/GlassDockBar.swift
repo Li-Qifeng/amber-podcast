@@ -1,9 +1,12 @@
 import SwiftUI
 import UIKit
 
-/// A wide, lifted glass dock that keeps the native segmented lens and adds a
-/// compact floating bubble above the touched item. The bubble lives in its own
-/// non-clipping overlay so `UIGlassEffect` sizing never inflates it.
+/// A wide, lifted dock bar. Geometry follows the Apple media-app standard:
+/// ~90% screen width, 60pt tall, floating clear of the home indicator.
+///
+/// The bar itself is a graphite surface rather than a glass panel — `UIGlassEffect`
+/// over a pure-black canvas refracts nothing and reads as flat grey, so depth comes
+/// from a surface step plus the real glass lens travelling between items.
 @available(iOS 26.0, *)
 struct GlassDockBar: UIViewRepresentable {
     let items: [AmberDockItem]
@@ -21,13 +24,13 @@ struct GlassDockBar: UIViewRepresentable {
 @available(iOS 26.0, *)
 @MainActor
 final class DockContainerView: UIView {
-    private let control: DockSegmentedControl
-    private let barGlassView = UIVisualEffectView(effect: UIGlassEffect())
-    private let bubbleGlassView = UIVisualEffectView(effect: UIGlassEffect())
+    /// Transparent strip above the bar that the bubble rises into.
+    static let bubbleHeadroom: CGFloat = 26
+    static let barHeight: CGFloat = 60
 
-    private let barHeight: CGFloat = 60
-    private let bubbleHeight: CGFloat = 42
-    private let bubbleTopPadding: CGFloat = 6
+    private let control: DockSegmentedControl
+    private let barSurface = UIView()
+    private let bubble = UIView()
 
     private var hideTimer: Timer?
 
@@ -40,32 +43,30 @@ final class DockContainerView: UIView {
             self?.showBubble(for: index)
         }
 
-        barGlassView.isUserInteractionEnabled = false
-        barGlassView.layer.cornerCurve = .continuous
-        barGlassView.clipsToBounds = true
-        addSubview(barGlassView)
+        barSurface.backgroundColor = UIColor(white: 0.09, alpha: 0.92)
+        barSurface.layer.cornerCurve = .continuous
+        barSurface.layer.borderWidth = 0.5
+        barSurface.layer.borderColor = UIColor(white: 1, alpha: 0.12).cgColor
+        barSurface.layer.shadowColor = UIColor.black.cgColor
+        barSurface.layer.shadowOpacity = 0.35
+        barSurface.layer.shadowRadius = 16
+        barSurface.layer.shadowOffset = CGSize(width: 0, height: 8)
+        barSurface.isUserInteractionEnabled = false
+        addSubview(barSurface)
 
-        control.translatesAutoresizingMaskIntoConstraints = false
         addSubview(control)
 
-        bubbleGlassView.isUserInteractionEnabled = false
-        bubbleGlassView.alpha = 0
-        bubbleGlassView.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
-        bubbleGlassView.layer.cornerCurve = .continuous
-        bubbleGlassView.clipsToBounds = true
-        addSubview(bubbleGlassView)
-
-        NSLayoutConstraint.activate([
-            control.leadingAnchor.constraint(equalTo: leadingAnchor),
-            control.trailingAnchor.constraint(equalTo: trailingAnchor),
-            control.bottomAnchor.constraint(equalTo: bottomAnchor),
-            control.heightAnchor.constraint(equalToConstant: barHeight),
-
-            barGlassView.leadingAnchor.constraint(equalTo: control.leadingAnchor),
-            barGlassView.trailingAnchor.constraint(equalTo: control.trailingAnchor),
-            barGlassView.topAnchor.constraint(equalTo: control.topAnchor),
-            barGlassView.bottomAnchor.constraint(equalTo: control.bottomAnchor),
-        ])
+        bubble.backgroundColor = UIColor(white: 0.16, alpha: 0.96)
+        bubble.layer.borderWidth = 0.5
+        bubble.layer.borderColor = UIColor(white: 1, alpha: 0.16).cgColor
+        bubble.layer.shadowColor = UIColor.black.cgColor
+        bubble.layer.shadowOpacity = 0.4
+        bubble.layer.shadowRadius = 12
+        bubble.layer.shadowOffset = CGSize(width: 0, height: 6)
+        bubble.isUserInteractionEnabled = false
+        bubble.alpha = 0
+        bubble.transform = CGAffineTransform(scaleX: 0.6, y: 0.6)
+        addSubview(bubble)
     }
 
     required init?(coder: NSCoder) { fatalError() }
@@ -76,60 +77,80 @@ final class DockContainerView: UIView {
 
     override func layoutSubviews() {
         super.layoutSubviews()
-        barGlassView.cornerConfiguration = .capsule()
-        bubbleGlassView.layer.cornerRadius = bubbleGlassView.bounds.height / 2
-    }
-
-    override var intrinsicContentSize: CGSize {
-        CGSize(width: UIView.noIntrinsicMetric, height: barHeight + bubbleHeight + bubbleTopPadding)
+        let barRect = CGRect(
+            x: 0,
+            y: bounds.height - Self.barHeight,
+            width: bounds.width,
+            height: Self.barHeight
+        )
+        barSurface.frame = barRect
+        barSurface.layer.cornerRadius = Self.barHeight / 2
+        barSurface.layer.shadowPath = UIBezierPath(
+            roundedRect: barRect,
+            cornerRadius: Self.barHeight / 2
+        ).cgPath
+        control.frame = barRect
     }
 
     override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
-        let barFrame = control.frame.insetBy(dx: -12, dy: -12)
-        return barFrame.contains(point) ? control : nil
+        guard control.frame.insetBy(dx: -8, dy: -8).contains(point) else { return nil }
+        return super.hitTest(point, with: event)
     }
 
     #if DEBUG
     private var didShowDemoBubble = false
     override func didMoveToWindow() {
         super.didMoveToWindow()
-        if window != nil, ProcessInfo.processInfo.arguments.contains("-amberDemoBubble"), !didShowDemoBubble {
-            didShowDemoBubble = true
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.2) { [weak self] in
-                self?.showBubble(for: 1)
-            }
+        guard window != nil,
+              ProcessInfo.processInfo.arguments.contains("-amberDemoBubble"),
+              !didShowDemoBubble else { return }
+        didShowDemoBubble = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
+            self?.showBubble(for: 1)
         }
     }
     #endif
 
     private func showBubble(for index: Int?) {
         hideTimer?.invalidate()
-        guard let index else {
-            UIView.animate(withDuration: 0.18, delay: 0, options: [.beginFromCurrentState, .allowUserInteraction]) {
-                self.bubbleGlassView.alpha = 0
-                self.bubbleGlassView.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
+
+        guard let index,
+              let centerX = control.centerX(for: index) else {
+            UIView.animate(
+                withDuration: 0.16,
+                delay: 0,
+                options: [.beginFromCurrentState, .allowUserInteraction]
+            ) {
+                self.bubble.alpha = 0
+                self.bubble.transform = CGAffineTransform(scaleX: 0.6, y: 0.6)
             }
             return
         }
 
-        let centers = control.segmentCentersInSelf()
-        guard index >= 0, index < centers.count else { return }
-
-        let bubbleWidth = max(64, min(104, (bounds.width / CGFloat(max(control.numberOfSegments, 1))) - 18))
-        bubbleGlassView.bounds = CGRect(x: 0, y: 0, width: bubbleWidth, height: bubbleHeight)
-        bubbleGlassView.center = CGPoint(
-            x: control.frame.minX + centers[index].x,
-            y: bubbleHeight / 2
+        let itemWidth = bounds.width / CGFloat(max(control.numberOfSegments, 1))
+        let size = CGSize(width: min(itemWidth - 16, 96), height: 42)
+        bubble.transform = .identity
+        bubble.frame = CGRect(
+            x: centerX - size.width / 2,
+            y: bounds.height - Self.barHeight - size.height + 14,
+            width: size.width,
+            height: size.height
         )
+        bubble.layer.cornerRadius = size.height / 2
+        bubble.transform = CGAffineTransform(scaleX: 0.6, y: 0.6)
 
-        UIView.animate(withDuration: 0.28, delay: 0, usingSpringWithDamping: 0.72, initialSpringVelocity: 0.2,
-                       options: [.beginFromCurrentState, .allowUserInteraction]) {
-            self.bubbleGlassView.alpha = 1
-            self.bubbleGlassView.transform = .identity
+        UIView.animate(
+            withDuration: 0.34,
+            delay: 0,
+            usingSpringWithDamping: 0.72,
+            initialSpringVelocity: 0.3,
+            options: [.beginFromCurrentState, .allowUserInteraction]
+        ) {
+            self.bubble.alpha = 1
+            self.bubble.transform = .identity
         }
 
-        // Auto-hide after a beat so it doesn't linger over content.
-        hideTimer = Timer.scheduledTimer(withTimeInterval: 1.1, repeats: false) { [weak self] _ in
+        hideTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: false) { [weak self] _ in
             Task { @MainActor in self?.showBubble(for: nil) }
         }
     }
