@@ -50,7 +50,7 @@ public struct MainTabView: View {
                         floatingLiquidDock(geometry: geo)
                     }
                 }
-                .padding(.bottom, max(geo.safeAreaInsets.bottom, 8))
+                .padding(.bottom, max(geo.safeAreaInsets.bottom, 8) + 10)
                 .animation(ForwardMotion.fluidSheet, value: player.currentEpisode?.id)
             }
             .ignoresSafeArea()
