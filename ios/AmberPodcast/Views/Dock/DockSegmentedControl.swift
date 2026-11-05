@@ -195,6 +195,8 @@ final class DockSegmentedControl: UISegmentedControl {
         NSLayoutConstraint.activate([
             item.centerXAnchor.constraint(equalTo: segment.centerXAnchor),
             item.centerYAnchor.constraint(equalTo: segment.centerYAnchor),
+            item.widthAnchor.constraint(equalToConstant: 68),
+            item.heightAnchor.constraint(equalToConstant: 40),
         ])
     }
 
@@ -216,9 +218,12 @@ final class DockSegmentedControl: UISegmentedControl {
     }
 
     private func findIndicatorView() -> UIView? {
-        var stack: [UIView] = [self]
+        var stack: [UIView] = subviews
         while let view = stack.popLast() {
-            if String(describing: type(of: view)) == "_UILiquidLensView" { return view }
+            let name = String(describing: type(of: view))
+            if name.contains("Lens") || name.contains("Indicator") || name.contains("Selection") {
+                return view
+            }
             stack.append(contentsOf: view.subviews)
         }
         return nil
