@@ -58,8 +58,11 @@ final class GlassTabBarView: UIView, UITabBarDelegate {
         appearance.inlineLayoutAppearance = item
         appearance.compactInlineLayoutAppearance = item
 
-        // Spread the items across the full width instead of centring a narrow group.
+        // The iOS 26 bar hugs its items, so widen each item to reach the target
+        // 92%-of-screen capsule instead of a cramped 63% one.
         tabBar.itemPositioning = .fill
+        appearance.stackedItemWidth = 120
+        appearance.stackedItemPositioning = .fill
         tabBar.standardAppearance = appearance
         tabBar.scrollEdgeAppearance = appearance
         tabBar.isTranslucent = true
