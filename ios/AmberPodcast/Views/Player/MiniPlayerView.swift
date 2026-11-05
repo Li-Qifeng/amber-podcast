@@ -77,7 +77,7 @@ public struct MiniPlayerView: View {
                 // 5. Hairline Micro Progress Bar
                 progressBarView
             }
-            .glassEffect(.regular.interactive(), in: .capsule)
+            .amberGlass(.capsule, isInteractive: true)
             .offset(y: dragOffsetY)
             .scaleEffect(isDragging ? 1.02 : 1.0)
             .animation(isDragging ? .interactiveSpring() : ForwardMotion.snapSpring, value: dragOffsetY)

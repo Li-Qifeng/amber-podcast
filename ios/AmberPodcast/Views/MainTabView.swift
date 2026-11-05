@@ -63,7 +63,7 @@ public struct MainTabView: View {
     private func floatingLiquidDock(geometry: GeometryProxy) -> some View {
         let dockWidth = geometry.size.width * AmberTheme.dockWidthRatio
 
-        return GlassEffectContainer(spacing: 8) {
+        return AmberGlassContainer(spacing: 8) {
             HStack(spacing: 0) {
                 dockItem(index: 0, icon: "square.stack.fill", title: "资料库")
                 dockItem(index: 1, icon: "magnifyingglass", title: "发现")
@@ -71,7 +71,7 @@ public struct MainTabView: View {
             }
             .padding(4)
             .frame(width: dockWidth, height: AmberTheme.dockHeight)
-            .glassEffect(.regular.interactive(), in: .capsule)
+            .amberGlass(.capsule, isInteractive: true)
         }
     }
 
@@ -92,7 +92,7 @@ public struct MainTabView: View {
                             Capsule()
                                 .strokeBorder(Color.white.opacity(0.12), lineWidth: 0.5)
                         )
-                        .glassEffectID("activeDockIndicator", in: dockNamespace)
+                        .matchedGeometryEffect(id: "activeDockIndicator", in: dockNamespace)
                 }
 
                 VStack(spacing: 3) {

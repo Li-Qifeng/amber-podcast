@@ -184,39 +184,56 @@ public struct LiquidGlassCardModifier: ViewModifier {
     public var tint: Color? = nil
     public var isPressed: Bool = false
 
+    @ViewBuilder
     public func body(content: Content) -> some View {
-        let shadowColor = Color.black.opacity(isPressed ? 0.18 : 0.32)
-        let shadowRadius: CGFloat = isPressed ? 4.0 : 12.0
-        let shadowY: CGFloat = isPressed ? 2.0 : 6.0
+        if #available(iOS 26.0, *) {
+            content.glassEffect(
+                AmberGlassMaterial.make(tint: tint, isInteractive: false),
+                in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+            )
+        } else {
+            let shadowColor = Color.black.opacity(isPressed ? 0.18 : 0.32)
+            let shadowRadius: CGFloat = isPressed ? 4.0 : 12.0
+            let shadowY: CGFloat = isPressed ? 2.0 : 6.0
 
-        return content
-            .background(
-                LiquidGlassBackground(cornerRadius: cornerRadius, isCapsule: false, tint: tint, isPressed: isPressed)
-            )
-            .overlay(
-                LiquidGlassBorder(cornerRadius: cornerRadius, isCapsule: false, lineWidth: 0.5, isPressed: isPressed)
-            )
-            .shadow(color: shadowColor, radius: shadowRadius, x: 0, y: shadowY)
+            content
+                .background(
+                    LiquidGlassBackground(cornerRadius: cornerRadius, isCapsule: false, tint: tint, isPressed: isPressed)
+                )
+                .overlay(
+                    LiquidGlassBorder(cornerRadius: cornerRadius, isCapsule: false, lineWidth: 0.5, isPressed: isPressed)
+                )
+                .shadow(color: shadowColor, radius: shadowRadius, x: 0, y: shadowY)
+        }
     }
 }
 
 public struct LiquidGlassCapsuleModifier: ViewModifier {
     public var tint: Color? = nil
     public var isPressed: Bool = false
+    public var isInteractive: Bool = false
 
+    @ViewBuilder
     public func body(content: Content) -> some View {
-        let shadowColor = Color.black.opacity(isPressed ? 0.22 : 0.38)
-        let shadowRadius: CGFloat = isPressed ? 5.0 : 16.0
-        let shadowY: CGFloat = isPressed ? 2.0 : 8.0
+        if #available(iOS 26.0, *) {
+            content.glassEffect(
+                AmberGlassMaterial.make(tint: tint, isInteractive: isInteractive),
+                in: Capsule()
+            )
+        } else {
+            let shadowColor = Color.black.opacity(isPressed ? 0.22 : 0.38)
+            let shadowRadius: CGFloat = isPressed ? 5.0 : 16.0
+            let shadowY: CGFloat = isPressed ? 2.0 : 8.0
 
-        return content
-            .background(
-                LiquidGlassBackground(cornerRadius: 0, isCapsule: true, tint: tint, isPressed: isPressed)
-            )
-            .overlay(
-                LiquidGlassBorder(cornerRadius: 0, isCapsule: true, lineWidth: 0.5, isPressed: isPressed)
-            )
-            .shadow(color: shadowColor, radius: shadowRadius, x: 0, y: shadowY)
+            content
+                .background(
+                    LiquidGlassBackground(cornerRadius: 0, isCapsule: true, tint: tint, isPressed: isPressed)
+                )
+                .overlay(
+                    LiquidGlassBorder(cornerRadius: 0, isCapsule: true, lineWidth: 0.5, isPressed: isPressed)
+                )
+                .shadow(color: shadowColor, radius: shadowRadius, x: 0, y: shadowY)
+        }
     }
 }
 
@@ -433,161 +450,103 @@ public extension View {
 }
 
 // MARK: - ==========================================
-// MARK: 6. Official Apple Liquid Glass API Suite (swiftui-liquid-glass Standard)
+// MARK: 6. Apple Liquid Glass Bridge (iOS 26 real API, iOS 17 fallback)
 // MARK: - ==========================================
 
-public struct Glass {
-    public enum Style {
-        case regular
-        case clear
-    }
-
-    public var style: Style = .regular
-    public var tintColor: Color? = nil
-    public var isInteractive: Bool = false
-
-    public static var regular: Glass {
-        Glass(style: .regular)
-    }
-
-    public static var clear: Glass {
-        Glass(style: .clear)
-    }
-
-    public func tint(_ color: Color) -> Glass {
-        var copy = self
-        copy.tintColor = color
-        return copy
-    }
-
-    public func interactive(_ interactive: Bool = true) -> Glass {
-        var copy = self
-        copy.isInteractive = interactive
-        return copy
+/// Builds a system `Glass` value. Only usable on iOS 26+, where `Glass` exists.
+@available(iOS 26.0, *)
+public enum AmberGlassMaterial {
+    public static func make(tint: Color?, isInteractive: Bool) -> Glass {
+        var glass: Glass = .regular
+        if let tint = tint {
+            glass = glass.tint(tint)
+        }
+        if isInteractive {
+            glass = glass.interactive()
+        }
+        return glass
     }
 }
 
-public enum GlassShape {
+/// Thin wrapper over the system `GlassEffectContainer`.
+/// On iOS 26+ it enables real shape blending and morphing between sibling glass views.
+/// Below iOS 26 it is a plain passthrough.
+public struct AmberGlassContainer<Content: View>: View {
+    public var spacing: CGFloat?
+    public let content: () -> Content
+
+    public init(spacing: CGFloat? = nil, @ViewBuilder content: @escaping () -> Content) {
+        self.spacing = spacing
+        self.content = content
+    }
+
+    @ViewBuilder
+    public var body: some View {
+        if #available(iOS 26.0, *) {
+            GlassEffectContainer(spacing: spacing) {
+                content()
+            }
+        } else {
+            content()
+        }
+    }
+}
+
+/// Applies a real Liquid Glass effect on iOS 26+, and the graphite fallback below it.
+public struct AmberGlassModifier: ViewModifier {
+    public var shape: AmberGlassShape
+    public var tint: Color?
+    public var isInteractive: Bool
+
+    public init(shape: AmberGlassShape, tint: Color? = nil, isInteractive: Bool = false) {
+        self.shape = shape
+        self.tint = tint
+        self.isInteractive = isInteractive
+    }
+
+    @ViewBuilder
+    public func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) {
+            switch shape {
+            case .capsule:
+                content.glassEffect(
+                    AmberGlassMaterial.make(tint: tint, isInteractive: isInteractive),
+                    in: Capsule()
+                )
+            case .circle:
+                content.glassEffect(
+                    AmberGlassMaterial.make(tint: tint, isInteractive: isInteractive),
+                    in: Circle()
+                )
+            case .rect(let cornerRadius):
+                content.glassEffect(
+                    AmberGlassMaterial.make(tint: tint, isInteractive: isInteractive),
+                    in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                )
+            }
+        } else {
+            switch shape {
+            case .capsule:
+                content.modifier(LiquidGlassCapsuleModifier(tint: tint))
+            case .circle, .rect:
+                let cornerRadius: CGFloat = {
+                    if case .rect(let radius) = shape { return radius }
+                    return 999
+                }()
+                content.modifier(LiquidGlassCardModifier(cornerRadius: cornerRadius, tint: tint))
+            }
+        }
+    }
+}
+
+public enum AmberGlassShape {
     case capsule
     case circle
     case rect(cornerRadius: CGFloat)
 }
 
-public struct GlassEffectContainer<Content: View>: View {
-    public var spacing: CGFloat
-    public let content: () -> Content
-
-    public init(spacing: CGFloat = 20.0, @ViewBuilder content: @escaping () -> Content) {
-        self.spacing = spacing
-        self.content = content
-    }
-
-    public var body: some View {
-        content()
-    }
-}
-
-public struct GlassModifier: ViewModifier {
-    public var glass: Glass
-    public var shape: GlassShape
-    @State private var isPressed: Bool = false
-
-    public func body(content: Content) -> some View {
-        let cornerRadius: CGFloat = {
-            switch shape {
-            case .capsule, .circle: return 0
-            case .rect(let r): return r
-            }
-        }()
-        let isCapsule = {
-            switch shape {
-            case .capsule: return true
-            case .circle, .rect: return false
-            }
-        }()
-
-        return content
-            .background(
-                LiquidGlassBackground(
-                    cornerRadius: cornerRadius,
-                    isCapsule: isCapsule,
-                    tint: glass.tintColor,
-                    isPressed: glass.isInteractive && isPressed
-                )
-            )
-            .overlay(
-                LiquidGlassBorder(
-                    cornerRadius: cornerRadius,
-                    isCapsule: isCapsule,
-                    lineWidth: 0.5,
-                    isPressed: glass.isInteractive && isPressed
-                )
-            )
-            .scaleEffect(glass.isInteractive && isPressed ? 0.97 : 1.0)
-            .animation(ForwardMotion.touchDown, value: isPressed)
-    }
-}
-
 public extension View {
-    func glassEffect(_ glass: Glass = .regular, in shape: GlassShape = .capsule) -> some View {
-        self.modifier(GlassModifier(glass: glass, shape: shape))
-    }
-
-    func glassEffectID(_ id: String, in namespace: Namespace.ID) -> some View {
-        self.matchedGeometryEffect(id: id, in: namespace)
-    }
-}
-
-public struct GlassButtonStyle: ButtonStyle {
-    public var isProminent: Bool = false
-    public var tint: Color? = nil
-    public var cornerRadius: CGFloat = AmberTheme.radiusControl
-    private let impact = UIImpactFeedbackGenerator(style: .light)
-
-    public init(isProminent: Bool = false, tint: Color? = nil, cornerRadius: CGFloat = AmberTheme.radiusControl) {
-        self.isProminent = isProminent
-        self.tint = tint
-        self.cornerRadius = cornerRadius
-    }
-
-    public func makeBody(configuration: Configuration) -> some View {
-        let isPressed = configuration.isPressed
-        let effectiveTint = isProminent ? (tint ?? AmberTheme.primaryAmber) : tint
-
-        return configuration.label
-            .scaleEffect(isPressed ? 0.97 : 1.0)
-            .background(
-                LiquidGlassBackground(
-                    cornerRadius: cornerRadius,
-                    isCapsule: false,
-                    tint: effectiveTint,
-                    isPressed: isPressed
-                )
-            )
-            .overlay(
-                LiquidGlassBorder(
-                    cornerRadius: cornerRadius,
-                    isCapsule: false,
-                    lineWidth: 0.5,
-                    isPressed: isPressed
-                )
-            )
-            .animation(isPressed ? ForwardMotion.touchDown : ForwardMotion.touchUp, value: isPressed)
-            .onChange(of: isPressed) { pressed in
-                if pressed {
-                    impact.prepare()
-                    impact.impactOccurred()
-                }
-            }
-    }
-}
-
-public extension ButtonStyle where Self == GlassButtonStyle {
-    static var glass: GlassButtonStyle {
-        GlassButtonStyle(isProminent: false)
-    }
-
-    static var glassProminent: GlassButtonStyle {
-        GlassButtonStyle(isProminent: true)
+    func amberGlass(_ shape: AmberGlassShape = .capsule, tint: Color? = nil, isInteractive: Bool = false) -> some View {
+        modifier(AmberGlassModifier(shape: shape, tint: tint, isInteractive: isInteractive))
     }
 }
