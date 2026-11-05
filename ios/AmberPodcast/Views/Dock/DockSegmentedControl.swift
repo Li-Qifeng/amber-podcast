@@ -455,6 +455,7 @@ private final class DisplayLinkProxy: NSObject {
     }
 }
 
+@available(iOS 26.0, *)
 extension DockSegmentedControl {
     convenience init(items: [AmberDockItem]) {
         self.init(items: items.map { Item(icon: $0.icon, title: $0.title) })
