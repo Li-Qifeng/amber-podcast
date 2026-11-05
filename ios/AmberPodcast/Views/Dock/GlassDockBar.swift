@@ -18,6 +18,8 @@ final class GlassDockBarView: UIView {
 
     private let contentPadding: CGFloat = 2
     private let containerSpacing: CGFloat = 8
+    private let bubbleSize = CGSize(width: 64, height: 64)
+    private let bubbleView = UIVisualEffectView(effect: UIGlassEffect())
 
     init(items: [AmberDockItem], selectedIndex: Int, onSelect: @escaping (Int) -> Void) {
         let containerEffect = UIGlassContainerEffect()
@@ -33,6 +35,18 @@ final class GlassDockBarView: UIView {
         control.activeTint = UIColor(AmberTheme.primaryAmber)
         control.inactiveTint = UIColor(AmberTheme.labelTertiary)
         control.onSelect = onSelect
+
+        bubbleView.isUserInteractionEnabled = false
+        bubbleView.alpha = 0
+        bubbleView.transform = CGAffineTransform(scaleX: 0.4, y: 0.4)
+        bubbleView.layer.cornerRadius = bubbleSize.height / 2
+        bubbleView.layer.cornerCurve = .continuous
+        bubbleView.clipsToBounds = true
+        addSubview(bubbleView)
+
+        control.onTouchChanged = { [weak self] index in
+            self?.showBubble(for: index)
+        }
 
         super.init(frame: .zero)
 
@@ -67,6 +81,42 @@ final class GlassDockBarView: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
         barGlassView.cornerConfiguration = .capsule()
+        bubbleView.cornerConfiguration = .capsule()
+    }
+
+    /// Floats a glass bubble above the touched item, mimicking the native tab bar.
+    private func showBubble(for index: Int?) {
+        guard let index, let centerX = control.centerX(for: index) else {
+            UIView.animate(
+                withDuration: 0.18,
+                delay: 0,
+                usingSpringWithDamping: 0.9,
+                initialSpringVelocity: 0,
+                options: [.beginFromCurrentState, .allowUserInteraction]
+            ) {
+                self.bubbleView.alpha = 0
+                self.bubbleView.transform = CGAffineTransform(scaleX: 0.4, y: 0.4)
+            }
+            return
+        }
+
+        bubbleView.frame = CGRect(
+            x: centerX - bubbleSize.width / 2,
+            y: -bubbleSize.height + 14,
+            width: bubbleSize.width,
+            height: bubbleSize.height
+        )
+
+        UIView.animate(
+            withDuration: 0.32,
+            delay: 0,
+            usingSpringWithDamping: 0.62,
+            initialSpringVelocity: 0.4,
+            options: [.beginFromCurrentState, .allowUserInteraction]
+        ) {
+            self.bubbleView.alpha = 1
+            self.bubbleView.transform = .identity
+        }
     }
 
     func setSelectedIndex(_ index: Int) {

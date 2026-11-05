@@ -68,6 +68,9 @@ final class DockSegmentedControl: UISegmentedControl {
     }
     /// Fired only on touch up, matching native tab bar commit semantics.
     var onSelect: ((Int) -> Void)?
+    /// Reports the pressed item (nil when the touch ends) so the host can float a
+    /// glass bubble above the bar, which UISegmentedControl does not provide.
+    var onTouchChanged: ((Int?) -> Void)?
 
     private var baseViews: [DockItemView] = []
     private var injected: [(segment: UIView, base: DockItemView, accent: DockItemView)] = []
@@ -159,6 +162,14 @@ final class DockSegmentedControl: UISegmentedControl {
             }
         }
         walk(self)
+    }
+
+    /// Centre x of the given item in control coordinates.
+    func centerX(for index: Int) -> CGFloat? {
+        let segments = segmentViews()
+        guard index >= 0, index < segments.count else { return nil }
+        let rect = segments[index].convert(segments[index].bounds, to: self)
+        return rect.midX
     }
 
     private func segmentViews() -> [UIView] {
@@ -382,10 +393,12 @@ final class DockSegmentedControl: UISegmentedControl {
         guard let touch = touches.first else { return super.touchesBegan(touches, with: event) }
         displayLink?.isPaused = false
         stableFrames = 0
+        let index = index(at: touch.location(in: self))
         if movesIndicatorOnTouchDown {
             originalIndex = selectedSegmentIndex
-            selectedSegmentIndex = index(at: touch.location(in: self))
+            selectedSegmentIndex = index
         }
+        onTouchChanged?(index)
         super.touchesBegan(touches, with: event)
     }
 
@@ -393,16 +406,18 @@ final class DockSegmentedControl: UISegmentedControl {
         guard let touch = touches.first else { return super.touchesMoved(touches, with: event) }
         displayLink?.isPaused = false
         stableFrames = 0
-        if movesIndicatorOnTouchDown {
-            let target = index(at: touch.location(in: self))
-            if target != selectedSegmentIndex { selectedSegmentIndex = target }
+        let target = index(at: touch.location(in: self))
+        if movesIndicatorOnTouchDown, target != selectedSegmentIndex {
+            selectedSegmentIndex = target
         }
+        onTouchChanged?(target)
         super.touchesMoved(touches, with: event)
     }
 
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         displayLink?.isPaused = false
         stableFrames = 0
+        onTouchChanged?(nil)
         if movesIndicatorOnTouchDown, let originalIndex {
             if selectedSegmentIndex != originalIndex { onSelect?(selectedSegmentIndex) }
         }
@@ -413,6 +428,7 @@ final class DockSegmentedControl: UISegmentedControl {
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
         displayLink?.isPaused = false
         stableFrames = 0
+        onTouchChanged?(nil)
         if movesIndicatorOnTouchDown, let originalIndex {
             selectedSegmentIndex = originalIndex
         }
