@@ -59,18 +59,20 @@ public struct MainTabView: View {
         }
     }
 
-    // MARK: - Native Liquid Glass Dock
+    // MARK: - Native Liquid Glass Dock (GlassEffectContainer)
     private func floatingLiquidDock(geometry: GeometryProxy) -> some View {
         let dockWidth = geometry.size.width * AmberTheme.dockWidthRatio
 
-        return HStack(spacing: 0) {
-            dockItem(index: 0, icon: "square.stack.fill", title: "资料库")
-            dockItem(index: 1, icon: "magnifyingglass", title: "发现")
-            dockItem(index: 2, icon: "gearshape.fill", title: "设置")
+        return GlassEffectContainer(spacing: 8) {
+            HStack(spacing: 0) {
+                dockItem(index: 0, icon: "square.stack.fill", title: "资料库")
+                dockItem(index: 1, icon: "magnifyingglass", title: "发现")
+                dockItem(index: 2, icon: "gearshape.fill", title: "设置")
+            }
+            .padding(4)
+            .frame(width: dockWidth, height: AmberTheme.dockHeight)
+            .glassEffect(.regular.interactive(), in: .capsule)
         }
-        .padding(4)
-        .frame(width: dockWidth, height: AmberTheme.dockHeight)
-        .liquidGlassCapsule()
     }
 
     private func dockItem(index: Int, icon: String, title: String) -> some View {
@@ -90,7 +92,7 @@ public struct MainTabView: View {
                             Capsule()
                                 .strokeBorder(Color.white.opacity(0.12), lineWidth: 0.5)
                         )
-                        .matchedGeometryEffect(id: "activeDockIndicator", in: dockNamespace)
+                        .glassEffectID("activeDockIndicator", in: dockNamespace)
                 }
 
                 VStack(spacing: 3) {

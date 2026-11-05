@@ -452,42 +452,36 @@ public struct HomeLibraryView: View {
 
     private func topFloatingToolbar(geometry: GeometryProxy) -> some View {
         VStack {
-            HStack {
-                // Quiet Brand Signature: Sentence case, no screaming uppercase
-                HStack(spacing: 8) {
-                    Image(systemName: "waveform")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(AmberTheme.primaryAmber)
+            GlassEffectContainer(spacing: 12) {
+                HStack {
+                    // Quiet Brand Signature: Sentence case, no screaming uppercase
+                    HStack(spacing: 8) {
+                        Image(systemName: "waveform")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(AmberTheme.primaryAmber)
 
-                    Text("Amber")
-                        .font(.system(size: 15, weight: .semibold, design: .rounded))
-                        .foregroundStyle(AmberTheme.labelPrimary)
+                        Text("Amber")
+                            .font(.system(size: 15, weight: .semibold, design: .rounded))
+                            .foregroundStyle(AmberTheme.labelPrimary)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .glassEffect(.regular, in: .rect(cornerRadius: AmberTheme.radiusControl))
+
+                    Spacer()
+
+                    Button {
+                        impactFeedback.impactOccurred()
+                        showSubscribeSheet = true
+                    } label: {
+                        Image(systemName: "plus")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(AmberTheme.labelPrimary)
+                            .frame(width: 32, height: 32)
+                            .glassEffect(.regular.interactive(), in: .rect(cornerRadius: AmberTheme.radiusControl))
+                    }
+                    .buttonStyle(TactileButtonStyle(scale: 0.95))
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(AmberTheme.surfaceCard, in: RoundedRectangle(cornerRadius: AmberTheme.radiusControl, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: AmberTheme.radiusControl, style: .continuous)
-                        .strokeBorder(AmberTheme.borderHairline, lineWidth: 0.5)
-                )
-
-                Spacer()
-
-                Button {
-                    impactFeedback.impactOccurred()
-                    showSubscribeSheet = true
-                } label: {
-                    Image(systemName: "plus")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(AmberTheme.labelPrimary)
-                        .frame(width: 32, height: 32)
-                        .background(AmberTheme.surfaceCard, in: RoundedRectangle(cornerRadius: AmberTheme.radiusControl, style: .continuous))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: AmberTheme.radiusControl, style: .continuous)
-                                .strokeBorder(AmberTheme.borderHairline, lineWidth: 0.5)
-                        )
-                }
-                .buttonStyle(TactileButtonStyle(scale: 0.95))
             }
             .padding(.horizontal, AmberTheme.pageMargin)
             .padding(.top, topSafeOffset)
