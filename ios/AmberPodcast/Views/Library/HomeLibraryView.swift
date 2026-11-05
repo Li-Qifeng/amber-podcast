@@ -44,7 +44,7 @@ public struct HomeLibraryView: View {
                                     .padding(.top, 28)
 
                                 // Bottom Clearance for floating Dock & MiniPlayer
-                                Color.clear.frame(height: 140)
+                                Color.clear.frame(height: 200)
                             }
                         }
                         .ignoresSafeArea(edges: .top)

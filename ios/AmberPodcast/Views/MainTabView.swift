@@ -23,11 +23,12 @@ public struct MainTabView: View {
                     .ignoresSafeArea()
 
                 // Bottom Floating Island Stack: MiniPlayer + Liquid Glass Dock
-                VStack(spacing: 10) {
+                ZStack(alignment: .bottom) {
                     if player.currentEpisode != nil {
                         MiniPlayerView(showFullPlayer: $showFullPlayer)
                             .frame(width: geo.size.width * AmberTheme.dockWidthRatio)
                             .transition(.move(edge: .bottom).combined(with: .opacity))
+                            .padding(.bottom, AmberTheme.dockHeight + AmberTheme.dockBottomGap + 6)
                     }
 
                     floatingLiquidDock(geometry: geo)
