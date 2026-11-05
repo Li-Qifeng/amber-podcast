@@ -56,9 +56,9 @@ final class DockContainerView: UIView {
 
         addSubview(control)
 
-        bubble.backgroundColor = UIColor(white: 0.16, alpha: 0.96)
+        bubble.backgroundColor = UIColor(white: 0.20, alpha: 0.98)
         bubble.layer.borderWidth = 0.5
-        bubble.layer.borderColor = UIColor(white: 1, alpha: 0.16).cgColor
+        bubble.layer.borderColor = UIColor(white: 1, alpha: 0.22).cgColor
         bubble.layer.shadowColor = UIColor.black.cgColor
         bubble.layer.shadowOpacity = 0.4
         bubble.layer.shadowRadius = 12
@@ -128,7 +128,7 @@ final class DockContainerView: UIView {
         }
 
         let itemWidth = bounds.width / CGFloat(max(control.numberOfSegments, 1))
-        let size = CGSize(width: min(itemWidth - 16, 96), height: 42)
+        let size = CGSize(width: min(itemWidth - 12, 100), height: 44)
         bubble.transform = .identity
         bubble.frame = CGRect(
             x: centerX - size.width / 2,

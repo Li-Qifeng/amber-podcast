@@ -98,6 +98,12 @@ final class DockSegmentedControl: UIView {
         backgroundColor = .clear
         lens.isUserInteractionEnabled = false
         lens.clipsToBounds = true
+        // A faint white lift so the lens reads as a raised pill over the graphite bar.
+        let lift = UIView()
+        lift.backgroundColor = UIColor(white: 1, alpha: 0.06)
+        lift.frame = lens.bounds
+        lift.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        lens.contentView.addSubview(lift)
         lens.layer.cornerCurve = .continuous
         addSubview(lens)
         setItems(items)
