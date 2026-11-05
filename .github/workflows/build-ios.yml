@@ -8,15 +8,15 @@ on:
 jobs:
   build:
     name: Build iOS IPA
-    runs-on: macos-14
+    runs-on: macos-26
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Select Xcode 16
+      - name: Select Xcode 26
         run: |
-          for xcode_path in /Applications/Xcode_16*.app /Applications/Xcode.app; do
+          for xcode_path in /Applications/Xcode_26*.app /Applications/Xcode.app; do
             if [ -d "$xcode_path" ]; then
               echo "Selecting $xcode_path"
               sudo xcode-select -s "$xcode_path"
@@ -24,6 +24,7 @@ jobs:
             fi
           done
           xcodebuild -version
+          xcrun simctl list runtimes
 
       - name: Install XcodeGen
         run: |
@@ -40,10 +41,11 @@ jobs:
           cd ios
           mkdir -p screenshots
           
-          # Find modern iPhone Simulator (iPhone 16 Pro / iPhone 15 Pro / iPhone 16)
-          DEVICE_UUID=$(xcrun simctl list devices available | grep -E "iPhone 16 Pro|iPhone 15 Pro|iPhone 16|iPhone 15" | head -n 1 | grep -o "[0-9A-F]\{8\}-[0-9A-F]\{4\}-[0-9A-F]\{4\}-[0-9A-F]\{4\}-[0-9A-F]\{12\}")
+          # Select a simulator on the iOS 26 runtime, preferring the newest iPhone
+          DEVICE_UUID=$(python3 "$GITHUB_WORKSPACE/.github/scripts/pick_simulator.py")
           if [ -z "$DEVICE_UUID" ]; then
-            DEVICE_UUID=$(xcrun simctl list devices available | grep "iPhone" | head -n 1 | grep -o "[0-9A-F]\{8\}-[0-9A-F]\{4\}-[0-9A-F]\{4\}-[0-9A-F]\{4\}-[0-9A-F]\{12\}")
+            echo "No iPhone simulator available"
+            exit 1
           fi
           echo "Selected Simulator UUID: $DEVICE_UUID"
 
