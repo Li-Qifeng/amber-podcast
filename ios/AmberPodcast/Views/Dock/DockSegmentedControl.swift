@@ -82,8 +82,6 @@ final class DockSegmentedControl: UISegmentedControl {
     #if DEBUG
     private var traceSamples: [CGFloat] = []
     private var didLogSegmentMismatch = false
-    private var didLogLayout = false
-    private var layoutPasses = 0
     private var traceEnabled: Bool {
         ProcessInfo.processInfo.arguments.contains("-amberTraceIndicator")
     }
@@ -135,16 +133,6 @@ final class DockSegmentedControl: UISegmentedControl {
             layoutItem(entry.accent, in: entry.segment)
         }
         #if DEBUG
-        layoutPasses += 1
-        if traceEnabled, !didLogLayout, bounds.width > 0 {
-            didLogLayout = true
-            let segs = segmentViews()
-            let first = baseViews.first
-            appendTraceLine("views=" + subviews.map { String(describing: type(of: $0)) }.joined(separator: "|"))
-            appendTraceLine("deep=" + subviews.flatMap { $0.subviews }.map { String(describing: type(of: $0)) }.joined(separator: "|"))
-            appendTraceLine("layout bounds=\(bounds.size) segments=\(segs.count) segFrame=\(segs.first?.frame ?? .zero) segSubviews=\(segs.first?.subviews.count ?? -1) itemSuper=\(first?.superview != nil) itemFrame=\(first?.frame ?? .zero) itemAlpha=\(first?.alpha ?? -1) itemMask=\(first?.layer.mask != nil) lens=\(findIndicatorView() != nil) converted=\(first.map { $0.convert($0.bounds, to: self) } ?? .zero)")
-        }
-        #endif
     }
 
     override func didMoveToWindow() {
