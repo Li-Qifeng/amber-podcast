@@ -10,6 +10,9 @@ final class GlassTabBarView: UIView, UITabBarDelegate {
     var onSelect: ((Int) -> Void)?
 
     private var suppressCallback = false
+    /// The index SwiftUI currently owns. If a tap does not move it (an
+    /// intercepted tab), the bar is put back so it never shows a false state.
+    private var expectedIndex = 0
 
     init(items: [AmberDockItem], selectedIndex: Int, onSelect: @escaping (Int) -> Void) {
         self.onSelect = onSelect
@@ -80,8 +83,14 @@ final class GlassTabBarView: UIView, UITabBarDelegate {
     }
 
     func setSelectedIndex(_ index: Int) {
+        expectedIndex = index
         guard let items = tabBar.items, index >= 0, index < items.count else { return }
         guard tabBar.selectedItem !== items[index] else { return }
+        applySelection(index)
+    }
+
+    private func applySelection(_ index: Int) {
+        guard let items = tabBar.items, index >= 0, index < items.count else { return }
         suppressCallback = true
         tabBar.selectedItem = items[index]
         suppressCallback = false
@@ -89,7 +98,12 @@ final class GlassTabBarView: UIView, UITabBarDelegate {
 
     func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) {
         guard !suppressCallback else { return }
-        onSelect?(item.tag)
+        let index = item.tag
+        onSelect?(index)
+        DispatchQueue.main.async { [weak self] in
+            guard let self, self.expectedIndex != index else { return }
+            self.applySelection(self.expectedIndex)
+        }
     }
 }
 

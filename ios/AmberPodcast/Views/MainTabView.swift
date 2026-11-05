@@ -93,7 +93,17 @@ public struct MainTabView: View {
     private func floatingLiquidDock(geometry: GeometryProxy) -> some View {
         AmberTabBarRendering.dock(
             items: dockItems,
-            selection: $selectedTab,
+            selection: Binding(
+                get: { selectedTab >= 2 ? selectedTab + 1 : selectedTab },
+                set: { index in
+                    if index == 2 {
+                        // Intercepted tab: opens the player instead of switching.
+                        showFullPlayer = true
+                    } else {
+                        selectedTab = index > 2 ? index - 1 : index
+                    }
+                }
+            ),
             width: geometry.size.width * AmberTheme.dockWidthRatio,
             height: AmberTheme.dockHeight
         )
@@ -103,6 +113,7 @@ public struct MainTabView: View {
         [
             AmberDockItem(icon: "square.stack.fill", title: "资料库"),
             AmberDockItem(icon: "magnifyingglass", title: "发现"),
+            AmberDockItem(icon: "play.circle.fill", title: "播放"),
             AmberDockItem(icon: "gearshape.fill", title: "设置"),
         ]
     }
