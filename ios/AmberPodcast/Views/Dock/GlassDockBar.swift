@@ -36,6 +36,7 @@ final class GlassDockBarView: UIView {
 
         super.init(frame: .zero)
 
+
         addSubview(containerEffectView)
         containerEffectView.translatesAutoresizingMaskIntoConstraints = false
         containerEffectView.contentView.addSubview(barGlassView)
@@ -68,6 +69,7 @@ final class GlassDockBarView: UIView {
         super.layoutSubviews()
         barGlassView.cornerConfiguration = .capsule()
     }
+
 
     func setSelectedIndex(_ index: Int) {
         guard index != control.selectedSegmentIndex else { return }

@@ -45,8 +45,8 @@ public enum AmberTheme {
     public static let heroBannerRatio: CGFloat = 0.58       // 58% Screen Height (Balanced, non-suffocating)
     public static let cardShelfWidthRatio: CGFloat = 0.56   // 56% Screen Width
     public static let cardShelfAspectRatio: CGFloat = 16.0 / 9.0 // 16:9 Landscape
-    public static let dockWidthRatio: CGFloat = 0.90        // 90% Screen Width
-    public static let dockHeight: CGFloat = 56.0            // 56 pt
+    public static let dockWidthRatio: CGFloat = 0.92        // 92% Screen Width
+    public static let dockHeight: CGFloat = 62.0            // 62 pt
     public static let dockBottomGap: CGFloat = 28.0         // 28 pt Home Bar clearance
 
     // Motion Springs

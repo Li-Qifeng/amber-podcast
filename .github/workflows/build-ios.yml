@@ -80,6 +80,12 @@ jobs:
           sleep 6
           xcrun simctl io "$DEVICE_UUID" screenshot screenshots/miniplayer_state.png
 
+          # Capture the floating bubble (held open by a DEBUG hook)
+          xcrun simctl terminate "$DEVICE_UUID" com.refoxai.amberpodcast || true
+          xcrun simctl launch "$DEVICE_UUID" com.refoxai.amberpodcast -amberDemoBubble
+          sleep 5
+          xcrun simctl io "$DEVICE_UUID" screenshot screenshots/dock_bubble.png
+
           # Burst-capture the dock while tabs cycle, so the selection transition
           # can be inspected frame by frame
           xcrun simctl terminate "$DEVICE_UUID" com.refoxai.amberpodcast || true
