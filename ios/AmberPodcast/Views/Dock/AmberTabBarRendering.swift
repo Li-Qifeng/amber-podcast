@@ -13,7 +13,7 @@ enum AmberTabBarRendering {
         height: CGFloat
     ) -> some View {
         if #available(iOS 26.0, *) {
-            GlassTabBar(items: items, selectedIndex: selection)
+            GlassDockBar(items: items, selectedIndex: selection)
                 .frame(width: width, height: height)
         } else {
             LegacyDockBar(items: items, selection: selection, width: width, height: height)

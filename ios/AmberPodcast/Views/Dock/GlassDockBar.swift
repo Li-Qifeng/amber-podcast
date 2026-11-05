@@ -1,97 +1,134 @@
 import SwiftUI
 import UIKit
 
-/// One entry in the floating dock.
-struct AmberDockItem: Hashable {
-    let icon: String
-    let title: String
+/// A wide, lifted glass dock that keeps the native segmented lens and adds a
+/// compact floating bubble above the touched item. The bubble lives in its own
+/// non-clipping overlay so `UIGlassEffect` sizing never inflates it.
+struct GlassDockBar: UIViewRepresentable {
+    let items: [AmberTabItem]
+    @Binding var selectedIndex: Int
+
+    func makeUIView(context: Context) -> DockContainerView {
+        DockContainerView(items: items) { selectedIndex = $0 }
+    }
+
+    func updateUIView(_ uiView: DockContainerView, context: Context) {
+        uiView.sync(items: items, selectedIndex: selectedIndex)
+    }
 }
 
-/// Assembles the glass dock: a `UIGlassContainerEffect` hosts a `UIGlassEffect`
-/// capsule that wraps the segmented control, so the bar and any future sibling
-/// (mini player) can blend into one field.
-@available(iOS 26.0, *)
-final class GlassDockBarView: UIView {
-    let containerEffectView: UIVisualEffectView
-    let barGlassView: UIVisualEffectView
-    let control: DockSegmentedControl
+@MainActor
+final class DockContainerView: UIView {
+    private let control: DockSegmentedControl
+    private let barGlassView = UIVisualEffectView(effect: UIGlassEffect())
+    private let bubbleGlassView = UIVisualEffectView(effect: UIGlassEffect())
 
-    private let contentPadding: CGFloat = 2
-    private let containerSpacing: CGFloat = 8
+    private let barHeight: CGFloat = 56
+    private let bubbleHeight: CGFloat = 42
+    private let bubbleTopPadding: CGFloat = 6
 
-    init(items: [AmberDockItem], selectedIndex: Int, onSelect: @escaping (Int) -> Void) {
-        let containerEffect = UIGlassContainerEffect()
-        containerEffect.spacing = containerSpacing
-        containerEffectView = UIVisualEffectView(effect: containerEffect)
+    private var hideTimer: Timer?
 
-        let glassEffect = UIGlassEffect()
-        glassEffect.isInteractive = true
-        barGlassView = UIVisualEffectView(effect: glassEffect)
-
-        control = DockSegmentedControl(items: items.map { .init(icon: $0.icon, title: $0.title) })
-        control.selectedSegmentIndex = selectedIndex
-        control.activeTint = UIColor(AmberTheme.primaryAmber)
-        control.inactiveTint = UIColor(AmberTheme.labelTertiary)
-        control.onSelect = onSelect
-
+    init(items: [AmberTabItem], onSelect: @escaping (Int) -> Void) {
+        control = DockSegmentedControl(items: items)
         super.init(frame: .zero)
 
+        control.onSelect = onSelect
+        control.onTouchChanged = { [weak self] index in
+            self?.showBubble(for: index)
+        }
 
-        addSubview(containerEffectView)
-        containerEffectView.translatesAutoresizingMaskIntoConstraints = false
-        containerEffectView.contentView.addSubview(barGlassView)
-        barGlassView.translatesAutoresizingMaskIntoConstraints = false
-        barGlassView.contentView.addSubview(control)
+        barGlassView.isUserInteractionEnabled = false
+        barGlassView.layer.cornerCurve = .continuous
+        barGlassView.clipsToBounds = true
+        addSubview(barGlassView)
+
         control.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(control)
+
+        bubbleGlassView.isUserInteractionEnabled = false
+        bubbleGlassView.alpha = 0
+        bubbleGlassView.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
+        bubbleGlassView.layer.cornerCurve = .continuous
+        bubbleGlassView.clipsToBounds = true
+        addSubview(bubbleGlassView)
 
         NSLayoutConstraint.activate([
-            containerEffectView.leadingAnchor.constraint(equalTo: leadingAnchor),
-            containerEffectView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            containerEffectView.topAnchor.constraint(equalTo: topAnchor),
-            containerEffectView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            control.leadingAnchor.constraint(equalTo: leadingAnchor),
+            control.trailingAnchor.constraint(equalTo: trailingAnchor),
+            control.bottomAnchor.constraint(equalTo: bottomAnchor),
+            control.heightAnchor.constraint(equalToConstant: barHeight),
 
-            barGlassView.leadingAnchor.constraint(equalTo: containerEffectView.contentView.leadingAnchor),
-            barGlassView.trailingAnchor.constraint(equalTo: containerEffectView.contentView.trailingAnchor),
-            barGlassView.topAnchor.constraint(equalTo: containerEffectView.contentView.topAnchor),
-            barGlassView.bottomAnchor.constraint(equalTo: containerEffectView.contentView.bottomAnchor),
-
-            control.leadingAnchor.constraint(equalTo: barGlassView.contentView.leadingAnchor, constant: contentPadding),
-            control.trailingAnchor.constraint(equalTo: barGlassView.contentView.trailingAnchor, constant: -contentPadding),
-            control.topAnchor.constraint(equalTo: barGlassView.contentView.topAnchor, constant: contentPadding),
-            control.bottomAnchor.constraint(equalTo: barGlassView.contentView.bottomAnchor, constant: -contentPadding),
+            barGlassView.leadingAnchor.constraint(equalTo: control.leadingAnchor),
+            barGlassView.trailingAnchor.constraint(equalTo: control.trailingAnchor),
+            barGlassView.topAnchor.constraint(equalTo: control.topAnchor),
+            barGlassView.bottomAnchor.constraint(equalTo: control.bottomAnchor),
         ])
     }
 
-    @available(*, unavailable)
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    required init?(coder: NSCoder) { fatalError() }
+
+    func sync(items: [AmberTabItem], selectedIndex: Int) {
+        control.sync(items: items, selectedIndex: selectedIndex)
+    }
 
     override func layoutSubviews() {
         super.layoutSubviews()
         barGlassView.cornerConfiguration = .capsule()
+        bubbleGlassView.cornerConfiguration = .capsule()
     }
 
-
-    func setSelectedIndex(_ index: Int) {
-        guard index != control.selectedSegmentIndex else { return }
-        control.selectedSegmentIndex = index
-        control.resumeIndicatorTracking()
+    override var intrinsicContentSize: CGSize {
+        CGSize(width: UIView.noIntrinsicMetric, height: barHeight + bubbleHeight + bubbleTopPadding)
     }
-}
 
-/// SwiftUI bridge for the UIKit glass dock. Only used on iOS 26+; earlier systems
-/// keep the existing SwiftUI dock through `AmberTabBarRendering`.
-@available(iOS 26.0, *)
-struct GlassDockBar: UIViewRepresentable {
-    let items: [AmberDockItem]
-    @Binding var selectedIndex: Int
+    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        let barFrame = control.frame.insetBy(dx: -12, dy: -12)
+        return barFrame.contains(point) ? control : nil
+    }
 
-    func makeUIView(context: Context) -> GlassDockBarView {
-        GlassDockBarView(items: items, selectedIndex: selectedIndex) { index in
-            selectedIndex = index
+    #if DEBUG
+    private var didShowDemoBubble = false
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+        if window != nil, ProcessInfo.processInfo.arguments.contains("-amberDemoBubble"), !didShowDemoBubble {
+            didShowDemoBubble = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.2) { [weak self] in
+                self?.showBubble(for: 1)
+            }
         }
     }
+    #endif
 
-    func updateUIView(_ view: GlassDockBarView, context: Context) {
-        view.setSelectedIndex(selectedIndex)
+    private func showBubble(for index: Int?) {
+        hideTimer?.invalidate()
+        guard let index else {
+            UIView.animate(withDuration: 0.18, delay: 0, options: [.beginFromCurrentState, .allowUserInteraction]) {
+                self.bubbleGlassView.alpha = 0
+                self.bubbleGlassView.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
+            }
+            return
+        }
+
+        let centers = control.segmentCentersInSelf()
+        guard index >= 0, index < centers.count else { return }
+
+        let bubbleWidth = max(64, min(104, (bounds.width / CGFloat(max(control.numberOfSegments, 1))) - 18))
+        bubbleGlassView.bounds = CGRect(x: 0, y: 0, width: bubbleWidth, height: bubbleHeight)
+        bubbleGlassView.center = CGPoint(
+            x: control.frame.minX + centers[index].x,
+            y: bubbleHeight / 2
+        )
+
+        UIView.animate(withDuration: 0.28, delay: 0, usingSpringWithDamping: 0.72, initialSpringVelocity: 0.2,
+                       options: [.beginFromCurrentState, .allowUserInteraction]) {
+            self.bubbleGlassView.alpha = 1
+            self.bubbleGlassView.transform = .identity
+        }
+
+        // Auto-hide after a beat so it doesn't linger over content.
+        hideTimer = Timer.scheduledTimer(withTimeInterval: 1.1, repeats: false) { [weak self] _ in
+            Task { @MainActor in self?.showBubble(for: nil) }
+        }
     }
 }
