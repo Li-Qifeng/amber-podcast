@@ -60,8 +60,12 @@ final class DockSegmentedControl: UISegmentedControl {
         let title: String
     }
 
-    var activeTint: UIColor = .white
-    var inactiveTint: UIColor = .secondaryLabel
+    var activeTint: UIColor = .white {
+        didSet { applyTints() }
+    }
+    var inactiveTint: UIColor = .secondaryLabel {
+        didSet { applyTints() }
+    }
     /// Fired only on touch up, matching native tab bar commit semantics.
     var onSelect: ((Int) -> Void)?
 
@@ -99,12 +103,16 @@ final class DockSegmentedControl: UISegmentedControl {
 
         baseViews = items.map { DockItemView(icon: $0.icon, title: $0.title) }
         accentViews = items.map { DockItemView(icon: $0.icon, title: $0.title) }
-        baseViews.forEach { $0.apply(iconTint: inactiveTint, labelTint: inactiveTint) }
-        accentViews.forEach { $0.apply(iconTint: .white, labelTint: activeTint) }
+        applyTints()
     }
 
     @available(*, unavailable)
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+    private func applyTints() {
+        baseViews.forEach { $0.apply(iconTint: inactiveTint, labelTint: inactiveTint) }
+        accentViews.forEach { $0.apply(iconTint: .white, labelTint: activeTint) }
+    }
 
     // MARK: - Layout
 
