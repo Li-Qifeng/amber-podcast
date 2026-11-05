@@ -6,9 +6,6 @@ import UIKit
 /// the bar around the touched item.
 @available(iOS 26.0, *)
 final class GlassTabBarView: UIView, UITabBarDelegate {
-    /// Enlarges the whole native bar; the system capsule itself has a fixed size.
-    static let capsuleScale: CGFloat = 1.14
-
     let tabBar = UITabBar()
     var onSelect: ((Int) -> Void)?
 
@@ -32,7 +29,6 @@ final class GlassTabBarView: UIView, UITabBarDelegate {
         }
         tabBar.selectedItem = tabBar.items?[min(selectedIndex, max(items.count - 1, 0))]
         configureAppearance()
-        tabBar.transform = CGAffineTransform(scaleX: Self.capsuleScale, y: Self.capsuleScale)
         addSubview(tabBar)
         NSLayoutConstraint.activate([
             tabBar.leadingAnchor.constraint(equalTo: leadingAnchor),

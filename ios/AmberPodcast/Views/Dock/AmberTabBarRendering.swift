@@ -13,12 +13,11 @@ enum AmberTabBarRendering {
         height: CGFloat
     ) -> some View {
         if #available(iOS 26.0, *) {
-            // The native capsule is a fixed ~314x47pt object: it ignores item
-            // width, icon size and frame height alike. Scaling the bar is the only
-            // way to make it larger without adding a fourth tab, so the frame is
-            // widened to leave room for the scaled capsule.
+            // The system capsule is a fixed ~314x47pt object: it ignores item
+            // width, icon size, frame height and even a view transform. Its width
+            // only grows with the tab count.
             GlassTabBar(items: items, selectedIndex: selection)
-                .frame(width: width / GlassTabBarView.capsuleScale, height: height)
+                .frame(width: width, height: height)
         } else {
             LegacyDockBar(items: items, selection: selection, width: width, height: height)
         }
