@@ -46,7 +46,7 @@ public enum AmberTheme {
     public static let cardShelfWidthRatio: CGFloat = 0.56   // 56% Screen Width
     public static let cardShelfAspectRatio: CGFloat = 16.0 / 9.0 // 16:9 Landscape
     public static let dockWidthRatio: CGFloat = 0.92        // 92% Screen Width
-    public static let dockHeight: CGFloat = 72.0            // 72 pt
+    public static let dockHeight: CGFloat = 78.0            // 72 pt
     public static let dockBottomGap: CGFloat = 28.0         // 28 pt Home Bar clearance
 
     // Motion Springs

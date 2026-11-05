@@ -22,7 +22,7 @@ final class GlassTabBarView: UIView, UITabBarDelegate {
                 title: item.title,
                 image: UIImage(
                     systemName: item.icon,
-                    withConfiguration: UIImage.SymbolConfiguration(pointSize: 19, weight: .regular)
+                    withConfiguration: UIImage.SymbolConfiguration(pointSize: 22, weight: .regular)
                 ),
                 tag: index
             )
@@ -50,16 +50,16 @@ final class GlassTabBarView: UIView, UITabBarDelegate {
         item.normal.iconColor = UIColor(AmberTheme.labelTertiary)
         item.normal.titleTextAttributes = [
             .foregroundColor: UIColor(AmberTheme.labelTertiary),
-            .font: UIFont.systemFont(ofSize: 10.5, weight: .medium),
+            .font: UIFont.systemFont(ofSize: 11, weight: .medium),
         ]
         item.selected.iconColor = .white
         item.selected.titleTextAttributes = [
             .foregroundColor: UIColor(AmberTheme.primaryAmber),
-            .font: UIFont.systemFont(ofSize: 10.5, weight: .semibold),
+            .font: UIFont.systemFont(ofSize: 11, weight: .semibold),
         ]
         // The iOS 26 capsule only ever reserves ~48pt, so the stacked icon and
         // title collide; nudge the title down to keep a visible gap.
-        let titleOffset = UIOffset(horizontal: 0, vertical: 5)
+        let titleOffset = UIOffset(horizontal: 0, vertical: 6)
         item.normal.titlePositionAdjustment = titleOffset
         item.selected.titlePositionAdjustment = titleOffset
         item.focused.titlePositionAdjustment = titleOffset
