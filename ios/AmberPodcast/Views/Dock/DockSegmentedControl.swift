@@ -76,6 +76,7 @@ final class DockSegmentedControl: UISegmentedControl {
 
     #if DEBUG
     private var traceSamples: [CGFloat] = []
+    private var didLogSegmentMismatch = false
     private var traceEnabled: Bool {
         ProcessInfo.processInfo.arguments.contains("-amberTraceIndicator")
     }
@@ -125,12 +126,12 @@ final class DockSegmentedControl: UISegmentedControl {
     private func hideStockChrome() {
         func walk(_ view: UIView) {
             for subview in view.subviews {
+                // Never touch our own injected cells — they are the visible content.
+                if subview is DockItemView { continue }
                 if subview is UIImageView {
                     subview.alpha = 0
                 }
-                if let label = subview as? UILabel,
-                   label.superview?.tag != Self.baseTag,
-                   label.superview?.tag != Self.accentTag {
+                if let label = subview as? UILabel {
                     label.isHidden = true
                 }
                 walk(subview)
@@ -156,6 +157,12 @@ final class DockSegmentedControl: UISegmentedControl {
 
     private func injectItemViewsIfNeeded() {
         let segments = segmentViews()
+        #if DEBUG
+        if traceEnabled, segments.count != baseViews.count, !didLogSegmentMismatch {
+            didLogSegmentMismatch = true
+            appendTraceLine("segments=\(segments.count) expected=\(baseViews.count)")
+        }
+        #endif
         guard segments.count == baseViews.count else { return }
 
         for (index, segment) in segments.enumerated() {
@@ -291,12 +298,7 @@ final class DockSegmentedControl: UISegmentedControl {
     }
 
     #if DEBUG
-    /// Writes the observed indicator x positions to Documents so CI can prove the
-    /// lens travelled through intermediate positions instead of snapping.
-    private func flushTraceIfNeeded() {
-        guard traceEnabled, !traceSamples.isEmpty else { return }
-        let line = traceSamples.map { String(format: "%.1f", $0) }.joined(separator: ",")
-        traceSamples.removeAll()
+    private func appendTraceLine(_ line: String) {
         guard let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else { return }
         let url = dir.appendingPathComponent("indicator_trace.txt")
         let payload = (line + "\n").data(using: .utf8) ?? Data()
@@ -307,6 +309,15 @@ final class DockSegmentedControl: UISegmentedControl {
         } else {
             try? payload.write(to: url)
         }
+    }
+
+    /// Writes the observed indicator x positions to Documents so CI can prove the
+    /// lens travelled through intermediate positions instead of snapping.
+    private func flushTraceIfNeeded() {
+        guard traceEnabled, !traceSamples.isEmpty else { return }
+        let line = traceSamples.map { String(format: "%.1f", $0) }.joined(separator: ",")
+        traceSamples.removeAll()
+        appendTraceLine(line)
     }
     #endif
 
