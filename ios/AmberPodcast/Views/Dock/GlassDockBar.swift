@@ -150,6 +150,11 @@ final class DockContainerView: UIView {
             self.bubble.transform = .identity
         }
 
+        #if DEBUG
+        // The demo launch argument holds the bubble open so CI can capture it;
+        // touches cannot be synthesised on a headless simulator.
+        guard !ProcessInfo.processInfo.arguments.contains("-amberDemoBubble") else { return }
+        #endif
         hideTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: false) { [weak self] _ in
             Task { @MainActor in self?.showBubble(for: nil) }
         }
