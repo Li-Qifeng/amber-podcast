@@ -45,7 +45,7 @@ public struct HomeLibraryView: View {
                                     .padding(.top, 28)
 
                                 // Bottom Clearance for floating Dock & MiniPlayer
-                                Color.clear.frame(height: 140)
+                                Color.clear.frame(height: 168)
                             }
                         }
                         .ignoresSafeArea(edges: .top)
@@ -206,9 +206,9 @@ public struct HomeLibraryView: View {
         ZStack {
             LinearGradient(
                 colors: [
-                    Color(red: 0.09, green: 0.09, blue: 0.10),
-                    Color(red: 0.04, green: 0.04, blue: 0.05),
-                    Color(red: 0.015, green: 0.015, blue: 0.02)
+                    Color(red: 0.16, green: 0.15, blue: 0.14),
+                    Color(red: 0.07, green: 0.07, blue: 0.08),
+                    Color(red: 0.02, green: 0.02, blue: 0.025)
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -218,7 +218,7 @@ public struct HomeLibraryView: View {
             HStack(alignment: .center, spacing: 4) {
                 ForEach(0..<28, id: \.self) { index in
                     Capsule()
-                        .fill(Color.white.opacity(0.055))
+                        .fill(Color.white.opacity(0.11))
                         .frame(width: 3, height: barHeight(for: index, in: height))
                 }
             }
