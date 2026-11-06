@@ -334,7 +334,7 @@ public struct FullPlayerView: View {
 
                 Spacer()
 
-                Text("-\(formatDuration(max(0, effectiveDuration - effectiveTime)))")
+                Text(player.duration > 0 ? "-\(formatDuration(max(0, player.duration - effectiveTime)))" : "--:--")
                     .font(.system(size: 11, weight: .regular, design: .monospaced))
                     .foregroundStyle(AmberTheme.labelTertiary)
             }

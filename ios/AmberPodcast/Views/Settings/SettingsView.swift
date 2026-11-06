@@ -1,6 +1,14 @@
 import SwiftUI
 
 public struct SettingsView: View {
+    /// Version shown in About comes from the bundle, not a hardcoded string.
+    static var appVersionText: String {
+        let info = Bundle.main.infoDictionary
+        let short = info?["CFBundleShortVersionString"] as? String ?? "—"
+        let build = info?["CFBundleVersion"] as? String ?? "—"
+        return "\(short) (build \(build))"
+    }
+
     @ObservedObject var apiClient = AmberAPIClient.shared
     @ObservedObject var player = DualTrackAudioPlayer.shared
 
@@ -48,6 +56,8 @@ public struct SettingsView: View {
                                         .autocorrectionDisabled()
                                         .textInputAutocapitalization(.never)
                                         .foregroundStyle(AmberTheme.labelSecondary)
+                                        .lineLimit(1)
+                                        .minimumScaleFactor(0.75)
                                 }
 
                                 Divider().background(Color.white.opacity(0.08))
@@ -166,7 +176,7 @@ public struct SettingsView: View {
                                         .font(.system(size: 14, weight: .medium))
                                         .foregroundStyle(AmberTheme.labelPrimary)
                                     Spacer()
-                                    Text("1.0.0 (Forward Fluid Build)")
+                                    Text(Self.appVersionText)
                                         .font(.system(size: 13, weight: .medium, design: .monospaced))
                                         .foregroundStyle(AmberTheme.labelSecondary)
                                 }
