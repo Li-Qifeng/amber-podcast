@@ -62,6 +62,15 @@ public struct MainTabView: View {
         }
         .onAppear {
             #if DEBUG
+            // Launch-argument hooks so CI can screenshot a specific screen.
+            if let idx = ProcessInfo.processInfo.arguments.firstIndex(of: "-amberStartTab"),
+               idx + 1 < ProcessInfo.processInfo.arguments.count,
+               let tab = Int(ProcessInfo.processInfo.arguments[idx + 1]) {
+                selectedTab = min(max(tab, 0), 2)
+            }
+            if ProcessInfo.processInfo.arguments.contains("-amberOpenPlayer") {
+                showFullPlayer = true
+            }
             if ProcessInfo.processInfo.arguments.contains("-amberDemoTabs") {
                 let interval: TimeInterval = demoTabsSlowMotion ? 4.0 : 1.5
                 Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { _ in

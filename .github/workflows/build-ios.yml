@@ -80,6 +80,17 @@ jobs:
           sleep 6
           xcrun simctl io "$DEVICE_UUID" screenshot screenshots/miniplayer_state.png
 
+          # Capture settings and the full player
+          xcrun simctl terminate "$DEVICE_UUID" com.refoxai.amberpodcast || true
+          xcrun simctl launch "$DEVICE_UUID" com.refoxai.amberpodcast -amberStartTab 2 -amberDemoNowPlaying
+          sleep 4
+          xcrun simctl io "$DEVICE_UUID" screenshot screenshots/screen_settings.png
+
+          xcrun simctl terminate "$DEVICE_UUID" com.refoxai.amberpodcast || true
+          xcrun simctl launch "$DEVICE_UUID" com.refoxai.amberpodcast -amberOpenPlayer -amberDemoNowPlaying
+          sleep 4
+          xcrun simctl io "$DEVICE_UUID" screenshot screenshots/screen_player.png
+
           # Capture the floating bubble (held open by a DEBUG hook)
           xcrun simctl terminate "$DEVICE_UUID" com.refoxai.amberpodcast || true
           xcrun simctl launch "$DEVICE_UUID" com.refoxai.amberpodcast -amberDemoBubble
