@@ -25,49 +25,56 @@ public struct ShownotesView: View {
                 VStack(alignment: .leading, spacing: 18) {
                     if selectedTab == 0 {
                         // Xiaoyuzhou-style parsed shownotes with timestamp air drops
-                        if let episode = player.currentEpisode {
+                        if let episode = player.currentEpisode,
+                           !episode.shownotes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                             let parsedBlocks = parseTimestamps(from: episode.shownotes)
-                            ForEach(parsedBlocks.indices, id: \.self) { idx in
-                                let block = parsedBlocks[idx]
-                                if let ts = block.timestampSec {
-                                    // Clickable Timestamp Capsule (Xiaoyuzhou / Forward Style)
-                                    Button {
-                                        impactFeedback.impactOccurred()
-                                        player.seek(to: ts)
-                                    } label: {
-                                        HStack(spacing: 8) {
-                                            Image(systemName: "play.fill")
-                                                .font(.system(size: 10))
-                                                .foregroundStyle(AmberTheme.primaryAmber)
+                            if parsedBlocks.isEmpty {
+                                emptyShownotesView
+                            } else {
+                                ForEach(parsedBlocks.indices, id: \.self) { idx in
+                                    let block = parsedBlocks[idx]
+                                    if let ts = block.timestampSec {
+                                        // Clickable Timestamp Capsule (Xiaoyuzhou / Forward Style)
+                                        Button {
+                                            impactFeedback.impactOccurred()
+                                            player.seek(to: ts)
+                                        } label: {
+                                            HStack(spacing: 8) {
+                                                Image(systemName: "play.fill")
+                                                    .font(.system(size: 10))
+                                                    .foregroundStyle(AmberTheme.primaryAmber)
 
-                                            Text(block.timeString)
-                                                .font(.system(size: 12, weight: .bold, design: .monospaced))
-                                                .foregroundStyle(AmberTheme.primaryAmber)
+                                                Text(block.timeString)
+                                                    .font(.system(size: 12, weight: .bold, design: .monospaced))
+                                                    .foregroundStyle(AmberTheme.primaryAmber)
 
-                                            Text(block.text)
-                                                .font(.system(size: 13, weight: .medium, design: .rounded))
-                                                .foregroundStyle(AmberTheme.labelPrimary)
-                                                .lineLimit(2)
+                                                Text(block.text.isEmpty ? "跳转至此时间点" : block.text)
+                                                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                                                    .foregroundStyle(AmberTheme.labelPrimary)
+                                                    .lineLimit(2)
 
-                                            Spacer()
+                                                Spacer()
 
-                                            Image(systemName: "chevron.right")
-                                                .font(.system(size: 10, weight: .semibold))
-                                                .foregroundStyle(AmberTheme.labelTertiary)
+                                                Image(systemName: "chevron.right")
+                                                    .font(.system(size: 10, weight: .semibold))
+                                                    .foregroundStyle(AmberTheme.labelTertiary)
+                                            }
+                                            .padding(.horizontal, 12)
+                                            .padding(.vertical, 8)
+                                            .amberPlate(radius: 10)
                                         }
-                                        .padding(.horizontal, 12)
-                                        .padding(.vertical, 8)
-                                        .liquidGlassCard(cornerRadius: 12)
+                                        .buttonStyle(.plain)
+                                        .amberPressable(scale: 0.98)
+                                    } else {
+                                        Text(block.text)
+                                            .font(.system(size: 14.5, weight: .regular))
+                                            .foregroundStyle(AmberTheme.labelSecondary)
+                                            .lineSpacing(6)
                                     }
-                                    .buttonStyle(.plain)
-                                    .amberPressable(scale: 0.98)
-                                } else {
-                                    Text(block.text)
-                                        .font(.system(size: 14.5, weight: .regular))
-                                        .foregroundStyle(AmberTheme.labelSecondary)
-                                        .lineSpacing(6)
                                 }
                             }
+                        } else {
+                            emptyShownotesView
                         }
                     } else {
                         // AI Generated Article Notes with Apple Books Editorial Typography
@@ -110,7 +117,7 @@ public struct ShownotesView: View {
                                     .textSelection(.enabled)
                             }
                             .padding(18)
-                            .liquidGlassCard(cornerRadius: 18)
+                            .amberPlate(radius: AmberTheme.radiusCardRow)
                         }
                     }
                 }
@@ -118,6 +125,25 @@ public struct ShownotesView: View {
                 .padding(.bottom, 60)
             }
         }
+    }
+
+    private var emptyShownotesView: some View {
+        VStack(spacing: 14) {
+            Image(systemName: "list.bullet.rectangle")
+                .font(.system(size: 36, weight: .thin))
+                .foregroundStyle(AmberTheme.labelTertiary)
+
+            Text("暂无节目单内容")
+                .font(.system(size: 15, weight: .medium))
+                .foregroundStyle(AmberTheme.labelSecondary)
+
+            Text("发布者未随音频附带 Shownotes 信息。")
+                .font(.system(size: 12.5))
+                .foregroundStyle(AmberTheme.labelTertiary)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 50)
     }
 
     private func tabButton(title: String, tag: Int, icon: String? = nil) -> some View {
@@ -174,7 +200,10 @@ public struct ShownotesView: View {
 
             if let match = regex?.firstMatch(in: trimmed, options: [], range: range) {
                 let timeStr = nsString.substring(with: match.range)
-                let remainingText = nsString.substring(from: match.range.location + match.range.length).trimmingCharacters(in: .whitespaces)
+                let prefix = nsString.substring(to: match.range.location).trimmingCharacters(in: .whitespaces)
+                let suffix = nsString.substring(from: match.range.location + match.range.length).trimmingCharacters(in: .whitespaces)
+                let combined = prefix.isEmpty ? suffix : (suffix.isEmpty ? prefix : "\(prefix) \(suffix)")
+                let cleanText = combined.trimmingCharacters(in: CharacterSet(charactersIn: " -—:·|"))
 
                 var totalSec: Double = 0
                 let parts = timeStr.split(separator: ":").map { Double($0) ?? 0 }
@@ -185,7 +214,7 @@ public struct ShownotesView: View {
                 }
 
                 blocks.append(ShownotesBlock(
-                    text: remainingText,
+                    text: cleanText,
                     timeString: timeStr,
                     timestampSec: totalSec
                 ))

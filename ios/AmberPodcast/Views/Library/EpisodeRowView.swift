@@ -21,17 +21,26 @@ public struct EpisodeRowView: View {
         VStack(alignment: .leading, spacing: 10) {
             // 1. Metadata Line (Date · Duration · Status Badge)
             HStack(spacing: 8) {
-                Text(formatDate(episode.pubDate))
-                    .font(.system(size: 11.5, weight: .medium))
-                    .foregroundStyle(AmberTheme.labelTertiary)
+                let dateStr = formatDate(episode.pubDate)
+                let durStr = formatDuration(Double(episode.duration))
 
-                Text("·")
-                    .font(.system(size: 11.5, weight: .bold))
-                    .foregroundStyle(AmberTheme.labelTertiary)
+                if !dateStr.isEmpty {
+                    Text(dateStr)
+                        .font(.system(size: 11.5, weight: .medium))
+                        .foregroundStyle(AmberTheme.labelTertiary)
+                }
 
-                Text(formatDuration(Double(episode.duration)))
-                    .font(.system(size: 11.5, weight: .medium, design: .monospaced))
-                    .foregroundStyle(AmberTheme.labelTertiary)
+                if !dateStr.isEmpty && !durStr.isEmpty {
+                    Text("·")
+                        .font(.system(size: 11.5, weight: .bold))
+                        .foregroundStyle(AmberTheme.labelTertiary)
+                }
+
+                if !durStr.isEmpty {
+                    Text(durStr)
+                        .font(.system(size: 11.5, weight: .medium, design: .monospaced))
+                        .foregroundStyle(AmberTheme.labelTertiary)
+                }
 
                 Spacer()
 

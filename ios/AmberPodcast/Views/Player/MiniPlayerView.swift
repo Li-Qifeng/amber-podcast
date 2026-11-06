@@ -129,24 +129,23 @@ public struct MiniPlayerView: View {
                         .resizable()
                         .scaledToFill()
                         .frame(width: 40, height: 40)
-                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                .stroke(Color.white.opacity(0.18), lineWidth: 0.5)
-                        )
+                        .amberMediaCard(radius: 10)
                 } placeholder: {
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(Color(white: 0.15))
-                        .frame(width: 40, height: 40)
+                    coverPlaceholder
                 }
             } else {
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(Color(white: 0.15))
-                    .frame(width: 40, height: 40)
-                    .overlay(Image(systemName: "headphones").font(.caption).foregroundStyle(.white.opacity(0.6)))
+                coverPlaceholder
             }
         }
-        .shadow(color: Color.black.opacity(0.4), radius: 6, y: 3)
+    }
+
+    private var coverPlaceholder: some View {
+        ZStack {
+            Color(white: 0.15)
+            Image(systemName: "headphones").font(.caption).foregroundStyle(.white.opacity(0.6))
+        }
+        .frame(width: 40, height: 40)
+        .amberMediaCard(radius: 10)
     }
 
     private var trackModeBadge: some View {

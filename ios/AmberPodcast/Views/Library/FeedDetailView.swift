@@ -5,6 +5,9 @@ public struct FeedDetailView: View {
     @State private var episodes: [Episode] = []
     @State private var isLoading: Bool = true
     @State private var autoTranslate: Bool
+    @State private var showDeleteConfirm: Bool = false
+    @State private var isDeleting: Bool = false
+    @Environment(\.dismiss) private var dismiss
 
     public init(feed: PodcastFeed) {
         self.feed = feed
@@ -47,18 +50,64 @@ public struct FeedDetailView: View {
                     }
                     .padding(.horizontal, 20)
 
-                    // 3. Episode Cards Stack
-                    LazyVStack(spacing: 12) {
-                        ForEach(episodes) { ep in
-                            EpisodeRowView(episode: ep, feed: feed)
+                    // 3. Episode Cards Stack or Empty State
+                    if episodes.isEmpty && !isLoading {
+                        VStack(spacing: 12) {
+                            Image(systemName: "tray")
+                                .font(.system(size: 32, weight: .light))
+                                .foregroundStyle(AmberTheme.labelTertiary)
+                            Text("暂无可播放单集")
+                                .font(.system(size: 15, weight: .medium))
+                                .foregroundStyle(AmberTheme.labelSecondary)
+                            Text("服务端可能正在抓取中，请稍后下拉刷新")
+                                .font(.system(size: 12))
+                                .foregroundStyle(AmberTheme.labelTertiary)
                         }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 50)
+                    } else {
+                        LazyVStack(spacing: 12) {
+                            ForEach(episodes) { ep in
+                                EpisodeRowView(episode: ep, feed: feed)
+                            }
+                        }
+                        .padding(.horizontal, 16)
                     }
-                    .padding(.horizontal, 16)
                 }
-                .padding(.bottom, 120) // Clearance for floating mini player
+                .padding(.bottom, 140) // Clearance for floating mini player & dock
             }
         }
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Menu {
+                    Button(role: .destructive) {
+                        showDeleteConfirm = true
+                    } label: {
+                        Label("取消订阅此播客", systemImage: "trash")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                        .font(.system(size: 16))
+                        .foregroundStyle(AmberTheme.labelSecondary)
+                }
+            }
+        }
+        .confirmationDialog("取消订阅", isPresented: $showDeleteConfirm, titleVisibility: .visible) {
+            Button("取消订阅并移除", role: .destructive) {
+                Task {
+                    isDeleting = true
+                    try? await AmberAPIClient.shared.deleteFeed(feedId: feed.id)
+                    await MainActor.run {
+                        isDeleting = false
+                        dismiss()
+                    }
+                }
+            }
+            Button("保留订阅", role: .cancel) {}
+        } message: {
+            Text("确定要取消订阅《\(feed.title)》吗？已转译的音频资源将不再保留。")
+        }
         .task {
             await loadEpisodes()
         }
@@ -81,10 +130,10 @@ public struct FeedDetailView: View {
                             .frame(width: 108, height: 108)
                             .amberMediaCard(radius: AmberTheme.radiusCoverHero)
                     } placeholder: {
-                        RoundedRectangle(cornerRadius: 20, style: .continuous)
-                            .fill(Color(white: 0.12))
-                            .frame(width: 108, height: 108)
+                        coverPlaceholder(width: 108, height: 108)
                     }
+                } else {
+                    coverPlaceholder(width: 108, height: 108)
                 }
 
                 VStack(alignment: .leading, spacing: 5) {
@@ -142,6 +191,17 @@ public struct FeedDetailView: View {
             }
         }
         .padding(.vertical, 8)
+    }
+
+    private func coverPlaceholder(width: CGFloat, height: CGFloat) -> some View {
+        ZStack {
+            Color(red: 0.10, green: 0.10, blue: 0.12)
+            Image(systemName: "headphones")
+                .font(.system(size: 36, weight: .light))
+                .foregroundStyle(AmberTheme.labelTertiary)
+        }
+        .frame(width: width, height: height)
+        .amberMediaCard(radius: AmberTheme.radiusCoverHero)
     }
 
     private func loadEpisodes() async {

@@ -4,8 +4,11 @@ public struct SearchView: View {
     @State private var query: String = ""
     @State private var searchResults: [PodcastFeed] = []
     @State private var isSearching: Bool = false
+    @State private var hasSearched: Bool = false
     @State private var subscribingId: String? = nil
     @State private var subscribedIds: Set<String> = []
+    @State private var errorMessage: String? = nil
+    @State private var showErrorAlert: Bool = false
 
     private let impactFeedback = UIImpactFeedbackGenerator(style: .light)
 
@@ -33,6 +36,8 @@ public struct SearchView: View {
                                 .foregroundStyle(AmberTheme.labelSecondary)
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    } else if hasSearched && searchResults.isEmpty {
+                        noResultsView
                     } else if searchResults.isEmpty {
                         suggestionsOrEmptyView
                     } else {
@@ -43,13 +48,21 @@ public struct SearchView: View {
                                 }
                             }
                             .padding(.horizontal, 16)
-                            .padding(.bottom, 120) // Clearance for floating MiniPlayer
+                            .padding(.bottom, 140) // Clearance for floating MiniPlayer
                         }
                     }
                 }
             }
             .navigationTitle("发现播客")
             .navigationBarTitleDisplayMode(.inline)
+            .task {
+                await loadExistingSubscriptions()
+            }
+            .alert("提示", isPresented: $showErrorAlert) {
+                Button("好", role: .cancel) {}
+            } message: {
+                Text(errorMessage ?? "操作失败，请重试")
+            }
             .preferredColorScheme(.dark)
         }
     }
@@ -75,6 +88,7 @@ public struct SearchView: View {
                 Button {
                     query = ""
                     searchResults = []
+                    hasSearched = false
                 } label: {
                     Image(systemName: "xmark.circle.fill")
                         .font(.system(size: 15))
@@ -163,7 +177,7 @@ public struct SearchView: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
-        .lightweightCard(cornerRadius: 12)
+        .amberPlate(radius: 12)
     }
 
     // MARK: - Suggestions or Empty View
@@ -211,6 +225,48 @@ public struct SearchView: View {
         .padding(.horizontal, 28)
     }
 
+    // MARK: - No Results View
+    private var noResultsView: some View {
+        VStack(spacing: 16) {
+            Spacer()
+
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 36, weight: .light))
+                .foregroundStyle(AmberTheme.labelTertiary)
+
+            VStack(spacing: 6) {
+                Text("未找到相关播客")
+                    .font(.system(size: 16, weight: .semibold, design: .rounded))
+                    .foregroundStyle(AmberTheme.labelPrimary)
+
+                Text("请尝试更换搜索关键词，或检查拼写")
+                    .font(.system(size: 13))
+                    .foregroundStyle(AmberTheme.labelTertiary)
+            }
+
+            Button {
+                query = ""
+                hasSearched = false
+            } label: {
+                Text("清空重试")
+                    .font(.system(size: 12.5, weight: .medium, design: .rounded))
+                    .foregroundStyle(AmberTheme.primaryAmber)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 7)
+                    .background(AmberTheme.surfaceRaised, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                            .strokeBorder(AmberTheme.borderHairline, lineWidth: 0.5)
+                    )
+            }
+            .padding(.top, 8)
+
+            Spacer()
+            Spacer()
+        }
+        .padding(.horizontal, 28)
+    }
+
     private func suggestionChip(_ text: String) -> some View {
         Button {
             query = text
@@ -221,21 +277,26 @@ public struct SearchView: View {
                 .foregroundStyle(AmberTheme.labelSecondary)
                 .padding(.horizontal, 11)
                 .padding(.vertical, 5.5)
-                .background(AmberTheme.surfaceCard, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 6, style: .continuous)
-                        .strokeBorder(AmberTheme.borderHairline, lineWidth: 0.5)
-                )
+                .amberPlate(radius: 6)
         }
         .buttonStyle(TactileButtonStyle(scale: 0.96))
     }
 
     // MARK: - Actions
+    private func loadExistingSubscriptions() async {
+        if let feeds = try? await AmberAPIClient.shared.listFeeds() {
+            await MainActor.run {
+                self.subscribedIds = Set(feeds.map { $0.id })
+            }
+        }
+    }
+
     private func performSearch() {
         let q = query.trimmingCharacters(in: .whitespaces)
         guard !q.isEmpty else { return }
 
         isSearching = true
+        hasSearched = true
         searchResults = []
         impactFeedback.impactOccurred()
 
@@ -249,6 +310,8 @@ public struct SearchView: View {
             } catch {
                 await MainActor.run {
                     self.isSearching = false
+                    self.errorMessage = "检索失败，请检查网关连接或网络配置"
+                    self.showErrorAlert = true
                 }
             }
         }
@@ -268,6 +331,8 @@ public struct SearchView: View {
             } catch {
                 await MainActor.run {
                     self.subscribingId = nil
+                    self.errorMessage = "订阅失败: \(error.localizedDescription)"
+                    self.showErrorAlert = true
                 }
             }
         }

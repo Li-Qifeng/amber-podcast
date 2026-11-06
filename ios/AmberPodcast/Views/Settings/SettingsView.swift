@@ -15,6 +15,10 @@ public struct SettingsView: View {
     @State private var serverUrl: String = ""
     @State private var authToken: String = ""
     @State private var showSavedAlert: Bool = false
+    @State private var isCheckingHealth: Bool = false
+    @State private var healthResult: (ok: Bool, message: String)? = nil
+    @State private var showClearCacheConfirm: Bool = false
+    @State private var showCacheClearedAlert: Bool = false
     /// Persisted default track mode. Previously a plain @State that nothing read,
     /// so changing it had no effect on playback.
     @AppStorage("amber_default_track_mode") private var preferredTrackModeRaw: String = TrackMode.chinese.rawValue
@@ -78,14 +82,28 @@ public struct SettingsView: View {
                                 Divider().background(Color.white.opacity(0.08))
 
                                 Button {
-                                    apiClient.serverBaseUrl = serverUrl
-                                    apiClient.authToken = authToken
                                     impactFeedback.impactOccurred()
-                                    showSavedAlert = true
+                                    isCheckingHealth = true
+                                    Task {
+                                        let result = await apiClient.checkHealth(customUrl: serverUrl)
+                                        await MainActor.run {
+                                            isCheckingHealth = false
+                                            healthResult = result
+                                            if result.ok {
+                                                apiClient.serverBaseUrl = serverUrl
+                                                apiClient.authToken = authToken
+                                            }
+                                            showSavedAlert = true
+                                        }
+                                    }
                                 } label: {
-                                    HStack {
+                                    HStack(spacing: 8) {
                                         Spacer()
-                                        Text("保存服务设置")
+                                        if isCheckingHealth {
+                                            ProgressView()
+                                                .scaleEffect(0.8)
+                                        }
+                                        Text(isCheckingHealth ? "正在测试网关连通性..." : "测试连接并保存")
                                             .font(.system(size: 14, weight: .semibold, design: .rounded))
                                             .foregroundStyle(AmberTheme.primaryAmber)
                                         Spacer()
@@ -93,6 +111,7 @@ public struct SettingsView: View {
                                     .padding(.vertical, 6)
                                 }
                                 .buttonStyle(TactileButtonStyle(scale: 0.96))
+                                .disabled(isCheckingHealth)
                             }
                             .padding(16)
                             .amberPlate(radius: AmberTheme.radiusCardRow)
@@ -156,10 +175,17 @@ public struct SettingsView: View {
                                     Spacer()
                                     Button("清除缓存") {
                                         impactFeedback.impactOccurred()
-                                        URLCache.shared.removeAllCachedResponses()
+                                        showClearCacheConfirm = true
                                     }
-                                    .font(.system(size: 12.5, weight: .bold))
-                                    .foregroundStyle(Color.red.opacity(0.85))
+                                    .font(.system(size: 12.5, weight: .medium))
+                                    .foregroundStyle(AmberTheme.labelSecondary)
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 4.5)
+                                    .background(AmberTheme.surfaceRaised, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                            .strokeBorder(AmberTheme.borderHairline, lineWidth: 0.5)
+                                    )
                                 }
                             }
                             .padding(16)
@@ -208,8 +234,36 @@ public struct SettingsView: View {
                 self.serverUrl = apiClient.serverBaseUrl
                 self.authToken = apiClient.authToken
             }
-            .alert("设置已保存", isPresented: $showSavedAlert) {
+            .alert(
+                healthResult?.ok == true ? "服务设置已保存" : "网关连接异常",
+                isPresented: $showSavedAlert
+            ) {
                 Button("好", role: .cancel) {}
+            } message: {
+                Text(healthResult?.message ?? "设置已保存")
+            }
+            .confirmationDialog(
+                "清除本地缓存",
+                isPresented: $showClearCacheConfirm,
+                titleVisibility: .visible
+            ) {
+                Button("清空全部缓存", role: .destructive) {
+                    URLCache.shared.removeAllCachedResponses()
+                    let tmp = FileManager.default.temporaryDirectory
+                    if let items = try? FileManager.default.contentsOfDirectory(at: tmp, includingPropertiesForKeys: nil) {
+                        for item in items { try? FileManager.default.removeItem(at: item) }
+                    }
+                    impactFeedback.impactOccurred()
+                    showCacheClearedAlert = true
+                }
+                Button("取消", role: .cancel) {}
+            } message: {
+                Text("将清除本地图片、临时音频切片与网络缓存。")
+            }
+            .alert("缓存已清除", isPresented: $showCacheClearedAlert) {
+                Button("好", role: .cancel) {}
+            } message: {
+                Text("本地临时网络与媒体缓存已全部释放。")
             }
             .preferredColorScheme(.dark)
         }

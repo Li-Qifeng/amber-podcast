@@ -37,6 +37,37 @@ public final class AmberAPIClient: ObservableObject {
         return req
     }
 
+    // MARK: - Health Check
+    public struct HealthResponse: Codable {
+        public let status: String?
+        public let app: String?
+        public let version: String?
+    }
+
+    public func checkHealth(customUrl: String? = nil) async -> (ok: Bool, message: String) {
+        let base = (customUrl ?? serverBaseUrl).trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        guard let url = URL(string: "\(base)/health") else {
+            return (false, "无效的服务器地址")
+        }
+        var req = URLRequest(url: url)
+        req.timeoutInterval = 8.0
+        do {
+            let (data, resp) = try await session.data(for: req)
+            guard let http = resp as? HTTPURLResponse, http.statusCode == 200 else {
+                let code = (resp as? HTTPURLResponse)?.statusCode ?? -1
+                return (false, "网关响应异常 (HTTP \(code))")
+            }
+            if let decoded = try? JSONDecoder().decode(HealthResponse.self, from: data) {
+                let ver = decoded.version ?? "0.1.0"
+                let app = decoded.app ?? "amber-podcast"
+                return (true, "服务正常 (\(app) v\(ver))")
+            }
+            return (true, "网关连通正常")
+        } catch {
+            return (false, "连接失败: \(error.localizedDescription)")
+        }
+    }
+
     // MARK: - Search
     public func searchPodcasts(query: String) async throws -> [PodcastFeed] {
         guard let encoded = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else { return [] }

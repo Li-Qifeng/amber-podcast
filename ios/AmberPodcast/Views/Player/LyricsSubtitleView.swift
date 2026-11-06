@@ -8,8 +8,26 @@ public struct LyricsSubtitleView: View {
     public init() {}
 
     public var body: some View {
-        ScrollViewReader { proxy in
-            ScrollView(.vertical, showsIndicators: false) {
+        if player.fullMapping.isEmpty {
+            VStack(spacing: 14) {
+                Image(systemName: "quote.bubble")
+                    .font(.system(size: 36, weight: .light))
+                    .foregroundStyle(AmberTheme.labelTertiary)
+
+                Text("暂无双轨逐句字幕")
+                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .foregroundStyle(AmberTheme.labelPrimary)
+
+                Text("当前单集尚未生成双轨逐句对齐，可在单集卡片中发起生成。")
+                    .font(.system(size: 12.5))
+                    .foregroundStyle(AmberTheme.labelTertiary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 36)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else {
+            ScrollViewReader { proxy in
+                ScrollView(.vertical, showsIndicators: false) {
                 LazyVStack(alignment: .leading, spacing: 32) {
                     Color.clear.frame(height: 24)
 
@@ -46,6 +64,7 @@ public struct LyricsSubtitleView: View {
                     }
                 }
             }
+        }
         }
     }
 }

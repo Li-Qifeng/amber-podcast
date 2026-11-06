@@ -13,6 +13,7 @@ public struct FullPlayerView: View {
     @State private var dragOffsetY: CGFloat = 0.0
 
     @Namespace private var modeNamespace
+    @Namespace private var centerTabNamespace
     private let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
 
     public init(isPresented: Binding<Bool>) {
@@ -176,14 +177,16 @@ public struct FullPlayerView: View {
                 .foregroundStyle(currentCenterTab == tag ? AmberTheme.labelPrimary : AmberTheme.labelTertiary)
                 .frame(width: 32, height: 28)
                 .background(
-                    Group {
+                    ZStack {
                         if currentCenterTab == tag {
                             Capsule()
                                 .fill(Color.white.opacity(0.20))
+                                .matchedGeometryEffect(id: "CenterTabCapsule", in: centerTabNamespace)
                         }
                     }
                 )
         }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Center Content

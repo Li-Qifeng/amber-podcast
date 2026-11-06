@@ -724,27 +724,81 @@ public struct AllChannelsListView: View {
     public var body: some View {
         ZStack {
             AmberTheme.background.ignoresSafeArea()
-            List(feeds) { f in
-                NavigationLink(destination: FeedDetailView(feed: f)) {
-                    HStack(spacing: 12) {
-                        if let url = URL(string: f.coverUrl), !f.coverUrl.isEmpty {
-                            AsyncImage(url: url) { img in
-                                img.resizable().scaledToFill().frame(width: 44, height: 44).clipShape(RoundedRectangle(cornerRadius: 8))
-                            } placeholder: {
-                                Rectangle().fill(Color(white: 0.12)).frame(width: 44, height: 44)
-                            }
-                        }
-                        VStack(alignment: .leading, spacing: 3) {
-                            Text(f.title).font(.system(size: 14, weight: .medium)).foregroundStyle(AmberTheme.labelPrimary)
-                            Text(f.author).font(.system(size: 12)).foregroundStyle(AmberTheme.labelTertiary)
-                        }
-                    }
+
+            if feeds.isEmpty {
+                VStack(spacing: 14) {
+                    Image(systemName: "square.stack")
+                        .font(.system(size: 36, weight: .light))
+                        .foregroundStyle(AmberTheme.labelTertiary)
+                    Text("暂无订阅频道")
+                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                        .foregroundStyle(AmberTheme.labelPrimary)
+                    Text("前往「发现」页面搜索并订阅您感兴趣的播客。")
+                        .font(.system(size: 12.5))
+                        .foregroundStyle(AmberTheme.labelTertiary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 36)
                 }
-                .listRowBackground(AmberTheme.surfaceCard)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                List {
+                    ForEach(feeds) { f in
+                        NavigationLink(destination: FeedDetailView(feed: f)) {
+                            HStack(spacing: 14) {
+                                channelCover(feed: f)
+
+                                VStack(alignment: .leading, spacing: 3) {
+                                    Text(f.title)
+                                        .font(.system(size: 14.5, weight: .medium, design: .rounded))
+                                        .foregroundStyle(AmberTheme.labelPrimary)
+                                        .lineLimit(1)
+                                    Text(f.author.isEmpty ? "播客主" : f.author)
+                                        .font(.system(size: 12))
+                                        .foregroundStyle(AmberTheme.labelTertiary)
+                                        .lineLimit(1)
+                                }
+                            }
+                            .padding(.vertical, 3)
+                        }
+                        .listRowBackground(AmberTheme.surfaceCard)
+                    }
+
+                    Color.clear
+                        .frame(height: 140)
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                }
+                .scrollContentBackground(.hidden)
             }
-            .scrollContentBackground(.hidden)
         }
         .navigationTitle("全部频道")
+        .navigationBarTitleDisplayMode(.inline)
         .preferredColorScheme(.dark)
+    }
+
+    private func channelCover(feed: PodcastFeed) -> some View {
+        Group {
+            if let url = URL(string: feed.coverUrl), !feed.coverUrl.isEmpty {
+                AsyncImage(url: url) { img in
+                    img.resizable().scaledToFill()
+                } placeholder: {
+                    coverPlaceholder
+                }
+            } else {
+                coverPlaceholder
+            }
+        }
+        .frame(width: 46, height: 46)
+        .amberMediaCard(radius: 8)
+    }
+
+    private var coverPlaceholder: some View {
+        ZStack {
+            Color(red: 0.12, green: 0.12, blue: 0.14)
+            Image(systemName: "headphones")
+                .font(.system(size: 18, weight: .light))
+                .foregroundStyle(AmberTheme.labelTertiary)
+        }
+        .frame(width: 46, height: 46)
     }
 }
