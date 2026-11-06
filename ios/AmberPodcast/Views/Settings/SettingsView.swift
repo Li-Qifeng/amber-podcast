@@ -73,7 +73,7 @@ public struct SettingsView: View {
                                 .buttonStyle(TactileButtonStyle(scale: 0.96))
                             }
                             .padding(16)
-                            .liquidGlassCard(cornerRadius: 16)
+                            .amberPlate(radius: AmberTheme.radiusCardRow)
 
                             Text("Amber 控制面托管于您的专属服务器，数据流直连 Google Drive 5TB 高速存储。")
                                 .font(.system(size: 11.5))
@@ -114,7 +114,7 @@ public struct SettingsView: View {
                                 .tint(AmberTheme.primaryAmber)
                             }
                             .padding(16)
-                            .liquidGlassCard(cornerRadius: 16)
+                            .amberPlate(radius: AmberTheme.radiusCardRow)
                         }
 
                         // Section 3: Storage & Cache
@@ -148,7 +148,7 @@ public struct SettingsView: View {
                                 }
                             }
                             .padding(16)
-                            .liquidGlassCard(cornerRadius: 16)
+                            .amberPlate(radius: AmberTheme.radiusCardRow)
                         }
 
                         // Section 4: Engine Specs
@@ -179,7 +179,7 @@ public struct SettingsView: View {
                                 }
                             }
                             .padding(16)
-                            .liquidGlassCard(cornerRadius: 16)
+                            .amberPlate(radius: AmberTheme.radiusCardRow)
                         }
                     }
                     .padding(.horizontal, 20)

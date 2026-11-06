@@ -79,12 +79,7 @@ public struct FeedDetailView: View {
                             .resizable()
                             .scaledToFill()
                             .frame(width: 108, height: 108)
-                            .clipShape(RoundedRectangle(cornerRadius: AmberTheme.radiusCoverHero, style: .continuous))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: AmberTheme.radiusCoverHero, style: .continuous)
-                                    .strokeBorder(AmberTheme.borderHairline, lineWidth: 0.5)
-                            )
-                            .shadow(color: Color.black.opacity(0.4), radius: 10, y: 5)
+                            .amberMediaCard(radius: AmberTheme.radiusCoverHero)
                     } placeholder: {
                         RoundedRectangle(cornerRadius: 20, style: .continuous)
                             .fill(Color(white: 0.12))

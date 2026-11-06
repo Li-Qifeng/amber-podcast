@@ -40,14 +40,14 @@ public enum AmberTheme {
     public static let radiusDock: CGFloat = 28.0            // Floating Dock (Physical Capsule)
     
     // 4px Spacing Grid System & Screen Proportions
-    public static let pageMargin: CGFloat = 16.0            // 16 pt edge margin
+    public static let pageMargin: CGFloat = 18.0            // 18 pt edge margin (Rex spec)
     public static let cardGap: CGFloat = 12.0               // 12 pt card gap
-    public static let heroBannerRatio: CGFloat = 0.58       // 58% Screen Height (Balanced, non-suffocating)
-    public static let cardShelfWidthRatio: CGFloat = 0.56   // 56% Screen Width
+    public static let heroBannerRatio: CGFloat = 0.61       // 61% Screen Height (Rex hero dominance)
+    public static let cardShelfWidthRatio: CGFloat = 0.575  // 57.5% Screen Width (second card peeks 35%)
     public static let cardShelfAspectRatio: CGFloat = 16.0 / 9.0 // 16:9 Landscape
     public static let dockWidthRatio: CGFloat = 0.92        // 92% Screen Width
     public static let dockHeight: CGFloat = 78.0            // 72 pt
-    public static let dockBottomGap: CGFloat = 28.0         // 28 pt Home Bar clearance
+    public static let dockBottomGap: CGFloat = 32.0         // 32 pt Home Bar clearance (Rex spec)
 
     // Motion Springs
     public static let quickSpring = Animation.spring(response: 0.20, dampingFraction: 0.88)

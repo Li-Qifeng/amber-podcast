@@ -84,11 +84,7 @@ public struct SearchView: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 9)
-        .background(AmberTheme.surfaceCard, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .strokeBorder(AmberTheme.borderHairline, lineWidth: 0.5)
-        )
+        .amberPlate(radius: 10)
     }
 
     // MARK: - Search Result Card
@@ -101,11 +97,7 @@ public struct SearchView: View {
                         .resizable()
                         .scaledToFill()
                         .frame(width: 52, height: 52)
-                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                .stroke(AmberTheme.borderHairline, lineWidth: 0.5)
-                        )
+                        .amberMediaCard(radius: 10)
                 } placeholder: {
                     RoundedRectangle(cornerRadius: 10, style: .continuous)
                         .fill(Color(white: 0.12))

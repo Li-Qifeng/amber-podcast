@@ -333,12 +333,7 @@ public struct HomeLibraryView: View {
                     }
                 }
                 .frame(width: width, height: height)
-                .clipShape(RoundedRectangle(cornerRadius: AmberTheme.radiusCardShelf, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: AmberTheme.radiusCardShelf, style: .continuous)
-                        .strokeBorder(isPlayingThis ? AmberTheme.primaryAmber.opacity(0.40) : AmberTheme.borderHairline, lineWidth: 0.5)
-                )
-                .shadow(color: Color.black.opacity(0.30), radius: 6, y: 3)
+                .amberMediaCard(radius: AmberTheme.radiusCardShelf)
 
                 // L3 Title (13pt, Medium weight)
                 Text(episode.title)
@@ -410,12 +405,7 @@ public struct HomeLibraryView: View {
                                         .padding(5)
                                 }
                                 .frame(width: posterWidth, height: posterHeight)
-                                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                        .strokeBorder(AmberTheme.borderHairline, lineWidth: 0.5)
-                                )
-                                .shadow(color: Color.black.opacity(0.25), radius: 5, y: 2)
+                                .amberMediaCard(radius: 10)
 
                                 Text(feed.title)
                                     .font(.system(size: 12, weight: .medium))
