@@ -1,3 +1,4 @@
+import Foundation
 import SwiftUI
 
 public struct HomeLibraryView: View {
@@ -198,23 +199,38 @@ public struct HomeLibraryView: View {
         }
     }
 
+    /// Missing-artwork hero. Rex answers this with `BoardMissingArtworkView` +
+    /// `AtmosphereView`: a metallic gradient carrying a geometric texture, so an
+    /// absent cover still reads as artwork instead of an empty well.
     private func ambientHeroArtworkPlaceholder(width: CGFloat, height: CGFloat) -> some View {
         ZStack {
             LinearGradient(
                 colors: [
-                    Color(red: 0.12, green: 0.12, blue: 0.14),
-                    Color(red: 0.06, green: 0.06, blue: 0.07)
+                    Color(red: 0.09, green: 0.09, blue: 0.10),
+                    Color(red: 0.04, green: 0.04, blue: 0.05),
+                    Color(red: 0.015, green: 0.015, blue: 0.02)
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
-            .frame(width: width, height: height)
 
-            Image(systemName: "waveform.circle")
-                .font(.system(size: 64, weight: .thin))
-                .foregroundStyle(AmberTheme.labelTertiary.opacity(0.40))
-                .offset(y: -24)
+            // Static acoustic spectrum: deterministic heights, no animation.
+            HStack(alignment: .center, spacing: 4) {
+                ForEach(0..<28, id: \.self) { index in
+                    Capsule()
+                        .fill(Color.white.opacity(0.055))
+                        .frame(width: 3, height: barHeight(for: index, in: height))
+                }
+            }
+            .frame(width: width * 0.78)
         }
+        .frame(width: width, height: height)
+    }
+
+    private func barHeight(for index: Int, in height: CGFloat) -> CGFloat {
+        let envelope = sin(Double(index) / 27.0 * .pi)
+        let detail = abs(sin(Double(index) * 1.7))
+        return height * (0.05 + 0.30 * envelope * (0.45 + 0.55 * detail))
     }
 
     private var isHeroPlaying: Bool {
