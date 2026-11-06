@@ -15,8 +15,15 @@ public final class DualTrackAudioPlayer: ObservableObject {
     @Published public var isPlaying: Bool = false
     @Published public var currentTime: Double = 0.0          // In current track's timeline (seconds)
     @Published public var duration: Double = 0.0             // Duration of current track (seconds)
-    @Published public var trackMode: TrackMode = .chinese
+    @Published public var trackMode: TrackMode = TrackMode(
+        rawValue: UserDefaults.standard.string(forKey: "amber_default_track_mode") ?? ""
+    ) ?? .chinese
     @Published public var playbackRate: Float = 1.0          // 0.5x to 3.0x
+
+    /// Backend progress sync runs on a timer while playing, and once on pause,
+    /// stop and track switch. Before this the endpoint existed but was never
+    /// called, so "继续收听" always showed 0%.
+    private var progressTimer: Timer?
     @Published public var isVocalBoostEnabled: Bool = false
     @Published public var currentSegmentIndex: Int = 0
 
@@ -109,6 +116,8 @@ public final class DualTrackAudioPlayer: ObservableObject {
         // Attach periodic time observer to the active player
         attachTimeObserver()
 
+        restoreProgress(episodeId: episode.id)
+
         if autoPlay {
             play()
         }
@@ -135,6 +144,7 @@ public final class DualTrackAudioPlayer: ObservableObject {
         isPlaying = true
         hapticFeedback.impactOccurred()
         updateNowPlayingInfo()
+        startProgressSync()
     }
 
     public func pause() {
@@ -143,6 +153,8 @@ public final class DualTrackAudioPlayer: ObservableObject {
         isPlaying = false
         hapticFeedback.impactOccurred()
         updateNowPlayingInfo()
+        stopProgressSync()
+        flushProgress()
     }
 
     public func togglePlayPause() {
@@ -160,6 +172,52 @@ public final class DualTrackAudioPlayer: ObservableObject {
         chinesePlayer = nil
         currentTime = 0.0
         duration = 0.0
+    }
+
+    // MARK: - Progress Sync
+    private func startProgressSync() {
+        guard progressTimer == nil else { return }
+        let timer = Timer(timeInterval: 15, repeats: true) { [weak self] _ in
+            Task { @MainActor in self?.flushProgress() }
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        progressTimer = timer
+    }
+
+    private func stopProgressSync() {
+        progressTimer?.invalidate()
+        progressTimer = nil
+    }
+
+    public func flushProgress(finished: Bool = false) {
+        guard let episode = currentEpisode else { return }
+        let position = Int((currentTime * 1000).rounded())
+        let total = Int((max(duration, currentTime) * 1000).rounded())
+        guard total > 0 else { return }
+        Task {
+            await AmberAPIClient.shared.syncProgress(
+                episodeId: episode.id,
+                positionMs: position,
+                durationMs: total,
+                trackMode: trackMode,
+                isFinished: finished
+            )
+        }
+    }
+
+    /// Restores the last saved position. Called after the players are built so a
+    /// reopened episode resumes instead of starting at 0:00.
+    public func restoreProgress(episodeId: String) {
+        Task {
+            guard let saved = try? await AmberAPIClient.shared.fetchProgress(episodeId: episodeId),
+                  saved.positionMs > 5_000,
+                  !saved.isComplete else { return }
+            let seconds = Double(saved.positionMs) / 1000.0
+            await MainActor.run {
+                guard self.currentEpisode?.id == episodeId else { return }
+                self.seek(to: seconds)
+            }
+        }
     }
 
     // MARK: - Instant Zero-Gap Track Switching

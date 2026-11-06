@@ -7,7 +7,19 @@ public struct SettingsView: View {
     @State private var serverUrl: String = ""
     @State private var authToken: String = ""
     @State private var showSavedAlert: Bool = false
-    @State private var preferredTrackMode: TrackMode = .chinese
+    /// Persisted default track mode. Previously a plain @State that nothing read,
+    /// so changing it had no effect on playback.
+    @AppStorage("amber_default_track_mode") private var preferredTrackModeRaw: String = TrackMode.chinese.rawValue
+
+    private var preferredTrackMode: Binding<TrackMode> {
+        Binding(
+            get: { TrackMode(rawValue: preferredTrackModeRaw) ?? .chinese },
+            set: { newValue in
+                preferredTrackModeRaw = newValue.rawValue
+                player.switchTrackMode(to: newValue)
+            }
+        )
+    }
 
     private let impactFeedback = UIImpactFeedbackGenerator(style: .light)
 
@@ -91,7 +103,7 @@ public struct SettingsView: View {
                                         .font(.system(size: 14, weight: .medium))
                                         .foregroundStyle(AmberTheme.labelPrimary)
                                     Spacer()
-                                    Picker("", selection: $preferredTrackMode) {
+                                    Picker("", selection: preferredTrackMode) {
                                         ForEach(TrackMode.allCases, id: \.self) { mode in
                                             Text(mode.title).tag(mode)
                                         }
@@ -101,17 +113,10 @@ public struct SettingsView: View {
 
                                 Divider().background(Color.white.opacity(0.08))
 
-                                Toggle(isOn: $player.isVocalBoostEnabled) {
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text("人声智能增强 (Vocal Boost)")
-                                            .font(.system(size: 14, weight: .medium))
-                                            .foregroundStyle(AmberTheme.labelPrimary)
-                                        Text("微衰减低频轰鸣，突出中频人声清晰度")
-                                            .font(.system(size: 11.5))
-                                            .foregroundStyle(AmberTheme.labelTertiary)
-                                    }
-                                }
-                                .tint(AmberTheme.primaryAmber)
+                                // Vocal Boost was a toggle with no audio path behind it
+                                // (no AVAudioEngine / EQ anywhere in the project), and it
+                                // was hidden from users with an accessibility/deceit risk. It
+                                // ships again only when the EQ chain is real.
                             }
                             .padding(16)
                             .amberPlate(radius: AmberTheme.radiusCardRow)

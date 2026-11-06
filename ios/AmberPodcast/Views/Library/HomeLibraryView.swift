@@ -437,6 +437,17 @@ public struct HomeLibraryView: View {
                             }
                         }
                         .buttonStyle(TactileButtonStyle(scale: 0.97))
+                        .contextMenu {
+                            Button(role: .destructive) {
+                                Task {
+                                    try? await AmberAPIClient.shared.deleteFeed(feedId: feed.id)
+                                    await loadData()
+                                }
+                                impactFeedback.impactOccurred()
+                            } label: {
+                                Label("取消订阅", systemImage: "trash")
+                            }
+                        }
                     }
                 }
                 .padding(.horizontal, AmberTheme.pageMargin)
@@ -618,10 +629,19 @@ public struct HomeLibraryView: View {
             }
             await MainActor.run {
                 if fetchedFeeds.isEmpty {
+                    #if DEBUG
+                    // Demo fixtures only inside debug builds: shipping them made an
+                    // empty library look like it had subscribed shows.
                     self.feeds = PodcastFeed.samples
                     self.recentEpisodes = Episode.samples
                     self.heroFeed = PodcastFeed.samples.first
                     self.heroEpisode = Episode.samples.first
+                    #else
+                    self.feeds = []
+                    self.recentEpisodes = []
+                    self.heroFeed = nil
+                    self.heroEpisode = nil
+                    #endif
                 } else {
                     self.feeds = fetchedFeeds
                     self.recentEpisodes = allEps

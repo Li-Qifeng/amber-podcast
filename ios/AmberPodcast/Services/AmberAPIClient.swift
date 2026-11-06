@@ -133,6 +133,43 @@ public final class AmberAPIClient: ObservableObject {
         return try JSONDecoder().decode(EpisodeArtifacts.self, from: data)
     }
 
+
+    // MARK: - Playback Progress Read
+    /// Server shape: `{"episode_id": ..., "playback_progress": {row}|null}`
+    /// where the row codes `is_finished` as 0/1.
+    public struct PlaybackProgress: Codable {
+        public let episodeId: String
+        public let positionMs: Int
+        public let durationMs: Int
+        public let trackMode: String
+        public let isFinished: Int
+
+        enum CodingKeys: String, CodingKey {
+            case episodeId = "episode_id"
+            case positionMs = "position_ms"
+            case durationMs = "duration_ms"
+            case trackMode = "track_mode"
+            case isFinished = "is_finished"
+        }
+
+        public var isComplete: Bool { isFinished == 1 }
+    }
+
+    private struct ProgressEnvelope: Codable {
+        let playbackProgress: PlaybackProgress?
+
+        enum CodingKeys: String, CodingKey {
+            case playbackProgress = "playback_progress"
+        }
+    }
+
+    public func fetchProgress(episodeId: String) async throws -> PlaybackProgress? {
+        let req = try makeRequest(endpoint: "/api/v1/playback/progress/\(episodeId)")
+        let (data, resp) = try await session.data(for: req)
+        guard (resp as? HTTPURLResponse)?.statusCode == 200 else { return nil }
+        return try? JSONDecoder().decode(ProgressEnvelope.self, from: data).playbackProgress
+    }
+
     // MARK: - Playback Progress Sync
     public func syncProgress(episodeId: String, positionMs: Int, durationMs: Int, trackMode: TrackMode, isFinished: Bool) async {
         struct ProgressPayload: Codable {

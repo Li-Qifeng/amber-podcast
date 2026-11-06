@@ -1,4 +1,5 @@
 import SwiftUI
+import AVKit
 
 public struct FullPlayerView: View {
     @ObservedObject var player = DualTrackAudioPlayer.shared
@@ -422,30 +423,10 @@ public struct FullPlayerView: View {
 
             Spacer()
 
-            // Vocal Boost Switch
-            Button {
-                player.isVocalBoostEnabled.toggle()
-                impactFeedback.impactOccurred()
-            } label: {
-                HStack(spacing: 4) {
-                    Image(systemName: player.isVocalBoostEnabled ? "waveform.badge.magnifyingglass" : "waveform")
-                        .font(.system(size: 14))
-                    Text(player.isVocalBoostEnabled ? "人声增强" : "原声模式")
-                        .font(.system(size: 11, weight: .medium))
-                }
-                .padding(.horizontal, 10)
-                .padding(.vertical, 5)
-                .liquidGlassCapsule(tint: player.isVocalBoostEnabled ? AmberTheme.primaryAmber : nil)
-                .foregroundStyle(player.isVocalBoostEnabled ? AmberTheme.primaryAmber : AmberTheme.labelTertiary)
-            }
-            .tactilePress()
-
-            Spacer()
-
-            // AirPlay route picker button placeholder
-            Image(systemName: "airplayaudio")
-                .font(.system(size: 17))
-                .foregroundStyle(AmberTheme.labelTertiary)
+            // Real route picker: the previous SF Symbol was decoration only and
+            // did nothing on tap.
+            AirPlayRoutePicker()
+                .frame(width: 26, height: 26)
         }
     }
 
@@ -495,4 +476,18 @@ public struct FullPlayerView: View {
             return String(format: "%02d:%02d", minutes, secs)
         }
     }
+}
+
+// MARK: - AirPlay Route Picker
+
+private struct AirPlayRoutePicker: UIViewRepresentable {
+    func makeUIView(context: Context) -> AVRoutePickerView {
+        let view = AVRoutePickerView()
+        view.tintColor = UIColor(AmberTheme.labelTertiary)
+        view.activeTintColor = UIColor(AmberTheme.primaryAmber)
+        view.prioritizesVideoDevices = false
+        return view
+    }
+
+    func updateUIView(_ uiView: AVRoutePickerView, context: Context) {}
 }
