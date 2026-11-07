@@ -76,6 +76,18 @@ public struct PodcastFeed: Identifiable, Codable, Hashable {
         self.description = (try? container.decode(String.self, forKey: .description)) ?? ""
         self.autoTranslate = (try? container.decode(Int.self, forKey: .autoTranslate)) ?? 0
     }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(sourceType, forKey: .sourceType)
+        try container.encode(title, forKey: .title)
+        try container.encode(author, forKey: .author)
+        try container.encode(feedUrl, forKey: .feedUrl)
+        try container.encode(coverUrl, forKey: .coverUrl)
+        try container.encode(description, forKey: .description)
+        try container.encode(autoTranslate, forKey: .autoTranslate)
+    }
 }
 
 // MARK: - Sample Preview Data
