@@ -143,14 +143,14 @@ jobs:
           cd ios
           mkdir -p build/Payload
           cp -r build/AmberPodcast.xcarchive/Products/Applications/*.app build/Payload/
-          python3 -c "
+          python3 - <<'PY'
           import plistlib, glob, os, re
           m_ver, m_bld = '2.6.0', '1'
           if os.path.exists('project.yml'):
               with open('project.yml', 'r', encoding='utf-8') as f:
                   txt = f.read()
-                  v = re.search(r'MARKETING_VERSION:\s*[\"\\\']?([^\"\\\'\s]+)', txt)
-                  b = re.search(r'CURRENT_PROJECT_VERSION:\s*[\"\\\']?([^\"\\\'\s]+)', txt)
+                  v = re.search(r'MARKETING_VERSION:\s*["\']?([^"\'\s]+)', txt)
+                  b = re.search(r'CURRENT_PROJECT_VERSION:\s*["\']?([^"\'\s]+)', txt)
                   if v: m_ver = v.group(1)
                   if b: m_bld = b.group(1)
 
@@ -167,7 +167,7 @@ jobs:
               with open(p, 'wb') as f:
                   plistlib.dump(d, f)
               print(f'Verified and updated {p} with version {m_ver} (build {m_bld}).')
-          "
+          PY
           cd build
           zip -r AmberPodcast.ipa Payload
           ls -lh AmberPodcast.ipa
