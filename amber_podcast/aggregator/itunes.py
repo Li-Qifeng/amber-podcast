@@ -1,6 +1,7 @@
 import httpx
 import xml.etree.ElementTree as ET
 import re
+import asyncio
 from typing import List, Dict, Any, Optional
 from urllib.parse import quote
 
@@ -8,26 +9,54 @@ class ApplePodcastAggregator:
     def __init__(self, timeout: float = 15.0):
         self.timeout = timeout
 
-    async def search_podcasts(self, query: str, limit: int = 15, country: str = "us") -> List[Dict[str, Any]]:
-        """Search Apple Podcasts Directory API for shows."""
-        url = f"https://itunes.apple.com/search?term={quote(query)}&entity=podcast&country={country}&limit={limit}"
+    async def search_podcasts(self, query: str, limit: int = 15, country: Optional[str] = None) -> List[Dict[str, Any]]:
+        """Search Apple Podcasts Directory API for shows, with multi-region support (CN + US)."""
+        clean_q = query.strip()
+        if not clean_q:
+            return []
+        
+        has_cjk = bool(re.search(r"[\u4e00-\u9fa5]", clean_q))
+        regions = [country] if country else (["cn", "us"] if has_cjk else ["us", "cn"])
+
         async with httpx.AsyncClient(timeout=self.timeout) as client:
-            resp = await client.get(url)
-            resp.raise_for_status()
-            data = resp.json()
+            tasks = [
+                client.get(f"https://itunes.apple.com/search?term={quote(clean_q)}&entity=podcast&country={r}&limit={limit}")
+                for r in regions
+            ]
+            responses = await asyncio.gather(*tasks, return_exceptions=True)
 
         results = []
-        for item in data.get("results", []):
-            results.append({
-                "source_type": "apple_rss",
-                "collection_id": str(item.get("collectionId")),
-                "title": item.get("collectionName", ""),
-                "author": item.get("artistName", ""),
-                "feed_url": item.get("feedUrl", ""),
-                "cover_url": item.get("artworkUrl600", item.get("artworkUrl100", "")),
-                "genre": item.get("primaryGenreName", ""),
-                "track_count": item.get("trackCount", 0)
-            })
+        seen_ids = set()
+        for resp in responses:
+            if not isinstance(resp, httpx.Response) or resp.status_code != 200:
+                continue
+            data = resp.json()
+            for item in data.get("results", []):
+                cid = str(item.get("collectionId", ""))
+                feed_url = item.get("feedUrl", "")
+                if not cid or not feed_url or cid in seen_ids:
+                    continue
+                seen_ids.add(cid)
+                genre = item.get("primaryGenreName", "")
+                track_count = item.get("trackCount", 0)
+                desc = f"{genre} · {track_count} 集" if track_count else genre
+                results.append({
+                    "id": cid,
+                    "collection_id": cid,
+                    "source_type": "apple_rss",
+                    "title": item.get("collectionName", ""),
+                    "author": item.get("artistName", ""),
+                    "feed_url": feed_url,
+                    "cover_url": item.get("artworkUrl600", item.get("artworkUrl100", "")),
+                    "description": desc,
+                    "genre": genre,
+                    "track_count": track_count,
+                    "auto_translate": 0
+                })
+                if len(results) >= limit:
+                    break
+            if len(results) >= limit:
+                break
         return results
 
     def parse_rss_xml(self, xml_content: str, feed_id: str) -> Dict[str, Any]:

@@ -28,12 +28,53 @@ public struct PodcastFeed: Identifiable, Codable, Hashable {
 
     enum CodingKeys: String, CodingKey {
         case id
+        case collectionId = "collection_id"
         case sourceType = "source_type"
         case title, author
         case feedUrl = "feed_url"
         case coverUrl = "cover_url"
         case description
         case autoTranslate = "auto_translate"
+    }
+
+    public init(
+        id: String,
+        sourceType: String,
+        title: String,
+        author: String,
+        feedUrl: String,
+        coverUrl: String,
+        description: String,
+        autoTranslate: Int = 0
+    ) {
+        self.id = id
+        self.sourceType = sourceType
+        self.title = title
+        self.author = author
+        self.feedUrl = feedUrl
+        self.coverUrl = coverUrl
+        self.description = description
+        self.autoTranslate = autoTranslate
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        if let directId = try? container.decode(String.self, forKey: .id), !directId.isEmpty {
+            self.id = directId
+        } else if let collId = try? container.decode(String.self, forKey: .collectionId), !collId.isEmpty {
+            self.id = collId
+        } else if let collInt = try? container.decode(Int.self, forKey: .collectionId) {
+            self.id = String(collInt)
+        } else {
+            self.id = UUID().uuidString
+        }
+        self.sourceType = (try? container.decode(String.self, forKey: .sourceType)) ?? "apple_rss"
+        self.title = (try? container.decode(String.self, forKey: .title)) ?? ""
+        self.author = (try? container.decode(String.self, forKey: .author)) ?? ""
+        self.feedUrl = (try? container.decode(String.self, forKey: .feedUrl)) ?? ""
+        self.coverUrl = (try? container.decode(String.self, forKey: .coverUrl)) ?? ""
+        self.description = (try? container.decode(String.self, forKey: .description)) ?? ""
+        self.autoTranslate = (try? container.decode(Int.self, forKey: .autoTranslate)) ?? 0
     }
 }
 

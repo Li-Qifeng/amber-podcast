@@ -144,18 +144,29 @@ jobs:
           mkdir -p build/Payload
           cp -r build/AmberPodcast.xcarchive/Products/Applications/*.app build/Payload/
           python3 -c "
-          import plistlib, glob
+          import plistlib, glob, os, re
+          m_ver, m_bld = '2.6.0', '1'
+          if os.path.exists('project.yml'):
+              with open('project.yml', 'r', encoding='utf-8') as f:
+                  txt = f.read()
+                  v = re.search(r'MARKETING_VERSION:\s*[\"\\\']?([^\"\\\'\s]+)', txt)
+                  b = re.search(r'CURRENT_PROJECT_VERSION:\s*[\"\\\']?([^\"\\\'\s]+)', txt)
+                  if v: m_ver = v.group(1)
+                  if b: m_bld = b.group(1)
+
           plists = glob.glob('build/Payload/*.app/Info.plist')
           for p in plists:
               with open(p, 'rb') as f:
                   d = plistlib.load(f)
+              d['CFBundleShortVersionString'] = m_ver
+              d['CFBundleVersion'] = m_bld
               d['UILaunchScreen'] = {}
               d['UILaunchStoryboardName'] = 'LaunchScreen'
               d['UIBackgroundModes'] = ['audio', 'processing']
               d['UISupportedInterfaceOrientations'] = ['UIInterfaceOrientationPortrait']
               with open(p, 'wb') as f:
                   plistlib.dump(d, f)
-              print(f'Verified and updated {p} with full-screen UILaunchScreen support.')
+              print(f'Verified and updated {p} with version {m_ver} (build {m_bld}).')
           "
           cd build
           zip -r AmberPodcast.ipa Payload

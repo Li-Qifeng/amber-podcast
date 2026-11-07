@@ -63,13 +63,25 @@ rm -rf "$IOS_DIR/build/Payload" "$IPA"
 mkdir -p "$IOS_DIR/build/Payload" "$DIST_DIR"
 cp -r "$ARCHIVE/Products/Applications/"*.app "$IOS_DIR/build/Payload/"
 
-python3 - "$IOS_DIR/build/Payload" <<'PY'
-import glob, os, plistlib, sys
+python3 - "$IOS_DIR/build/Payload" "$IOS_DIR/project.yml" <<'PY'
+import glob, os, plistlib, re, sys
 
 payload = sys.argv[1]
+proj_yml = sys.argv[2] if len(sys.argv) > 2 else ""
+m_ver, m_bld = "2.6.0", "1"
+if proj_yml and os.path.exists(proj_yml):
+    with open(proj_yml, "r", encoding="utf-8") as f:
+        txt = f.read()
+        v = re.search(r'MARKETING_VERSION:\s*[\"\\\']?([^\"\\\'\s]+)', txt)
+        b = re.search(r'CURRENT_PROJECT_VERSION:\s*[\"\\\']?([^\"\\\'\s]+)', txt)
+        if v: m_ver = v.group(1)
+        if b: m_bld = b.group(1)
+
 for path in glob.glob(os.path.join(payload, "*.app", "Info.plist")):
     with open(path, "rb") as fh:
         info = plistlib.load(fh)
+    info["CFBundleShortVersionString"] = m_ver
+    info["CFBundleVersion"] = m_bld
     info["UILaunchScreen"] = {}
     info["UIBackgroundModes"] = ["audio", "processing"]
     info["UISupportedInterfaceOrientations"] = ["UIInterfaceOrientationPortrait"]

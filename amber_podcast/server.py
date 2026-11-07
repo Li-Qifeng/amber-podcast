@@ -1,11 +1,14 @@
 import os
 import asyncio
+import logging
 from typing import Optional, List, Dict, Any
 from pathlib import Path
 from fastapi import FastAPI, Depends, HTTPException, Header, Query, BackgroundTasks, status
 from fastapi.responses import JSONResponse, FileResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+
+logger = logging.getLogger("amber_podcast")
 
 from amber_podcast.config import AUTH_TOKEN, SERVER_HOST, SERVER_PORT, GDRIVE_DIR, DATA_DIR, SCRATCH_DIR
 from amber_podcast.database import Database
@@ -75,11 +78,16 @@ def download_ipa():
 async def search_podcasts(
     q: str = Query(..., min_length=1),
     limit: int = 15,
+    country: Optional[str] = Query(None),
     token: str = Depends(verify_token)
 ):
-    """Search for podcasts across Apple Podcasts Directory."""
-    results = await apple_agg.search_podcasts(query=q, limit=limit)
-    return {"query": q, "results": results}
+    """Search for podcasts across Apple Podcasts Directory (supports dual CN+US indexing)."""
+    try:
+        results = await apple_agg.search_podcasts(query=q, limit=limit, country=country)
+        return {"query": q, "results": results}
+    except Exception as e:
+        logger.error(f"Search endpoint error for query '{q}': {e}")
+        return {"query": q, "results": []}
 
 @app.post("/api/v1/feeds/subscribe")
 async def subscribe_feed(
