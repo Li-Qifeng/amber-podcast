@@ -105,6 +105,31 @@ public final class AmberAPIClient: ObservableObject {
         return try JSONDecoder().decode(DiscoverFeedResponse.self, from: data)
     }
 
+    // MARK: - Library
+    public struct LibraryResponse: Codable {
+        public let feeds: [PodcastFeed]
+        public let recentEpisodes: [Episode]
+
+        public init(feeds: [PodcastFeed], recentEpisodes: [Episode]) {
+            self.feeds = feeds
+            self.recentEpisodes = recentEpisodes
+        }
+
+        enum CodingKeys: String, CodingKey {
+            case feeds
+            case recentEpisodes = "recent_episodes"
+        }
+    }
+
+    public func fetchLibrary() async throws -> LibraryResponse {
+        let req = try makeRequest(endpoint: "/api/v1/library")
+        let (data, resp) = try await session.data(for: req)
+        guard (resp as? HTTPURLResponse)?.statusCode == 200 else {
+            throw URLError(.badServerResponse)
+        }
+        return try JSONDecoder().decode(LibraryResponse.self, from: data)
+    }
+
     // MARK: - Feeds
     public func subscribe(url: String, autoTranslate: Bool = false) async throws {
         struct SubBody: Codable {

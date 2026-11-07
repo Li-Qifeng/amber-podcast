@@ -13,6 +13,8 @@ public struct HomeLibraryView: View {
     @State private var isSubscribing: Bool = false
     @State private var errorMessage: String? = nil
 
+    @AppStorage("amber_cached_library_json_v2") private var cachedLibraryJson: String = ""
+
     @ObservedObject var player = DualTrackAudioPlayer.shared
     private let impactFeedback = UIImpactFeedbackGenerator(style: .light)
 
@@ -91,7 +93,7 @@ public struct HomeLibraryView: View {
 
         ZStack(alignment: .bottomLeading) {
             // High-Resolution Artwork Layer
-            if let coverUrl = heroFeed?.coverUrl, let url = URL(string: coverUrl), !coverUrl.isEmpty {
+            if let coverUrl = heroFeed?.proxiedCoverUrl, let url = URL(string: coverUrl), !coverUrl.isEmpty {
                 AsyncImage(url: url) { phase in
                     switch phase {
                     case .success(let img):
@@ -300,7 +302,7 @@ public struct HomeLibraryView: View {
             VStack(alignment: .leading, spacing: 6) {
                 // 16:9 Card Artwork
                 ZStack(alignment: .bottomLeading) {
-                    if let url = URL(string: feed.coverUrl), !feed.coverUrl.isEmpty {
+                    if let url = URL(string: feed.proxiedCoverUrl), !feed.proxiedCoverUrl.isEmpty {
                         AsyncImage(url: url) { phase in
                             switch phase {
                             case .success(let img):
@@ -397,7 +399,7 @@ public struct HomeLibraryView: View {
                         NavigationLink(destination: FeedDetailView(feed: feed)) {
                             VStack(alignment: .leading, spacing: 6) {
                                 ZStack(alignment: .bottomTrailing) {
-                                    if let url = URL(string: feed.coverUrl), !feed.coverUrl.isEmpty {
+                                    if let url = URL(string: feed.proxiedCoverUrl), !feed.proxiedCoverUrl.isEmpty {
                                         AsyncImage(url: url) { img in
                                             img
                                                 .resizable()
@@ -618,20 +620,41 @@ public struct HomeLibraryView: View {
     }
 
     // MARK: - Helpers
+    private func restoreFromCache() {
+        guard feeds.isEmpty, !cachedLibraryJson.isEmpty,
+              let data = cachedLibraryJson.data(using: .utf8),
+              let lib = try? JSONDecoder().decode(AmberAPIClient.LibraryResponse.self, from: data),
+              !lib.feeds.isEmpty else {
+            return
+        }
+        self.feeds = lib.feeds
+        self.recentEpisodes = lib.recentEpisodes
+        self.heroFeed = lib.feeds.first
+        self.heroEpisode = lib.recentEpisodes.first
+        self.isLoading = false
+    }
+
+    private func saveToCache(feeds: [PodcastFeed], recentEpisodes: [Episode]) {
+        let lib = AmberAPIClient.LibraryResponse(feeds: feeds, recentEpisodes: recentEpisodes)
+        if let data = try? JSONEncoder().encode(lib), let str = String(data: data, encoding: .utf8) {
+            cachedLibraryJson = str
+        }
+    }
+
     private func loadData() async {
-        isLoading = true
-        do {
-            let fetchedFeeds = try await AmberAPIClient.shared.listFeeds()
-            var allEps: [Episode] = []
-            for f in fetchedFeeds {
-                let eps = (try? await AmberAPIClient.shared.listEpisodes(feedId: f.id)) ?? []
-                allEps.append(contentsOf: eps)
+        // Instant restore from cache if memory is empty
+        if feeds.isEmpty {
+            restoreFromCache()
+            if feeds.isEmpty {
+                isLoading = true
             }
+        }
+
+        do {
+            let lib = try await AmberAPIClient.shared.fetchLibrary()
             await MainActor.run {
-                if fetchedFeeds.isEmpty {
+                if lib.feeds.isEmpty {
                     #if DEBUG
-                    // Demo fixtures only inside debug builds: shipping them made an
-                    // empty library look like it had subscribed shows.
                     self.feeds = PodcastFeed.samples
                     self.recentEpisodes = Episode.samples
                     self.heroFeed = PodcastFeed.samples.first
@@ -643,20 +666,18 @@ public struct HomeLibraryView: View {
                     self.heroEpisode = nil
                     #endif
                 } else {
-                    self.feeds = fetchedFeeds
-                    self.recentEpisodes = allEps
-                    self.heroFeed = fetchedFeeds.first
-                    self.heroEpisode = allEps.first
+                    self.feeds = lib.feeds
+                    self.recentEpisodes = lib.recentEpisodes
+                    self.heroFeed = lib.feeds.first
+                    self.heroEpisode = lib.recentEpisodes.first
+                    self.saveToCache(feeds: lib.feeds, recentEpisodes: lib.recentEpisodes)
                 }
                 self.isLoading = false
             }
         } catch {
             await MainActor.run {
                 if self.feeds.isEmpty {
-                    self.feeds = PodcastFeed.samples
-                    self.recentEpisodes = Episode.samples
-                    self.heroFeed = PodcastFeed.samples.first
-                    self.heroEpisode = Episode.samples.first
+                    self.restoreFromCache()
                 }
                 self.isLoading = false
             }

@@ -123,7 +123,7 @@ public struct MiniPlayerView: View {
     // MARK: - Subviews
     private var coverArtworkView: some View {
         ZStack {
-            if let coverUrl = player.currentFeed?.coverUrl, let url = URL(string: coverUrl) {
+            if let coverUrl = player.currentFeed?.proxiedCoverUrl, let url = URL(string: coverUrl) {
                 AsyncImage(url: url) { image in
                     image
                         .resizable()

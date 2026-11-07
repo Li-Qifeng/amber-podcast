@@ -340,6 +340,48 @@ def list_feeds(token: str = Depends(verify_token)):
     """List all subscribed podcasts."""
     return {"feeds": db.list_feeds()}
 
+@app.get("/api/v1/library")
+def get_library(token: str = Depends(verify_token)):
+    """Fetch all subscribed podcasts and their latest 30 episodes in 1 single fast database call."""
+    feeds = db.list_feeds()
+    recent_episodes = db.list_episodes(feed_id=None, limit=30)
+    return {
+        "feeds": feeds,
+        "recent_episodes": recent_episodes
+    }
+
+@app.api_route("/api/v1/images/proxy", methods=["GET", "HEAD"])
+async def proxy_image(url: str = Query(...)):
+    """Proxy and cache external podcast cover images (resolving CDN timeouts and network unreachability)."""
+    clean_url = url.strip()
+    if not clean_url:
+        raise HTTPException(status_code=400, detail="Missing url")
+
+    cache_dir = SCRATCH_DIR / "images"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+
+    import hashlib
+    url_hash = hashlib.md5(clean_url.encode("utf-8")).hexdigest()
+    cached_file = cache_dir / f"{url_hash}.jpg"
+
+    if cached_file.exists() and cached_file.stat().st_size > 0:
+        return FileResponse(str(cached_file), media_type="image/jpeg")
+
+    import httpx
+    from fastapi.responses import RedirectResponse
+    try:
+        async with httpx.AsyncClient(timeout=12.0, follow_redirects=True) as client:
+            resp = await client.get(clean_url)
+            if resp.status_code == 200:
+                with open(cached_file, "wb") as f:
+                    f.write(resp.content)
+                media_type = resp.headers.get("content-type", "image/jpeg")
+                return FileResponse(str(cached_file), media_type=media_type)
+    except Exception as e:
+        logger.warning(f"Image proxy failed for {clean_url}: {e}")
+
+    return RedirectResponse(url=clean_url)
+
 @app.delete("/api/v1/feeds/{feed_id}")
 def delete_feed(feed_id: str, token: str = Depends(verify_token)):
     """Unsubscribe from a podcast feed."""

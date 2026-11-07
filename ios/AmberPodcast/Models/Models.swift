@@ -29,6 +29,15 @@ public struct PodcastFeed: Identifiable, Codable, Hashable {
     public var genre: String?
     public var trackCount: Int?
 
+    public var proxiedCoverUrl: String {
+        guard !coverUrl.isEmpty else { return "" }
+        if coverUrl.contains("refoxai.com") { return coverUrl }
+        guard let encoded = coverUrl.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
+            return coverUrl
+        }
+        return "\(AmberAPIClient.shared.serverBaseUrl)/api/v1/images/proxy?url=\(encoded)"
+    }
+
     enum CodingKeys: String, CodingKey {
         case id
         case collectionId = "collection_id"

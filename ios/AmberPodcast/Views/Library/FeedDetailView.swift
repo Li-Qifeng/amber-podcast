@@ -122,7 +122,7 @@ public struct FeedDetailView: View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(alignment: .top, spacing: 16) {
                 // Large Squircle Cover Artwork with Drop Shadow
-                if let url = URL(string: feed.coverUrl), !feed.coverUrl.isEmpty {
+                if let url = URL(string: feed.proxiedCoverUrl), !feed.proxiedCoverUrl.isEmpty {
                     AsyncImage(url: url) { image in
                         image
                             .resizable()

@@ -94,7 +94,7 @@ public struct FullPlayerView: View {
         ZStack {
             AmberTheme.background.ignoresSafeArea()
 
-            if let coverUrl = player.currentFeed?.coverUrl, let url = URL(string: coverUrl) {
+            if let coverUrl = player.currentFeed?.proxiedCoverUrl, let url = URL(string: coverUrl) {
                 AsyncImage(url: url) { image in
                     image
                         .resizable()
@@ -221,7 +221,7 @@ public struct FullPlayerView: View {
         VStack {
             Spacer()
             ZStack {
-                if let coverUrl = player.currentFeed?.coverUrl, let url = URL(string: coverUrl) {
+                if let coverUrl = player.currentFeed?.proxiedCoverUrl, let url = URL(string: coverUrl) {
                     AsyncImage(url: url) { image in
                         image
                             .resizable()

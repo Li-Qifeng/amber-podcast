@@ -306,7 +306,7 @@ public struct SearchView: View {
 
             HStack(spacing: 12) {
                 // Cover Artwork
-                if let url = URL(string: item.coverUrl), !item.coverUrl.isEmpty {
+                if let url = URL(string: item.proxiedCoverUrl), !item.proxiedCoverUrl.isEmpty {
                     AsyncImage(url: url) { img in
                         img.resizable().scaledToFill()
                             .frame(width: 58, height: 58)
@@ -445,7 +445,7 @@ public struct SearchView: View {
     private func posterCard(item: PodcastFeed, badge: String?) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             ZStack(alignment: .topTrailing) {
-                if let url = URL(string: item.coverUrl), !item.coverUrl.isEmpty {
+                if let url = URL(string: item.proxiedCoverUrl), !item.proxiedCoverUrl.isEmpty {
                     AsyncImage(url: url) { img in
                         img.resizable().scaledToFill()
                             .frame(width: 120, height: 120)
@@ -528,7 +528,7 @@ public struct SearchView: View {
     // MARK: - Search Result Card
     private func searchResultCard(item: PodcastFeed, isSubscribed: Bool) -> some View {
         HStack(spacing: 12) {
-            if let url = URL(string: item.coverUrl), !item.coverUrl.isEmpty {
+            if let url = URL(string: item.proxiedCoverUrl), !item.proxiedCoverUrl.isEmpty {
                 AsyncImage(url: url) { img in
                     img.resizable().scaledToFill()
                         .frame(width: 52, height: 52)
