@@ -25,6 +25,9 @@ public struct PodcastFeed: Identifiable, Codable, Hashable {
     public let coverUrl: String
     public let description: String
     public var autoTranslate: Int       // 0 or 1
+    public var editorialTag: String?
+    public var genre: String?
+    public var trackCount: Int?
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -35,6 +38,9 @@ public struct PodcastFeed: Identifiable, Codable, Hashable {
         case coverUrl = "cover_url"
         case description
         case autoTranslate = "auto_translate"
+        case editorialTag = "editorial_tag"
+        case genre
+        case trackCount = "track_count"
     }
 
     public init(
@@ -45,7 +51,10 @@ public struct PodcastFeed: Identifiable, Codable, Hashable {
         feedUrl: String,
         coverUrl: String,
         description: String,
-        autoTranslate: Int = 0
+        autoTranslate: Int = 0,
+        editorialTag: String? = nil,
+        genre: String? = nil,
+        trackCount: Int? = nil
     ) {
         self.id = id
         self.sourceType = sourceType
@@ -55,6 +64,9 @@ public struct PodcastFeed: Identifiable, Codable, Hashable {
         self.coverUrl = coverUrl
         self.description = description
         self.autoTranslate = autoTranslate
+        self.editorialTag = editorialTag
+        self.genre = genre
+        self.trackCount = trackCount
     }
 
     public init(from decoder: Decoder) throws {
@@ -75,6 +87,9 @@ public struct PodcastFeed: Identifiable, Codable, Hashable {
         self.coverUrl = (try? container.decode(String.self, forKey: .coverUrl)) ?? ""
         self.description = (try? container.decode(String.self, forKey: .description)) ?? ""
         self.autoTranslate = (try? container.decode(Int.self, forKey: .autoTranslate)) ?? 0
+        self.editorialTag = try? container.decode(String.self, forKey: .editorialTag)
+        self.genre = try? container.decode(String.self, forKey: .genre)
+        self.trackCount = try? container.decode(Int.self, forKey: .trackCount)
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -87,6 +102,9 @@ public struct PodcastFeed: Identifiable, Codable, Hashable {
         try container.encode(coverUrl, forKey: .coverUrl)
         try container.encode(description, forKey: .description)
         try container.encode(autoTranslate, forKey: .autoTranslate)
+        try container.encodeIfPresent(editorialTag, forKey: .editorialTag)
+        try container.encodeIfPresent(genre, forKey: .genre)
+        try container.encodeIfPresent(trackCount, forKey: .trackCount)
     }
 }
 

@@ -10,6 +10,7 @@ public struct FullPlayerView: View {
     @State private var isScrubbing: Bool = false
     @State private var scrubTime: Double = 0.0
     @State private var showSpeedSheet: Bool = false
+    @State private var showNoDualTrackAlert: Bool = false
     @State private var dragOffsetY: CGFloat = 0.0
 
     @Namespace private var modeNamespace
@@ -79,6 +80,11 @@ public struct FullPlayerView: View {
         }
         .sheet(isPresented: $showSpeedSheet) {
             speedSelectionSheet
+        }
+        .alert("提示", isPresented: $showNoDualTrackAlert) {
+            Button("好", role: .cancel) {}
+        } message: {
+            Text("当前单集尚未生成 AI 双轨配音与对齐字幕。已为您切换至「字幕」面板，可一键发起极速转译。")
         }
         .preferredColorScheme(.dark)
     }
@@ -255,6 +261,13 @@ public struct FullPlayerView: View {
 
                 Button {
                     impactFeedback.impactOccurred()
+                    if mode != .original && player.timingSegments.isEmpty {
+                        withAnimation(ForwardMotion.snapSpring) {
+                            currentCenterTab = 1
+                        }
+                        showNoDualTrackAlert = true
+                        return
+                    }
                     withAnimation(ForwardMotion.snapSpring) {
                         player.switchTrackMode(to: mode)
                     }

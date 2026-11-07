@@ -185,8 +185,34 @@ public struct ShownotesView: View {
         let timestampSec: Double?
     }
 
-    private func parseTimestamps(from text: String) -> [ShownotesBlock] {
-        let lines = text.components(separatedBy: .newlines)
+    private func cleanHtml(_ raw: String) -> String {
+        var text = raw
+        // Replace paragraph and break tags with newlines
+        text = text.replacingOccurrences(of: #"(?i)<(?:br|/p|/div|/li)\s*/?>"#, with: "\n", options: .regularExpression)
+        // Strip remaining HTML tags
+        text = text.replacingOccurrences(of: #"<[^>]+>"#, with: "", options: .regularExpression)
+        // Decode common HTML entities
+        let entities = [
+            ("&nbsp;", " "),
+            ("&amp;", "&"),
+            ("&quot;", "\""),
+            ("&apos;", "'"),
+            ("&#39;", "'"),
+            ("&lt;", "<"),
+            ("&gt;", ">"),
+            ("&mdash;", "—"),
+            ("&ndash;", "–"),
+            ("&hellip;", "…")
+        ]
+        for (ent, val) in entities {
+            text = text.replacingOccurrences(of: ent, with: val)
+        }
+        return text
+    }
+
+    private func parseTimestamps(from rawText: String) -> [ShownotesBlock] {
+        let cleanText = cleanHtml(rawText)
+        let lines = cleanText.components(separatedBy: .newlines)
         var blocks: [ShownotesBlock] = []
 
         let regex = try? NSRegularExpression(pattern: #"(?:(\d{1,2}):)?(\d{2}):(\d{2})"#, options: [])
@@ -203,7 +229,7 @@ public struct ShownotesView: View {
                 let prefix = nsString.substring(to: match.range.location).trimmingCharacters(in: .whitespaces)
                 let suffix = nsString.substring(from: match.range.location + match.range.length).trimmingCharacters(in: .whitespaces)
                 let combined = prefix.isEmpty ? suffix : (suffix.isEmpty ? prefix : "\(prefix) \(suffix)")
-                let cleanText = combined.trimmingCharacters(in: CharacterSet(charactersIn: " -—:·|"))
+                let cleanBlockText = combined.trimmingCharacters(in: CharacterSet(charactersIn: " -—:·|[]()"))
 
                 var totalSec: Double = 0
                 let parts = timeStr.split(separator: ":").map { Double($0) ?? 0 }
@@ -214,7 +240,7 @@ public struct ShownotesView: View {
                 }
 
                 blocks.append(ShownotesBlock(
-                    text: cleanText,
+                    text: cleanBlockText.isEmpty ? "跳转至 \(timeStr)" : cleanBlockText,
                     timeString: timeStr,
                     timestampSec: totalSec
                 ))

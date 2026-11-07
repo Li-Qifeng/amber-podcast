@@ -83,6 +83,28 @@ public final class AmberAPIClient: ObservableObject {
         return decoded.results
     }
 
+    // MARK: - Discover Feed
+    public struct DiscoverFeedResponse: Codable {
+        public let featured: [PodcastFeed]
+        public let topChinese: [PodcastFeed]
+        public let topGlobal: [PodcastFeed]
+
+        enum CodingKeys: String, CodingKey {
+            case featured
+            case topChinese = "top_chinese"
+            case topGlobal = "top_global"
+        }
+    }
+
+    public func fetchDiscoverFeed() async throws -> DiscoverFeedResponse {
+        let req = try makeRequest(endpoint: "/api/v1/discover")
+        let (data, resp) = try await session.data(for: req)
+        guard (resp as? HTTPURLResponse)?.statusCode == 200 else {
+            throw URLError(.badServerResponse)
+        }
+        return try JSONDecoder().decode(DiscoverFeedResponse.self, from: data)
+    }
+
     // MARK: - Feeds
     public func subscribe(url: String, autoTranslate: Bool = false) async throws {
         struct SubBody: Codable {

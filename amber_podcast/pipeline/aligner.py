@@ -9,9 +9,10 @@ from amber_podcast.pipeline.tts.base import BaseTTSProvider, TTSResult
 from amber_podcast.config import SCRATCH_DIR
 
 class AlignmentEngine:
-    def __init__(self, tts_provider: BaseTTSProvider, ffmpeg_bin: str = "/root/.hermes/tools/ffmpeg-9.0.1-linux-x64/bin/ffmpeg"):
+    def __init__(self, tts_provider: BaseTTSProvider, ffmpeg_bin: Optional[str] = None):
         self.tts = tts_provider
-        self.ffmpeg = ffmpeg_bin if os.path.exists(ffmpeg_bin) else "ffmpeg"
+        import shutil
+        self.ffmpeg = ffmpeg_bin or shutil.which("ffmpeg") or "/usr/local/bin/ffmpeg"
 
     async def build_dual_track_bundle(
         self,

@@ -13,6 +13,12 @@ public struct SearchView: View {
     @State private var errorMessage: String? = nil
     @State private var showErrorAlert: Bool = false
 
+    // Discovery feed data (Apple Podcasts Style)
+    @State private var featuredShows: [PodcastFeed] = []
+    @State private var topChineseShows: [PodcastFeed] = []
+    @State private var topGlobalShows: [PodcastFeed] = []
+    @State private var isDiscoverLoading: Bool = false
+
     @AppStorage("amber_recent_searches_v1") private var recentSearchesRaw: String = ""
 
     private let impactFeedback = UIImpactFeedbackGenerator(style: .light)
@@ -41,14 +47,14 @@ public struct SearchView: View {
                     searchBarHeader
                         .padding(.horizontal, 20)
                         .padding(.top, 10)
-                        .padding(.bottom, 12)
+                        .padding(.bottom, 10)
 
                     // 2. Direct Link Banner (when URL pasted)
                     if isUrlQuery {
                         directUrlBanner
                     }
 
-                    // 3. Results or Suggestions
+                    // 3. Results or Apple Podcasts Discovery Feed
                     if isSearching {
                         VStack(spacing: 14) {
                             ProgressView()
@@ -58,35 +64,25 @@ public struct SearchView: View {
                                 .foregroundStyle(AmberTheme.labelSecondary)
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    } else if hasSearched && searchResults.isEmpty {
+                    } else if hasSearched && !query.isEmpty && searchResults.isEmpty {
                         noResultsView
-                    } else if searchResults.isEmpty {
-                        suggestionsOrEmptyView
+                    } else if !searchResults.isEmpty && !query.isEmpty {
+                        // Search Results List
+                        searchResultsList
                     } else {
-                        ScrollView(.vertical, showsIndicators: false) {
-                            LazyVStack(spacing: 12) {
-                                ForEach(searchResults) { item in
-                                    if let existing = subscribedFeeds.first(where: {
-                                        (!item.feedUrl.isEmpty && $0.feedUrl == item.feedUrl) || $0.id == item.id
-                                    }) {
-                                        NavigationLink(destination: FeedDetailView(feed: existing)) {
-                                            searchResultCard(item: item, isSubscribed: true)
-                                        }
-                                        .buttonStyle(.plain)
-                                    } else {
-                                        searchResultCard(item: item, isSubscribed: false)
-                                    }
-                                }
-                            }
-                            .padding(.horizontal, 16)
-                            .padding(.bottom, 140) // Clearance for floating MiniPlayer
-                        }
+                        // Apple Podcasts Style Discovery Stream
+                        discoveryStreamView
                     }
                 }
             }
-            .navigationTitle("发现播客")
+            .navigationTitle("发现")
             .navigationBarTitleDisplayMode(.inline)
             .task {
+                await loadExistingSubscriptions()
+                await loadDiscoverFeed()
+            }
+            .refreshable {
+                await loadDiscoverFeed()
                 await loadExistingSubscriptions()
             }
             .alert("提示", isPresented: $showErrorAlert) {
@@ -176,15 +172,365 @@ public struct SearchView: View {
         .padding(.bottom, 8)
     }
 
+    // MARK: - Search Results List
+    private var searchResultsList: some View {
+        ScrollView(.vertical, showsIndicators: false) {
+            LazyVStack(spacing: 12) {
+                ForEach(searchResults) { item in
+                    let isSub = isItemSubscribed(item)
+                    if let existing = subscribedFeeds.first(where: {
+                        (!item.feedUrl.isEmpty && $0.feedUrl == item.feedUrl) || $0.id == item.id
+                    }) {
+                        NavigationLink(destination: FeedDetailView(feed: existing)) {
+                            searchResultCard(item: item, isSubscribed: true)
+                        }
+                        .buttonStyle(.plain)
+                    } else {
+                        NavigationLink(destination: FeedDetailView(feed: item)) {
+                            searchResultCard(item: item, isSubscribed: isSub)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.bottom, 140)
+        }
+    }
+
+    // MARK: - Apple Podcasts Style Discovery Stream
+    private var discoveryStreamView: some View {
+        ScrollView(.vertical, showsIndicators: false) {
+            VStack(alignment: .leading, spacing: 26) {
+                // 1. Featured Editorial Banners Carousel
+                if !featuredShows.isEmpty {
+                    featuredCarouselSection
+                }
+
+                // 2. Search History (if available)
+                if !recentSearches.isEmpty {
+                    searchHistorySection
+                }
+
+                // 3. Top Chinese Podcasts Section
+                if !topChineseShows.isEmpty {
+                    topChineseSection
+                }
+
+                // 4. Top Global Dual-Track Section
+                if !topGlobalShows.isEmpty {
+                    topGlobalSection
+                }
+
+                // 5. Categorized Topic Chips
+                categoryChipsSection
+
+                Spacer(minLength: 120)
+            }
+            .padding(.top, 6)
+        }
+    }
+
+    // MARK: - Section 1: Featured Carousel
+    private var featuredCarouselSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 6) {
+                Image(systemName: "star.fill")
+                    .font(.system(size: 11))
+                    .foregroundStyle(AmberTheme.primaryAmber)
+                Text("精彩聚焦")
+                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .foregroundStyle(AmberTheme.labelSecondary)
+            }
+            .padding(.horizontal, 20)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 14) {
+                    ForEach(featuredShows) { item in
+                        NavigationLink(destination: FeedDetailView(feed: item)) {
+                            featuredCard(item: item)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal, 20)
+            }
+        }
+    }
+
+    private func featuredCard(item: PodcastFeed) -> some View {
+        let isSub = isItemSubscribed(item)
+        return VStack(alignment: .leading, spacing: 10) {
+            // Tag Pill
+            HStack {
+                Text(item.editorialTag ?? "编辑精选")
+                    .font(.system(size: 10.5, weight: .bold, design: .rounded))
+                    .foregroundStyle(AmberTheme.primaryAmber)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(AmberTheme.primaryAmber.opacity(0.12), in: Capsule())
+
+                Spacer()
+
+                // Subscribe Mini Button
+                Button {
+                    if !isSub {
+                        subscribeItem(item)
+                    }
+                } label: {
+                    if subscribingId == item.id {
+                        ProgressView().scaleEffect(0.5).frame(width: 48, height: 22)
+                    } else if isSub {
+                        HStack(spacing: 3) {
+                            Image(systemName: "checkmark").font(.system(size: 8, weight: .bold))
+                            Text("已订阅").font(.system(size: 10.5, weight: .medium, design: .rounded))
+                        }
+                        .foregroundStyle(AmberTheme.accentElectric)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3.5)
+                        .background(AmberTheme.accentElectric.opacity(0.12), in: Capsule())
+                    } else {
+                        HStack(spacing: 3) {
+                            Image(systemName: "plus").font(.system(size: 8, weight: .bold))
+                            Text("订阅").font(.system(size: 10.5, weight: .medium, design: .rounded))
+                        }
+                        .foregroundStyle(Color.black)
+                        .padding(.horizontal, 9)
+                        .padding(.vertical, 3.5)
+                        .background(Color.white, in: Capsule())
+                    }
+                }
+                .buttonStyle(TactileButtonStyle(scale: 0.94))
+                .disabled(subscribingId == item.id || isSub)
+            }
+
+            HStack(spacing: 12) {
+                // Cover Artwork
+                if let url = URL(string: item.coverUrl), !item.coverUrl.isEmpty {
+                    AsyncImage(url: url) { img in
+                        img.resizable().scaledToFill()
+                            .frame(width: 58, height: 58)
+                            .amberMediaCard(radius: 12)
+                    } placeholder: {
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(Color(white: 0.15))
+                            .frame(width: 58, height: 58)
+                    }
+                }
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(item.title)
+                        .font(.system(size: 15, weight: .bold, design: .rounded))
+                        .foregroundStyle(AmberTheme.labelPrimary)
+                        .lineLimit(1)
+
+                    Text(item.author)
+                        .font(.system(size: 12, weight: .regular))
+                        .foregroundStyle(AmberTheme.labelSecondary)
+                        .lineLimit(1)
+
+                    if !item.description.isEmpty {
+                        Text(item.description)
+                            .font(.system(size: 11, weight: .regular))
+                            .foregroundStyle(AmberTheme.labelTertiary)
+                            .lineLimit(2)
+                    }
+                }
+            }
+        }
+        .padding(14)
+        .frame(width: 290, alignment: .leading)
+        .amberPlate(radius: 16)
+    }
+
+    // MARK: - Section 2: Search History
+    private var searchHistorySection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text("搜索历史")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(AmberTheme.labelSecondary)
+                Spacer()
+                Button {
+                    clearRecentSearches()
+                } label: {
+                    Image(systemName: "trash")
+                        .font(.system(size: 11))
+                        .foregroundStyle(AmberTheme.labelTertiary)
+                }
+            }
+            .padding(.horizontal, 20)
+
+            FlowLayout(spacing: 8) {
+                ForEach(recentSearches, id: \.self) { term in
+                    Button {
+                        query = term
+                        performSearch()
+                    } label: {
+                        Text(term)
+                            .font(.system(size: 11.5, weight: .regular))
+                            .foregroundStyle(AmberTheme.labelSecondary)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 5)
+                            .background(AmberTheme.surfaceRaised, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+                    }
+                    .buttonStyle(TactileButtonStyle(scale: 0.96))
+                }
+            }
+            .padding(.horizontal, 20)
+        }
+    }
+
+    // MARK: - Section 3: Top Chinese Shows
+    private var topChineseSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 6) {
+                Image(systemName: "flame.fill")
+                    .font(.system(size: 12))
+                    .foregroundStyle(Color.orange)
+                Text("中文热门精选")
+                    .font(.system(size: 15, weight: .bold, design: .rounded))
+                    .foregroundStyle(AmberTheme.labelPrimary)
+            }
+            .padding(.horizontal, 20)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    ForEach(topChineseShows) { item in
+                        NavigationLink(destination: FeedDetailView(feed: item)) {
+                            posterCard(item: item, badge: nil)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal, 20)
+            }
+        }
+    }
+
+    // MARK: - Section 4: Top Global Dual-Track Shows
+    private var topGlobalSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 6) {
+                Image(systemName: "globe.asia.australia.fill")
+                    .font(.system(size: 12))
+                    .foregroundStyle(AmberTheme.accentElectric)
+                Text("全球双语焦点")
+                    .font(.system(size: 15, weight: .bold, design: .rounded))
+                    .foregroundStyle(AmberTheme.labelPrimary)
+
+                Text("双轨译制")
+                    .font(.system(size: 10, weight: .bold, design: .rounded))
+                    .foregroundStyle(AmberTheme.accentElectric)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(AmberTheme.accentElectric.opacity(0.12), in: Capsule())
+            }
+            .padding(.horizontal, 20)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    ForEach(topGlobalShows) { item in
+                        NavigationLink(destination: FeedDetailView(feed: item)) {
+                            posterCard(item: item, badge: "双轨配音")
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal, 20)
+            }
+        }
+    }
+
+    private func posterCard(item: PodcastFeed, badge: String?) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            ZStack(alignment: .topTrailing) {
+                if let url = URL(string: item.coverUrl), !item.coverUrl.isEmpty {
+                    AsyncImage(url: url) { img in
+                        img.resizable().scaledToFill()
+                            .frame(width: 120, height: 120)
+                            .amberMediaCard(radius: 12)
+                    } placeholder: {
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(Color(white: 0.14))
+                            .frame(width: 120, height: 120)
+                    }
+                } else {
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(Color(white: 0.14))
+                        .frame(width: 120, height: 120)
+                }
+
+                if let b = badge {
+                    Text(b)
+                        .font(.system(size: 9, weight: .bold, design: .rounded))
+                        .foregroundStyle(Color.black)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2.5)
+                        .background(AmberTheme.primaryAmber, in: Capsule())
+                        .padding(6)
+                }
+            }
+
+            Text(item.title)
+                .font(.system(size: 12.5, weight: .semibold, design: .rounded))
+                .foregroundStyle(AmberTheme.labelPrimary)
+                .lineLimit(1)
+
+            Text(item.author)
+                .font(.system(size: 11, weight: .regular))
+                .foregroundStyle(AmberTheme.labelTertiary)
+                .lineLimit(1)
+        }
+        .frame(width: 120)
+    }
+
+    // MARK: - Section 5: Category Topic Chips
+    private var categoryChipsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("热门分类专题")
+                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                .foregroundStyle(AmberTheme.labelPrimary)
+                .padding(.horizontal, 20)
+
+            FlowLayout(spacing: 8) {
+                topicPill("深度对谈", queryText: "声东击西")
+                topicPill("科技前沿", queryText: "机核")
+                topicPill("商业商业", queryText: "Acquired")
+                topicPill("文学艺术", queryText: "跳岛 FM")
+                topicPill("健康科学", queryText: "Huberman Lab")
+                topicPill("人工智能", queryText: "Lex Fridman")
+            }
+            .padding(.horizontal, 20)
+        }
+    }
+
+    private func topicPill(_ title: String, queryText: String) -> some View {
+        Button {
+            query = queryText
+            performSearch()
+        } label: {
+            HStack(spacing: 4) {
+                Text(title)
+                    .font(.system(size: 12, weight: .medium, design: .rounded))
+                    .foregroundStyle(AmberTheme.labelSecondary)
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 9))
+                    .foregroundStyle(AmberTheme.labelTertiary)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6.5)
+            .amberPlate(radius: 8)
+        }
+        .buttonStyle(TactileButtonStyle(scale: 0.96))
+    }
+
     // MARK: - Search Result Card
     private func searchResultCard(item: PodcastFeed, isSubscribed: Bool) -> some View {
         HStack(spacing: 12) {
-            // Squircle Cover Artwork
             if let url = URL(string: item.coverUrl), !item.coverUrl.isEmpty {
                 AsyncImage(url: url) { img in
-                    img
-                        .resizable()
-                        .scaledToFill()
+                    img.resizable().scaledToFill()
                         .frame(width: 52, height: 52)
                         .amberMediaCard(radius: 10)
                 } placeholder: {
@@ -224,22 +570,17 @@ public struct SearchView: View {
 
             Spacer(minLength: 4)
 
-            // Subscribe Button
             Button {
                 if !isSubscribed {
                     subscribeItem(item)
                 }
             } label: {
                 if subscribingId == item.id {
-                    ProgressView()
-                        .scaleEffect(0.60)
-                        .frame(width: 54, height: 26)
+                    ProgressView().scaleEffect(0.60).frame(width: 54, height: 26)
                 } else if isSubscribed {
                     HStack(spacing: 3) {
-                        Image(systemName: "checkmark")
-                            .font(.system(size: 9, weight: .bold))
-                        Text("已订阅")
-                            .font(.system(size: 11, weight: .medium, design: .rounded))
+                        Image(systemName: "checkmark").font(.system(size: 9, weight: .bold))
+                        Text("已订阅").font(.system(size: 11, weight: .medium, design: .rounded))
                     }
                     .foregroundStyle(AmberTheme.accentElectric)
                     .padding(.horizontal, 9)
@@ -247,10 +588,8 @@ public struct SearchView: View {
                     .background(AmberTheme.accentElectric.opacity(0.12), in: RoundedRectangle(cornerRadius: 6, style: .continuous))
                 } else {
                     HStack(spacing: 3) {
-                        Image(systemName: "plus")
-                            .font(.system(size: 9, weight: .bold))
-                        Text("订阅")
-                            .font(.system(size: 11, weight: .medium, design: .rounded))
+                        Image(systemName: "plus").font(.system(size: 9, weight: .bold))
+                        Text("订阅").font(.system(size: 11, weight: .medium, design: .rounded))
                     }
                     .foregroundStyle(Color.black)
                     .padding(.horizontal, 11)
@@ -266,111 +605,10 @@ public struct SearchView: View {
         .amberPlate(radius: 12)
     }
 
-    // MARK: - Suggestions or Empty View
-    private var suggestionsOrEmptyView: some View {
-        ScrollView(.vertical, showsIndicators: false) {
-            VStack(spacing: 24) {
-                // Recent Searches (if any)
-                if !recentSearches.isEmpty {
-                    VStack(alignment: .leading, spacing: 10) {
-                        HStack {
-                            Text("搜索历史")
-                                .font(.system(size: 12, weight: .semibold))
-                                .foregroundStyle(AmberTheme.labelSecondary)
-                            Spacer()
-                            Button {
-                                clearRecentSearches()
-                            } label: {
-                                Image(systemName: "trash")
-                                    .font(.system(size: 11))
-                                    .foregroundStyle(AmberTheme.labelTertiary)
-                            }
-                        }
-
-                        FlowLayout(spacing: 8) {
-                            ForEach(recentSearches, id: \.self) { term in
-                                Button {
-                                    query = term
-                                    performSearch()
-                                } label: {
-                                    Text(term)
-                                        .font(.system(size: 11.5, weight: .regular))
-                                        .foregroundStyle(AmberTheme.labelSecondary)
-                                        .padding(.horizontal, 10)
-                                        .padding(.vertical, 5)
-                                        .background(AmberTheme.surfaceRaised, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
-                                }
-                                .buttonStyle(TactileButtonStyle(scale: 0.96))
-                            }
-                        }
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 8)
-                }
-
-                // Curated Categories & Shows
-                VStack(spacing: 18) {
-                    VStack(spacing: 6) {
-                        Text("直连 Apple 播客全网目录")
-                            .font(.system(size: 15, weight: .semibold, design: .rounded))
-                            .foregroundStyle(AmberTheme.labelPrimary)
-
-                        Text("输入节目名称或主播，一键订阅并享受双轨译音")
-                            .font(.system(size: 12))
-                            .foregroundStyle(AmberTheme.labelTertiary)
-                    }
-
-                    // Discovery suggestion chips (Bilingual)
-                    VStack(alignment: .leading, spacing: 14) {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("深度对话 · 叙事")
-                                .font(.system(size: 11, weight: .medium))
-                                .foregroundStyle(AmberTheme.labelTertiary)
-                            HStack(spacing: 8) {
-                                suggestionChip("声东击西")
-                                suggestionChip("忽左忽右")
-                                suggestionChip("跳岛 FM")
-                                suggestionChip("Huberman Lab")
-                            }
-                        }
-
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("科技 · AI · 商业")
-                                .font(.system(size: 11, weight: .medium))
-                                .foregroundStyle(AmberTheme.labelTertiary)
-                            HStack(spacing: 8) {
-                                suggestionChip("机核")
-                                suggestionChip("硅谷高徒")
-                                suggestionChip("All-In")
-                                suggestionChip("Lex Fridman")
-                            }
-                        }
-
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("商业观察 · 国际新闻")
-                                .font(.system(size: 11, weight: .medium))
-                                .foregroundStyle(AmberTheme.labelTertiary)
-                            HStack(spacing: 8) {
-                                suggestionChip("商业就是这样")
-                                suggestionChip("The Daily")
-                                suggestionChip("Hard Fork")
-                            }
-                        }
-                    }
-                }
-                .padding(.horizontal, 20)
-                .padding(.top, recentSearches.isEmpty ? 24 : 8)
-
-                Spacer(minLength: 120)
-            }
-        }
-    }
-
     // MARK: - No Results View
     private var noResultsView: some View {
         VStack(spacing: 16) {
             Spacer()
-
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 36, weight: .light))
                 .foregroundStyle(AmberTheme.labelTertiary)
@@ -379,7 +617,6 @@ public struct SearchView: View {
                 Text("未找到相关播客")
                     .font(.system(size: 16, weight: .semibold, design: .rounded))
                     .foregroundStyle(AmberTheme.labelPrimary)
-
                 Text("请尝试更换搜索关键词，或检查拼写")
                     .font(.system(size: 13))
                     .foregroundStyle(AmberTheme.labelTertiary)
@@ -395,41 +632,42 @@ public struct SearchView: View {
                     .padding(.horizontal, 14)
                     .padding(.vertical, 7)
                     .background(AmberTheme.surfaceRaised, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 6, style: .continuous)
-                            .strokeBorder(AmberTheme.borderHairline, lineWidth: 0.5)
-                    )
             }
             .padding(.top, 8)
-
             Spacer()
             Spacer()
         }
         .padding(.horizontal, 28)
     }
 
-    private func suggestionChip(_ text: String) -> some View {
-        Button {
-            query = text
-            performSearch()
-        } label: {
-            Text(text)
-                .font(.system(size: 12, weight: .medium, design: .rounded))
-                .foregroundStyle(AmberTheme.labelSecondary)
-                .padding(.horizontal, 11)
-                .padding(.vertical, 5.5)
-                .amberPlate(radius: 6)
-        }
-        .buttonStyle(TactileButtonStyle(scale: 0.96))
+    // MARK: - Actions
+    private func isItemSubscribed(_ item: PodcastFeed) -> Bool {
+        subscribedIds.contains(item.id) || (!item.feedUrl.isEmpty && subscribedFeedUrls.contains(item.feedUrl))
     }
 
-    // MARK: - Actions
     private func loadExistingSubscriptions() async {
         if let feeds = try? await AmberAPIClient.shared.listFeeds() {
             await MainActor.run {
                 self.subscribedFeeds = feeds
                 self.subscribedIds = Set(feeds.map { $0.id })
                 self.subscribedFeedUrls = Set(feeds.map { $0.feedUrl })
+            }
+        }
+    }
+
+    private func loadDiscoverFeed() async {
+        isDiscoverLoading = true
+        do {
+            let res = try await AmberAPIClient.shared.fetchDiscoverFeed()
+            await MainActor.run {
+                self.featuredShows = res.featured
+                self.topChineseShows = res.topChinese
+                self.topGlobalShows = res.topGlobal
+                self.isDiscoverLoading = false
+            }
+        } catch {
+            await MainActor.run {
+                self.isDiscoverLoading = false
             }
         }
     }

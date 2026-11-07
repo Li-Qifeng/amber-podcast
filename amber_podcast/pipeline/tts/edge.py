@@ -41,16 +41,17 @@ class EdgeTTSProvider(BaseTTSProvider):
                         "end": round(offset_sec + duration_sec, 3)
                     })
 
-        # Calculate exact audio duration using mutagen
+        # Calculate exact audio duration using mutagen or ffprobe
         duration_sec = 0.0
         try:
             mf = mutagen.File(output_path)
-            if mf and mf.info:
+            if mf is not None and getattr(mf, "info", None) is not None:
                 duration_sec = float(mf.info.length)
         except Exception:
-            # Fallback estimation from timestamps if mutagen fails
-            if word_timestamps:
-                duration_sec = word_timestamps[-1]["end"]
+            pass
+
+        if duration_sec <= 0.0 and word_timestamps:
+            duration_sec = word_timestamps[-1]["end"]
 
         return TTSResult(
             audio_path=output_path,

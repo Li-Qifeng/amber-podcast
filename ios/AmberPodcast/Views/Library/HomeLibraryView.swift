@@ -175,7 +175,7 @@ public struct HomeLibraryView: View {
                         Image(systemName: isHeroPlaying ? "pause.fill" : "play.fill")
                             .font(.system(size: 11, weight: .bold))
 
-                        Text(isHeroPlaying ? "正在播放" : "收听双轨")
+                        Text(isHeroPlaying ? "正在播放" : (heroEpisode?.status == "ready" ? "收听双轨" : "立即播放"))
                             .font(.system(size: 13, weight: .semibold, design: .rounded))
                     }
                     .foregroundStyle(Color.black)

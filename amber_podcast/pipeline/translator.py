@@ -126,38 +126,42 @@ class TranslatorEngine:
         }
 
     async def _call_llm_with_fallback(self, system_prompt: str, user_prompt: str) -> Optional[Dict[str, Any]]:
-        """Call LLM with primary (gcli / gemini-3.8-flash-low) and fallback to Groq."""
-        # 1. Try gcli (Gemini via Antigravity Manager)
-        try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                resp = await client.post(
-                    f"{GCLI_BASE_URL}/chat/completions",
-                    headers={"Authorization": f"Bearer {GCLI_API_KEY}", "Content-Type": "application/json"},
-                    json={
-                        "model": "gemini-3.8-flash-low",
-                        "messages": [
-                            {"role": "system", "content": system_prompt},
-                            {"role": "user", "content": user_prompt}
-                        ],
-                        "temperature": 0.2,
-                        "response_format": {"type": "json_object"}
-                    }
-                )
-                if resp.status_code == 200:
-                    content = resp.json()["choices"][0]["message"]["content"]
-                    return self._clean_and_parse_json(content)
-        except Exception:
-            pass
-
-        # 2. Fallback to Groq (openai/gpt-oss-120b)
+        """Call LLM with primary (Groq Qwen 3.8 27B / GPT-OSS) and fallback to local gateway."""
+        # 1. Primary: Groq Qwen 3.8 27B (fastest & best for oral Chinese podcast translation)
         if GROQ_API_KEY:
+            for model_name in ["qwen/qwen3.8-27b", "openai/gpt-oss-120b"]:
+                try:
+                    async with httpx.AsyncClient(timeout=self.timeout) as client:
+                        resp = await client.post(
+                            "https://api.groq.com/openai/v1/chat/completions",
+                            headers={"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"},
+                            json={
+                                "model": model_name,
+                                "messages": [
+                                    {"role": "system", "content": system_prompt},
+                                    {"role": "user", "content": user_prompt}
+                                ],
+                                "temperature": 0.2,
+                                "response_format": {"type": "json_object"}
+                            }
+                        )
+                        if resp.status_code == 200:
+                            content = resp.json()["choices"][0]["message"]["content"]
+                            parsed = self._clean_and_parse_json(content)
+                            if parsed:
+                                return parsed
+                except Exception:
+                    pass
+
+        # 2. Fallback: gcli (Antigravity Manager) if configured
+        if GCLI_API_KEY:
             try:
                 async with httpx.AsyncClient(timeout=self.timeout) as client:
                     resp = await client.post(
-                        "https://api.groq.com/openai/v1/chat/completions",
-                        headers={"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"},
+                        f"{GCLI_BASE_URL}/chat/completions",
+                        headers={"Authorization": f"Bearer {GCLI_API_KEY}", "Content-Type": "application/json"},
                         json={
-                            "model": "openai/gpt-oss-120b",
+                            "model": "gemini-3.8-flash-low",
                             "messages": [
                                 {"role": "system", "content": system_prompt},
                                 {"role": "user", "content": user_prompt}
@@ -168,7 +172,9 @@ class TranslatorEngine:
                     )
                     if resp.status_code == 200:
                         content = resp.json()["choices"][0]["message"]["content"]
-                        return self._clean_and_parse_json(content)
+                        parsed = self._clean_and_parse_json(content)
+                        if parsed:
+                            return parsed
             except Exception:
                 pass
 
