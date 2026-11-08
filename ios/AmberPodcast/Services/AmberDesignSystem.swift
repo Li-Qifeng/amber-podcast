@@ -36,6 +36,7 @@ public enum AmberTheme {
     // Precise Hi-Fi Accent (Used Rarely: ~2-3% of Screen Area)
     public static let primaryAmber = Color(red: 0.96, green: 0.62, blue: 0.04)         // Amber Gold #F59E0B
     public static let accentElectric = Color(red: 0.20, green: 0.78, blue: 0.35)       // Electric Green #32C759
+    public static let danger = Color(red: 0.92, green: 0.28, blue: 0.28)               // Coral Danger #EB4747
     
     // Strict 3-Role Text Hierarchy (Graphite Tinted)
     public static let labelPrimary = Color(uiColor: UIColor { traits in
@@ -104,6 +105,7 @@ public enum ForwardMotion {
     public static let touchUp   = Animation.spring(response: 0.24, dampingFraction: 0.84)
     public static let fluidSheet = Animation.spring(response: 0.34, dampingFraction: 0.80)
     public static let snapSpring = Animation.interactiveSpring(response: 0.28, dampingFraction: 0.86)
+    public static let springFast = Animation.spring(response: 0.22, dampingFraction: 0.82)
     public static let spring     = Animation.spring(response: 0.30, dampingFraction: 0.84)
     public static let mercuryTab = Animation.spring(response: 0.26, dampingFraction: 0.82)
 }

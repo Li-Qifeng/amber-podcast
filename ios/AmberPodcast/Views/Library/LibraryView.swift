@@ -299,7 +299,7 @@ public struct LibraryView: View {
         errorMessage = nil
         Task {
             do {
-                _ = try await AmberAPIClient.shared.subscribeFeed(url: newUrlInput.trimmingCharacters(in: .whitespaces), autoTranslate: newAutoTranslate)
+                _ = try await AmberAPIClient.shared.subscribe(url: newUrlInput.trimmingCharacters(in: .whitespaces), autoTranslate: newAutoTranslate)
                 await MainActor.run {
                     self.isSubscribing = false
                     self.showSubscribeSheet = false

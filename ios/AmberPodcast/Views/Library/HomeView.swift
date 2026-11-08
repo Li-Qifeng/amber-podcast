@@ -369,12 +369,32 @@ public struct HomeView: View {
 
             LazyVStack(spacing: 12) {
                 ForEach(recentEpisodes.prefix(10)) { ep in
-                    let feed = feeds.first(where: { $0.id == ep.feedId }) ?? heroFeed ?? PodcastFeed(id: ep.feedId, title: "未知播客", author: "", coverUrl: "", feedUrl: "", description: "", episodesCount: 1, lastSync: "", autoTranslate: false, sourceType: "apple_rss")
-                    EpisodeRowView(episode: ep, feed: feed)
+                    EpisodeRowView(episode: ep, feed: feedForEpisode(ep))
                 }
             }
             .padding(.horizontal, 16)
         }
+    }
+
+    private func feedForEpisode(_ episode: Episode) -> PodcastFeed {
+        if let f = feeds.first(where: { $0.id == episode.feedId }) {
+            return f
+        }
+        if let hf = heroFeed {
+            return hf
+        }
+        return PodcastFeed(
+            id: episode.feedId,
+            title: "未知播客",
+            author: "",
+            coverUrl: "",
+            feedUrl: "",
+            description: "",
+            episodesCount: 1,
+            lastSync: "",
+            autoTranslate: false,
+            sourceType: "apple_rss"
+        )
     }
 
     private func coverPlaceholder(width: CGFloat, height: CGFloat, title: String) -> some View {
@@ -396,7 +416,27 @@ public struct HomeView: View {
 
     private func playEpisode(_ episode: Episode, feed: PodcastFeed) {
         impactFeedback.impactOccurred()
-        player.play(episode: episode, feed: feed)
+        Task {
+            var artifacts: EpisodeArtifacts? = nil
+            if episode.status == "ready" {
+                artifacts = try? await AmberAPIClient.shared.fetchArtifacts(episodeId: episode.id)
+            }
+            await MainActor.run {
+                if player.currentEpisode?.id == episode.id {
+                    if !player.isPlaying {
+                        if player.fullMapping.isEmpty && episode.status == "ready" {
+                            player.loadEpisode(episode: episode, feed: feed, artifacts: artifacts, autoPlay: true)
+                        } else {
+                            player.play()
+                        }
+                    } else {
+                        player.pause()
+                    }
+                } else {
+                    player.loadEpisode(episode: episode, feed: feed, artifacts: artifacts, autoPlay: true)
+                }
+            }
+        }
     }
 
     private func loadData() async {
