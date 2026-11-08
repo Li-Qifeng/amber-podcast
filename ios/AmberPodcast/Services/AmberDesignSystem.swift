@@ -370,6 +370,31 @@ public struct TactileButtonStyle: ButtonStyle {
     }
 }
 
+// MARK: - Native Liquid Glass Navigation ButtonStyle (Matches Apple Toolbar Cancel/Action feel)
+public struct AmberCapsuleNavigationButtonStyle: ButtonStyle {
+    public var tint: Color? = nil
+    private let impact = UIImpactFeedbackGenerator(style: .light)
+
+    public init(tint: Color? = nil) {
+        self.tint = tint
+    }
+
+    public func makeBody(configuration: Configuration) -> some View {
+        let isPressed = configuration.isPressed
+        return configuration.label
+            .opacity(isPressed ? 0.45 : 1.0)
+            .scaleEffect(isPressed ? 0.94 : 1.0)
+            .liquidGlassCapsule(tint: tint, isPressed: isPressed)
+            .animation(isPressed ? ForwardMotion.touchDown : ForwardMotion.touchUp, value: isPressed)
+            .onChange(of: isPressed) { pressed in
+                if pressed {
+                    impact.prepare()
+                    impact.impactOccurred()
+                }
+            }
+    }
+}
+
 // MARK: - Native Liquid Glass ButtonStyle
 public struct LiquidGlassButtonStyle: ButtonStyle {
     public var tint: Color? = nil

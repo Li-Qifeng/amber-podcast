@@ -49,22 +49,11 @@ public struct SearchView: View {
 
     public var body: some View {
         NavigationStack {
-            ZStack {
+            ZStack(alignment: .top) {
                 AmberTheme.background.ignoresSafeArea()
 
-                VStack(spacing: 0) {
-                    // 1. Search Input Field
-                    searchBarHeader
-                        .padding(.horizontal, 20)
-                        .padding(.top, 10)
-                        .padding(.bottom, 10)
-
-                    // 2. Direct Link Banner (when URL pasted)
-                    if isUrlQuery {
-                        directUrlBanner
-                    }
-
-                    // 3. Results or Apple Podcasts Discovery Feed
+                // Main Scrollable Content Layer (underneath floating search capsule)
+                Group {
                     if isSearching {
                         VStack(spacing: 14) {
                             ProgressView()
@@ -84,6 +73,19 @@ public struct SearchView: View {
                         discoveryStreamView
                     }
                 }
+                .padding(.top, isUrlQuery ? 116 : 64)
+
+                // Floating Liquid Glass Search Bar Header (Apple Podcasts style)
+                VStack(spacing: 8) {
+                    searchBarHeader
+
+                    if isUrlQuery {
+                        directUrlBanner
+                            .transition(.move(edge: .top).combined(with: .opacity))
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 10)
             }
             .navigationTitle("发现")
             .navigationBarTitleDisplayMode(.inline)
@@ -136,8 +138,9 @@ public struct SearchView: View {
             }
         }
         .padding(.horizontal, 14)
-        .padding(.vertical, 9)
-        .amberPlate(radius: 10)
+        .padding(.vertical, 10)
+        .liquidGlassCapsule(tint: AmberTheme.primaryAmber.opacity(0.04))
+        .shadow(color: Color.black.opacity(0.18), radius: 10, y: 4)
     }
 
     // MARK: - Direct URL Banner
@@ -179,9 +182,8 @@ public struct SearchView: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 9)
-        .amberPlate(radius: 10)
-        .padding(.horizontal, 20)
-        .padding(.bottom, 8)
+        .liquidGlassCapsule(tint: AmberTheme.primaryAmber.opacity(0.06))
+        .shadow(color: Color.black.opacity(0.15), radius: 8, y: 3)
     }
 
     // MARK: - Search Results List
