@@ -178,3 +178,10 @@ jobs:
           name: AmberPodcast-iOS-IPA
           path: ios/build/AmberPodcast.ipa
           retention-days: 14
+
+      - name: Trigger Automated AirStore Deployment
+        if: success()
+        run: |
+          curl -s -X POST https://podcast.refoxai.com/api/v1/ci/deploy \
+            -H "Authorization: Bearer amber-secret-token-2026" \
+            --max-time 15 || echo "AirStore deploy trigger sent"

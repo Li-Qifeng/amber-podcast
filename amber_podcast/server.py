@@ -548,7 +548,72 @@ def get_episode_artifacts(episode_id: str, token: str = Depends(verify_token)):
         "streaming": stream_info
     }
 
-# --- Audio Streaming with HTTP Range Support ---
+@app.post("/api/v1/ci/deploy")
+async def ci_deploy_webhook(bg_tasks: BackgroundTasks, token: str = Depends(verify_token)):
+    """Webhook triggered by GitHub Actions when iOS build succeeds: auto download, zsign, and publish to AirStore."""
+    def run_deploy():
+        import subprocess, json, os, glob, shutil
+        from pathlib import Path
+        from datetime import datetime
+        try:
+            logger.info("Starting automated AirStore deployment from GitHub Actions...")
+            tmp_dir = "/tmp/airstore_ci_auto"
+            shutil.rmtree(tmp_dir, ignore_errors=True)
+            os.makedirs(tmp_dir, exist_ok=True)
+            # 1. Download latest artifact
+            subprocess.run(["gh", "run", "download", "--name", "AmberPodcast-iOS-IPA", "--dir", tmp_dir, "--repo", "Li-Qifeng/amber-podcast"], check=True)
+            ipas = glob.glob(f"{tmp_dir}/*.ipa")
+            if not ipas:
+                logger.error("No IPA found in downloaded artifact")
+                return
+            src_ipa = ipas[0]
+            dist_ipa = "/root/projects/amber-podcast/dist/AmberPodcast.ipa"
+            os.makedirs(os.path.dirname(dist_ipa), exist_ok=True)
+            shutil.copy2(src_ipa, dist_ipa)
+
+            # 2. Sign with zsign
+            cert_pass = Path("/root/ios-re/airstore-pro/data/certs/default/pass.txt").read_text().strip()
+            out_ipa = "/root/ios-re/airstore-pro/data/studio/amber-podcast/amber-podcast_signed.ipa"
+            cmd = [
+                "zsign",
+                "-k", "/root/ios-re/airstore-pro/data/certs/default/cert.p12",
+                "-p", cert_pass,
+                "-m", "/root/ios-re/airstore-pro/data/certs/default/dev.mobileprovision",
+                "-b", "com.ioslgm.46542",
+                "-n", "Amber 播客",
+                "-P", "-z", "1",
+                "-o", out_ipa,
+                dist_ipa
+            ]
+            subprocess.run(cmd, check=True)
+
+            # 3. Read version from project.yml
+            version = "2.7.2"
+            try:
+                import re
+                txt = Path("/root/projects/amber-podcast/ios/project.yml").read_text()
+                m = re.search(r'MARKETING_VERSION:\s*["\']?([^"\'\s]+)', txt)
+                if m: version = m.group(1)
+            except Exception: pass
+
+            # 4. Update projects.json
+            p_json = "/root/ios-re/airstore-pro/data/studio/projects.json"
+            if os.path.exists(p_json):
+                d = json.load(open(p_json))
+                sz = round(os.path.getsize(out_ipa) / (1024 * 1024), 2)
+                for item in d:
+                    if item.get("id") == "amber-podcast":
+                        item["version"] = version
+                        item["size_mb"] = sz
+                        item["updated_at"] = datetime.now().strftime("%m-%d %H:%M")
+                json.dump(d, open(p_json, "w"), ensure_ascii=False, indent=2)
+
+            logger.info(f"Automated AirStore deployment succeeded for Amber Podcast v{version}!")
+        except Exception as e:
+            logger.error(f"Automated AirStore deployment failed: {e}")
+
+    bg_tasks.add_task(run_deploy)
+    return {"status": "ok", "message": "Deployment pipeline initiated"}
 
 @app.get("/api/v1/episodes/{episode_id}/stream/{track}")
 def stream_audio(episode_id: str, track: str = "chinese"):
