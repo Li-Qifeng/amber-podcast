@@ -81,7 +81,6 @@ public struct HomeLibraryView: View {
             .refreshable {
                 await loadData()
             }
-            .preferredColorScheme(.dark)
         }
     }
 
@@ -497,20 +496,12 @@ public struct HomeLibraryView: View {
                         Image(systemName: "plus")
                             .font(.system(size: 13, weight: .bold))
                         Text("添加")
-                            .font(.system(size: 12.5, weight: .semibold, design: .rounded))
+                            .font(.system(size: 13, weight: .medium, design: .rounded))
                     }
                     .foregroundStyle(AmberTheme.labelPrimary)
                     .padding(.horizontal, 13)
-                    .padding(.vertical, 7.5)
-                    .background(
-                        Capsule()
-                            .fill(Color(white: 0.12).opacity(0.88))
-                            .overlay(
-                                Capsule()
-                                    .strokeBorder(Color.white.opacity(0.14), lineWidth: 0.5)
-                            )
-                            .shadow(color: Color.black.opacity(0.35), radius: 12, x: 0, y: 5)
-                    )
+                    .padding(.vertical, 7)
+                    .liquidGlassCapsule()
                 }
                 .buttonStyle(TactileButtonStyle(scale: 0.94))
             }
@@ -628,7 +619,6 @@ public struct HomeLibraryView: View {
             }
         }
         .presentationDetents([.medium])
-        .preferredColorScheme(.dark)
     }
 
     // MARK: - Helpers
@@ -814,7 +804,6 @@ public struct AllChannelsListView: View {
         }
         .navigationTitle("全部频道")
         .navigationBarTitleDisplayMode(.inline)
-        .preferredColorScheme(.dark)
     }
 
     private func channelCover(feed: PodcastFeed) -> some View {

@@ -51,10 +51,16 @@ public struct MiniPlayerView: View {
                                 .frame(width: 32, height: 32)
                                 .shadow(color: Color.black.opacity(0.25), radius: 4, y: 2)
 
-                            Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
-                                .font(.system(size: 13, weight: .bold))
-                                .foregroundStyle(Color.black)
-                                .offset(x: player.isPlaying ? 0 : 1)
+                            if player.isBuffering {
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .black))
+                                    .scaleEffect(0.7)
+                            } else {
+                                Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
+                                    .font(.system(size: 13, weight: .bold))
+                                    .foregroundStyle(Color.black)
+                                    .offset(x: player.isPlaying ? 0 : 1)
+                            }
                         }
                     }
                     .buttonStyle(TactileButtonStyle(scale: 0.94))

@@ -6,30 +6,70 @@ import UIKit
 // MARK: - ==========================================
 
 public enum AmberTheme {
-    // Canvas & Surface: OLED True Black + Graphite Neutral Ramp (Unslop Standard)
-    public static let background = Color(red: 0.0, green: 0.0, blue: 0.0)             // Deepest #000000
-    public static let surfaceDeep = Color(red: 0.05, green: 0.05, blue: 0.06)          // Surface #0d0d0f
-    public static let surfaceCard = Color(red: 0.09, green: 0.09, blue: 0.10)          // Surface #17171a
-    public static let surfaceRaised = Color(red: 0.14, green: 0.14, blue: 0.15)        // Raised #232326
+    // Canvas & Surface: Adapts smoothly to Dark and Light modes
+    public static let background = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 1.0)
+            : UIColor(red: 0.95, green: 0.95, blue: 0.97, alpha: 1.0)
+    })
+    public static let surfaceDeep = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0.05, green: 0.05, blue: 0.06, alpha: 1.0)
+            : UIColor(red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0)
+    })
+    public static let surfaceCard = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0.11, green: 0.11, blue: 0.13, alpha: 0.75)
+            : UIColor(red: 1.0, green: 1.0, blue: 1.0, alpha: 0.85)
+    })
+    public static let surfaceRaised = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0.16, green: 0.16, blue: 0.18, alpha: 0.85)
+            : UIColor(red: 1.0, green: 1.0, blue: 1.0, alpha: 0.95)
+    })
     
     // Legacy Glass Surfaces (Quiet & Translucent)
-    public static let glassSurface = Color(white: 0.12).opacity(0.50)
-    public static let glassSurfaceElevated = Color(white: 0.18).opacity(0.65)
-    public static let glassHighlight = Color.white.opacity(0.15)
+    public static let glassSurface = Color(white: 0.12).opacity(0.40)
+    public static let glassSurfaceElevated = Color(white: 0.18).opacity(0.55)
+    public static let glassHighlight = Color.white.opacity(0.18)
 
     // Precise Hi-Fi Accent (Used Rarely: ~2-3% of Screen Area)
     public static let primaryAmber = Color(red: 0.96, green: 0.62, blue: 0.04)         // Amber Gold #F59E0B
     public static let accentElectric = Color(red: 0.20, green: 0.78, blue: 0.35)       // Electric Green #32C759
     
     // Strict 3-Role Text Hierarchy (Graphite Tinted)
-    public static let labelPrimary = Color(red: 0.95, green: 0.95, blue: 0.96)         // Primary #f2f2f5
-    public static let labelSecondary = Color(red: 0.60, green: 0.60, blue: 0.64)       // Secondary #9a9aa2
-    public static let labelTertiary = Color(red: 0.45, green: 0.45, blue: 0.48)        // Muted #72727a
-    public static let labelQuaternary = Color(red: 0.28, green: 0.28, blue: 0.31)      // Faint #47474f
+    public static let labelPrimary = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0.96, green: 0.96, blue: 0.98, alpha: 1.0)
+            : UIColor(red: 0.10, green: 0.10, blue: 0.12, alpha: 1.0)
+    })
+    public static let labelSecondary = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0.62, green: 0.62, blue: 0.66, alpha: 1.0)
+            : UIColor(red: 0.40, green: 0.40, blue: 0.44, alpha: 1.0)
+    })
+    public static let labelTertiary = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0.45, green: 0.45, blue: 0.50, alpha: 1.0)
+            : UIColor(red: 0.58, green: 0.58, blue: 0.62, alpha: 1.0)
+    })
+    public static let labelQuaternary = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0.30, green: 0.30, blue: 0.34, alpha: 1.0)
+            : UIColor(red: 0.75, green: 0.75, blue: 0.80, alpha: 1.0)
+    })
 
     // Quiet Hairline Border (6% to 10% White Opacity - Never Neon)
-    public static let borderHairline = Color.white.opacity(0.08)
-    public static let borderSpecular = Color.white.opacity(0.14)
+    public static let borderHairline = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(white: 1.0, alpha: 0.10)
+            : UIColor(white: 0.0, alpha: 0.08)
+    })
+    public static let borderSpecular = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(white: 1.0, alpha: 0.24)
+            : UIColor(white: 1.0, alpha: 0.70)
+    })
 
     // Strict Nested Squircle Radius Scale (Nested Radius: Outer - Padding = Inner)
     public static let radiusControl: CGFloat = 8.0          // Controls, small buttons, tags
@@ -98,21 +138,33 @@ public struct LiquidGlassBorder: View {
         isPressed ? max(0.75, lineWidth * 1.3) : lineWidth
     }
 
+    @Environment(\.colorScheme) private var colorScheme
+
     private var rimGradient: LinearGradient {
         if isPressed {
-            let pressedColors: [Color] = [
-                Color.white.opacity(0.32),
-                Color.white.opacity(0.14),
+            let pressedColors: [Color] = colorScheme == .dark ? [
+                Color.white.opacity(0.42),
+                Color.white.opacity(0.18),
                 Color.white.opacity(0.04),
-                Color.white.opacity(0.10)
+                Color.white.opacity(0.12)
+            ] : [
+                Color.white.opacity(0.85),
+                Color.white.opacity(0.35),
+                Color.black.opacity(0.05),
+                Color.white.opacity(0.20)
             ]
             return LinearGradient(colors: pressedColors, startPoint: specularCenter, endPoint: .bottomTrailing)
         } else {
-            let normalColors: [Color] = [
-                Color.white.opacity(0.18), // Crisp top-left key incidence
-                Color.white.opacity(0.08),
+            let normalColors: [Color] = colorScheme == .dark ? [
+                Color.white.opacity(0.26), // Crisp top-left key incidence
+                Color.white.opacity(0.10),
                 Color.white.opacity(0.02), // Bottom-right shadow edge
-                Color.white.opacity(0.06)
+                Color.white.opacity(0.08)
+            ] : [
+                Color.white.opacity(0.70),
+                Color.white.opacity(0.25),
+                Color.black.opacity(0.04),
+                Color.white.opacity(0.15)
             ]
             return LinearGradient(colors: normalColors, startPoint: specularCenter, endPoint: .bottomTrailing)
         }
@@ -121,7 +173,7 @@ public struct LiquidGlassBorder: View {
     public var body: some View {
         Group {
             if isCapsule {
-                Capsule()
+                Capsule(style: .continuous)
                     .strokeBorder(rimGradient, lineWidth: activeLineWidth)
             } else {
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
@@ -131,12 +183,13 @@ public struct LiquidGlassBorder: View {
     }
 }
 
-/// Unified Graphite Surface: Ultra-Thin Material + Neutral Raised Tone (No Neon Glare)
+/// Unified Graphite Surface: Ultra-Thin Material + Translucent Tone Overlay (True Optical Refraction)
 public struct LiquidGlassBackground: View {
     public var cornerRadius: CGFloat
     public var isCapsule: Bool = false
     public var tint: Color? = nil
     public var isPressed: Bool = false
+    @Environment(\.colorScheme) private var colorScheme
 
     public init(
         cornerRadius: CGFloat = AmberTheme.radiusCardShelf,
@@ -150,26 +203,29 @@ public struct LiquidGlassBackground: View {
         self.isPressed = isPressed
     }
 
-    private var surfaceColor: Color {
+    private var translucentOverlay: Color {
         if let tint = tint {
-            return tint.opacity(isPressed ? 0.20 : 0.10)
+            return tint.opacity(isPressed ? 0.25 : 0.14)
+        }
+        if colorScheme == .dark {
+            return Color.white.opacity(isPressed ? 0.12 : 0.05)
         } else {
-            return isPressed ? AmberTheme.surfaceRaised : AmberTheme.surfaceCard
+            return Color.black.opacity(isPressed ? 0.06 : 0.02)
         }
     }
 
     public var body: some View {
         ZStack {
             if isCapsule {
-                Capsule()
+                Capsule(style: .continuous)
                     .fill(.ultraThinMaterial)
-                Capsule()
-                    .fill(surfaceColor)
+                Capsule(style: .continuous)
+                    .fill(translucentOverlay)
             } else {
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                     .fill(.ultraThinMaterial)
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .fill(surfaceColor)
+                    .fill(translucentOverlay)
             }
         }
     }
@@ -212,6 +268,7 @@ public struct LiquidGlassCapsuleModifier: ViewModifier {
     public var tint: Color? = nil
     public var isPressed: Bool = false
     public var isInteractive: Bool = false
+    @Environment(\.colorScheme) private var colorScheme
 
     @ViewBuilder
     public func body(content: Content) -> some View {
@@ -221,9 +278,9 @@ public struct LiquidGlassCapsuleModifier: ViewModifier {
                 in: Capsule()
             )
         } else {
-            let shadowColor = Color.black.opacity(isPressed ? 0.22 : 0.38)
-            let shadowRadius: CGFloat = isPressed ? 5.0 : 16.0
-            let shadowY: CGFloat = isPressed ? 2.0 : 8.0
+            let shadowColor = Color.black.opacity(colorScheme == .dark ? (isPressed ? 0.20 : 0.30) : 0.06)
+            let shadowRadius: CGFloat = isPressed ? 4.0 : 12.0
+            let shadowY: CGFloat = isPressed ? 2.0 : 6.0
 
             content
                 .background(

@@ -138,7 +138,6 @@ public struct FeedDetailView: View {
         .refreshable {
             await loadEpisodes()
         }
-        .preferredColorScheme(.dark)
     }
 
     // MARK: - Subscription Check

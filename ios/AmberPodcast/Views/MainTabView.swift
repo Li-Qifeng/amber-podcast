@@ -4,6 +4,7 @@ public struct MainTabView: View {
     @ObservedObject var player = DualTrackAudioPlayer.shared
     @State private var selectedTab: Int = 0
     @State private var showFullPlayer: Bool = false
+    @State private var isDockCollapsed: Bool = false
     @Namespace private var dockNamespace
 
 
@@ -36,27 +37,57 @@ public struct MainTabView: View {
                 contentView
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .ignoresSafeArea()
+                    .simultaneousGesture(
+                        DragGesture(minimumDistance: 15)
+                            .onChanged { gesture in
+                                if gesture.translation.height < -22 && !isDockCollapsed {
+                                    withAnimation(ForwardMotion.fluidSheet) {
+                                        isDockCollapsed = true
+                                    }
+                                } else if gesture.translation.height > 22 && isDockCollapsed {
+                                    withAnimation(ForwardMotion.fluidSheet) {
+                                        isDockCollapsed = false
+                                    }
+                                }
+                            }
+                    )
 
-                // Bottom Floating Island Stack: one shared Liquid Glass field
+                // Bottom Floating Island Stack: Apple Podcasts Style Immersive Dock & MiniPlayer
                 AmberGlassContainer(spacing: 8) {
-                    VStack(spacing: 12) {
+                    VStack(spacing: isDockCollapsed ? 0 : 12) {
                         if player.currentEpisode != nil {
                             MiniPlayerView(showFullPlayer: $showFullPlayer)
-                                .frame(width: geo.size.width * AmberTheme.dockWidthRatio)
+                                .frame(width: geo.size.width * (isDockCollapsed ? 0.94 : AmberTheme.dockWidthRatio))
                                 .amberGlassID("miniPlayer", in: dockNamespace)
                                 .transition(.move(edge: .bottom).combined(with: .opacity))
+                                .onTapGesture {
+                                    if isDockCollapsed {
+                                        withAnimation(ForwardMotion.snapSpring) {
+                                            isDockCollapsed = false
+                                        }
+                                    }
+                                    showFullPlayer = true
+                                }
                         }
 
                         floatingLiquidDock(geometry: geo)
+                            .offset(y: isDockCollapsed ? (AmberTheme.dockHeight + 80) : 0)
+                            .opacity(isDockCollapsed ? 0.0 : 1.0)
+                            .animation(ForwardMotion.fluidSheet, value: isDockCollapsed)
                     }
                 }
-                .padding(.bottom, max(geo.safeAreaInsets.bottom, 8) + 10)
+                .padding(.bottom, isDockCollapsed ? max(geo.safeAreaInsets.bottom, 12) : (max(geo.safeAreaInsets.bottom, 8) + 10))
+                .animation(ForwardMotion.fluidSheet, value: isDockCollapsed)
                 .animation(ForwardMotion.fluidSheet, value: player.currentEpisode?.id)
             }
             .ignoresSafeArea()
         }
         .ignoresSafeArea()
-        .preferredColorScheme(.dark)
+        .onChange(of: selectedTab) { _ in
+            withAnimation(ForwardMotion.snapSpring) {
+                isDockCollapsed = false
+            }
+        }
         .fullScreenCover(isPresented: $showFullPlayer) {
             FullPlayerView(isPresented: $showFullPlayer)
         }

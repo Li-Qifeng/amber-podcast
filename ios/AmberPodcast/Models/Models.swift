@@ -202,6 +202,50 @@ public struct Episode: Identifiable, Codable, Hashable {
         case gdriveFolderId = "gdrive_folder_id"
     }
 
+    public init(
+        id: String,
+        feedId: String,
+        guid: String,
+        title: String,
+        audioUrl: String,
+        duration: Int,
+        pubDate: String,
+        shownotes: String,
+        status: String = "ready",
+        progress: Int = 0,
+        errorMessage: String? = nil,
+        gdriveFolderId: String? = nil
+    ) {
+        self.id = id
+        self.feedId = feedId
+        self.guid = guid
+        self.title = title
+        self.audioUrl = audioUrl
+        self.duration = duration
+        self.pubDate = pubDate
+        self.shownotes = shownotes
+        self.status = status
+        self.progress = progress
+        self.errorMessage = errorMessage
+        self.gdriveFolderId = gdriveFolderId
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.id = try container.decode(String.self, forKey: .id)
+        self.feedId = try container.decodeIfPresent(String.self, forKey: .feedId) ?? ""
+        self.guid = try container.decodeIfPresent(String.self, forKey: .guid) ?? id
+        self.title = try container.decodeIfPresent(String.self, forKey: .title) ?? "未知单集"
+        self.audioUrl = try container.decodeIfPresent(String.self, forKey: .audioUrl) ?? ""
+        self.duration = try container.decodeIfPresent(Int.self, forKey: .duration) ?? 0
+        self.pubDate = try container.decodeIfPresent(String.self, forKey: .pubDate) ?? ""
+        self.shownotes = try container.decodeIfPresent(String.self, forKey: .shownotes) ?? ""
+        self.status = try container.decodeIfPresent(String.self, forKey: .status) ?? "ready"
+        self.progress = try container.decodeIfPresent(Int.self, forKey: .progress) ?? 0
+        self.errorMessage = try container.decodeIfPresent(String.self, forKey: .errorMessage)
+        self.gdriveFolderId = try container.decodeIfPresent(String.self, forKey: .gdriveFolderId)
+    }
+
     public var isReady: Bool {
         status == "ready"
     }

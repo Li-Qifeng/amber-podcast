@@ -185,7 +185,11 @@ class ApplePodcastAggregator:
                 "audio_url": audio_url,
                 "duration": duration_sec,
                 "pub_date": pub_date,
-                "shownotes": shownotes
+                "shownotes": shownotes,
+                "status": "ready",
+                "progress": 0,
+                "error_message": None,
+                "gdrive_folder_id": None
             })
 
         return {

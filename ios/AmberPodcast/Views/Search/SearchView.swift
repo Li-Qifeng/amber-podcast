@@ -103,7 +103,6 @@ public struct SearchView: View {
             } message: {
                 Text(errorMessage ?? "操作完成")
             }
-            .preferredColorScheme(.dark)
         }
     }
 

@@ -4,7 +4,7 @@ public struct SettingsView: View {
     /// Version shown in About comes from the bundle, not a hardcoded string.
     static var appVersionText: String {
         let info = Bundle.main.infoDictionary
-        let short = info?["CFBundleShortVersionString"] as? String ?? "2.7.3"
+        let short = info?["CFBundleShortVersionString"] as? String ?? "2.7.4"
         let build = info?["CFBundleVersion"] as? String ?? "1"
         return "\(short) (build \(build))"
     }
@@ -31,6 +31,7 @@ public struct SettingsView: View {
     @AppStorage("amber_auto_play_next") private var autoPlayNext: Bool = true
     @AppStorage("amber_forward_interval") private var forwardInterval: Int = 30
     @AppStorage("amber_backward_interval") private var backwardInterval: Int = 15
+    @AppStorage("amber_appearance_mode") private var appearanceMode: String = "system"
 
     private var preferredTrackMode: Binding<TrackMode> {
         Binding(
@@ -62,10 +63,13 @@ public struct SettingsView: View {
                         // Section 3: Acoustic Playback Engine
                         acousticEngineSection
 
-                        // Section 4: Storage & Cache Governance
+                        // Section 4: Appearance & Liquid Glass
+                        appearanceSection
+
+                        // Section 5: Storage & Cache Governance
                         storageSection
 
-                        // Section 5: About & System Info
+                        // Section 6: About & System Info
                         aboutSection
                     }
                     .padding(.horizontal, 20)
@@ -112,7 +116,6 @@ public struct SettingsView: View {
             } message: {
                 Text("本地临时网络与媒体缓存已全部释放，重新进入页面时将自动拉取最新数据。")
             }
-            .preferredColorScheme(.dark)
         }
     }
 
@@ -319,7 +322,37 @@ public struct SettingsView: View {
         }
     }
 
-    // MARK: - Section 4: Storage & Cache Governance
+    // MARK: - Section 4: Appearance & Liquid Glass
+    private var appearanceSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            sectionHeader("外观与主题风格")
+
+            VStack(spacing: 12) {
+                HStack {
+                    Text("界面外观")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(AmberTheme.labelPrimary)
+                    Spacer()
+                    Picker("外观模式", selection: $appearanceMode) {
+                        Text("跟随系统").tag("system")
+                        Text("深色").tag("dark")
+                        Text("浅色").tag("light")
+                    }
+                    .pickerStyle(.segmented)
+                    .frame(width: 210)
+                }
+
+                Text("支持 Apple 官方播客全套色彩与材质自适应：深色模式深邃静谧，浅色模式羊脂玉通透磨砂，全局控件无缝自平衡。")
+                    .font(.system(size: 11.5))
+                    .foregroundStyle(AmberTheme.labelTertiary)
+                    .lineSpacing(3)
+            }
+            .padding(16)
+            .amberPlate(radius: AmberTheme.radiusCardRow)
+        }
+    }
+
+    // MARK: - Section 5: Storage & Cache Governance
     private var storageSection: some View {
         VStack(alignment: .leading, spacing: 10) {
             sectionHeader("存储空间与离线管理")

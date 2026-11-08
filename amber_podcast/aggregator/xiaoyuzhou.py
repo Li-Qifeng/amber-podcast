@@ -138,7 +138,11 @@ class XiaoyuzhouAggregator:
                     "audio_url": audio_url,
                     "duration": ep.get("duration", 0),
                     "pub_date": ep.get("pubDate", ""),
-                    "shownotes": ep.get("shownotes") or ep.get("description") or ""
+                    "shownotes": ep.get("shownotes") or ep.get("description") or "",
+                    "status": "ready",
+                    "progress": 0,
+                    "error_message": None,
+                    "gdrive_folder_id": None
                 })
 
         return {

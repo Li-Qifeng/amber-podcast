@@ -25,10 +25,20 @@ struct AmberPodcastApp: App {
         UITabBar.appearance().scrollEdgeAppearance = tabBarAppearance
     }
 
+    @AppStorage("amber_appearance_mode") private var appearanceMode: String = "system"
+
+    private var activeColorScheme: ColorScheme? {
+        switch appearanceMode {
+        case "dark": return .dark
+        case "light": return .light
+        default: return nil // Follow iOS System Appearance
+        }
+    }
+
     var body: some Scene {
         WindowGroup {
             MainTabView()
-                .preferredColorScheme(.dark) // Sleek Apple dark aesthetic by default
+                .preferredColorScheme(activeColorScheme)
                 .onAppear {
                     #if DEBUG
                     if ProcessInfo.processInfo.arguments.contains("-amberDemoPlaying") {

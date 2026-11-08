@@ -86,7 +86,6 @@ public struct FullPlayerView: View {
         } message: {
             Text("当前单集尚未生成 AI 双轨配音与对齐字幕。已为您切换至「字幕」面板，可一键发起极速转译。")
         }
-        .preferredColorScheme(.dark)
     }
 
     // MARK: - OLED Ambient Glow Background
@@ -387,7 +386,7 @@ public struct FullPlayerView: View {
                 }
                 .buttonStyle(TactileButtonStyle(scale: 0.94))
 
-                // Play / Pause Button
+                // Play / Pause Button with Buffering Indicator
                 Button {
                     player.togglePlayPause()
                     impactFeedback.impactOccurred()
@@ -398,10 +397,16 @@ public struct FullPlayerView: View {
                             .frame(width: 70, height: 70)
                             .shadow(color: Color.black.opacity(0.35), radius: 8, y: 4)
 
-                        Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
-                            .font(.system(size: 28, weight: .bold))
-                            .foregroundStyle(Color.black)
-                            .offset(x: player.isPlaying ? 0 : 2)
+                        if player.isBuffering {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .black))
+                                .scaleEffect(1.2)
+                        } else {
+                            Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
+                                .font(.system(size: 28, weight: .bold))
+                                .foregroundStyle(Color.black)
+                                .offset(x: player.isPlaying ? 0 : 2)
+                        }
                     }
                 }
                 .buttonStyle(TactileButtonStyle(scale: 0.94))
@@ -423,27 +428,69 @@ public struct FullPlayerView: View {
     // MARK: - Bottom Utility Bar
     private var bottomUtilityBar: some View {
         HStack {
-            // Playback Speed Button
-            Button {
-                showSpeedSheet = true
-                impactFeedback.impactOccurred()
-            } label: {
-                Text(String(format: "%.1fx", player.playbackRate))
-                    .font(.system(size: 12, weight: .bold, design: .monospaced))
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
-                    .liquidGlassCapsule()
-                    .foregroundStyle(AmberTheme.labelPrimary)
-            }
-            .tactilePress()
+            // Apple Podcasts Style Speed Button
+            speedButton
 
             Spacer()
 
-            // Real route picker: the previous SF Symbol was decoration only and
-            // did nothing on tap.
+            // Real route picker
             AirPlayRoutePicker()
                 .frame(width: 26, height: 26)
         }
+    }
+
+    // MARK: - Apple Podcasts Style Speed Button
+    private var speedButton: some View {
+        Menu {
+            ForEach([0.75, 1.0, 1.25, 1.5, 1.75, 2.0], id: \.self) { rate in
+                Button {
+                    player.setPlaybackRate(Float(rate))
+                    impactFeedback.impactOccurred()
+                } label: {
+                    HStack {
+                        Text(formatSpeedText(rate))
+                        if abs(player.playbackRate - Float(rate)) < 0.01 {
+                            Image(systemName: "checkmark")
+                        }
+                    }
+                }
+            }
+        } label: {
+            HStack(spacing: 2) {
+                Text(formatSpeedText(Double(player.playbackRate)))
+                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .contentTransition(.numericText())
+            }
+            .foregroundStyle(AmberTheme.labelPrimary)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .liquidGlassCapsule()
+        } primaryAction: {
+            cycleNextSpeed()
+        }
+        .buttonStyle(TactileButtonStyle(scale: 0.92))
+    }
+
+    private func formatSpeedText(_ rate: Double) -> String {
+        if rate == floor(rate) {
+            return String(format: "%.0f×", rate)
+        } else if (rate * 10).truncatingRemainder(dividingBy: 1) == 0 {
+            return String(format: "%.1f×", rate)
+        } else {
+            return String(format: "%.2f×", rate)
+        }
+    }
+
+    private func cycleNextSpeed() {
+        let speeds: [Float] = [1.0, 1.25, 1.5, 1.75, 2.0, 0.75]
+        let current = player.playbackRate
+        if let idx = speeds.firstIndex(where: { abs($0 - current) < 0.05 }) {
+            let nextIdx = (idx + 1) % speeds.count
+            player.setPlaybackRate(speeds[nextIdx])
+        } else {
+            player.setPlaybackRate(1.0)
+        }
+        impactFeedback.impactOccurred()
     }
 
     // MARK: - Speed Selection Sheet
@@ -476,7 +523,6 @@ public struct FullPlayerView: View {
             .navigationBarTitleDisplayMode(.inline)
         }
         .presentationDetents([.medium])
-        .preferredColorScheme(.dark)
     }
 
     // MARK: - Formatting Helpers

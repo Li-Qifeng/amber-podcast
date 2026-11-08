@@ -13,6 +13,7 @@ public final class DualTrackAudioPlayer: ObservableObject {
     @Published public var currentEpisode: Episode?
     @Published public var currentFeed: PodcastFeed?
     @Published public var isPlaying: Bool = false
+    @Published public var isBuffering: Bool = false
     @Published public var currentTime: Double = 0.0          // In current track's timeline (seconds)
     @Published public var duration: Double = 0.0             // Duration of current track (seconds)
     @Published public var trackMode: TrackMode = TrackMode(
@@ -38,6 +39,8 @@ public final class DualTrackAudioPlayer: ObservableObject {
     private var chinesePlayer: AVPlayer?
     private var originalTimeObserverToken: Any?
     private var chineseTimeObserverToken: Any?
+    private var originalStatusObserver: NSKeyValueObservation?
+    private var chineseStatusObserver: NSKeyValueObservation?
     private var isAlternatingPlayingEn: Bool = true
     private var isSeekingOptimisticLock: Bool = false
     private var hapticFeedback = UIImpactFeedbackGenerator(style: .light)
@@ -125,6 +128,7 @@ public final class DualTrackAudioPlayer: ObservableObject {
         restoreProgress(episodeId: episode.id)
 
         if autoPlay {
+            self.isBuffering = true
             play()
         }
 
@@ -147,6 +151,9 @@ public final class DualTrackAudioPlayer: ObservableObject {
     public func play() {
         try? AVAudioSession.sharedInstance().setActive(true)
         guard let player = activePlayer else { return }
+        if player.timeControlStatus != .playing {
+            isBuffering = true
+        }
         player.play()
         player.rate = playbackRate
         isPlaying = true
@@ -159,6 +166,7 @@ public final class DualTrackAudioPlayer: ObservableObject {
         originalPlayer?.pause()
         chinesePlayer?.pause()
         isPlaying = false
+        isBuffering = false
         hapticFeedback.impactOccurred()
         updateNowPlayingInfo()
         stopProgressSync()
@@ -339,6 +347,16 @@ public final class DualTrackAudioPlayer: ObservableObject {
             guard shouldProcess else { return }
             self.handlePeriodicTimeTick(time: time, isFromEnglish: false)
         }
+
+        // 3. Status observers to detect network stream buffering
+        originalStatusObserver = originalPlayer?.observe(\.timeControlStatus, options: [.initial, .new]) { [weak self] player, _ in
+            guard let self = self, self.trackMode == .original || (self.trackMode == .alternating && self.isAlternatingPlayingEn) else { return }
+            self.updateBufferingState(for: player)
+        }
+        chineseStatusObserver = chinesePlayer?.observe(\.timeControlStatus, options: [.initial, .new]) { [weak self] player, _ in
+            guard let self = self, self.trackMode == .chinese || (self.trackMode == .alternating && !self.isAlternatingPlayingEn) else { return }
+            self.updateBufferingState(for: player)
+        }
     }
 
     private func handlePeriodicTimeTick(time: CMTime, isFromEnglish: Bool) {
@@ -379,6 +397,16 @@ public final class DualTrackAudioPlayer: ObservableObject {
         }
     }
 
+    private func updateBufferingState(for player: AVPlayer) {
+        Task { @MainActor in
+            if player.timeControlStatus == .waitingToPlayAtSpecifiedRate && self.isPlaying {
+                self.isBuffering = true
+            } else if player.timeControlStatus == .playing {
+                self.isBuffering = false
+            }
+        }
+    }
+
     private func removeTimeObserver() {
         if let token = originalTimeObserverToken {
             originalPlayer?.removeTimeObserver(token)
@@ -388,6 +416,10 @@ public final class DualTrackAudioPlayer: ObservableObject {
             chinesePlayer?.removeTimeObserver(token)
             chineseTimeObserverToken = nil
         }
+        originalStatusObserver?.invalidate()
+        originalStatusObserver = nil
+        chineseStatusObserver?.invalidate()
+        chineseStatusObserver = nil
     }
 
     // MARK: - Lock Screen & Control Center
