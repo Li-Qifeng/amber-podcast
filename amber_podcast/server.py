@@ -458,6 +458,14 @@ async def list_feed_episodes(
     if not target_url and feed_id in _ephemeral_feed_cache:
         target_url = _ephemeral_feed_cache[feed_id].get("feed_url")
 
+    if not target_url and feed_id.isdigit():
+        try:
+            looked_up = await apple_agg.lookup_podcasts_batch([feed_id])
+            if looked_up and looked_up[0].get("feed_url"):
+                target_url = looked_up[0]["feed_url"]
+        except Exception as e:
+            logger.warning(f"Auto-lookup failed for feed_id {feed_id}: {e}")
+
     if target_url:
         try:
             if target_url in _ephemeral_feed_cache and "parsed" in _ephemeral_feed_cache[target_url]:

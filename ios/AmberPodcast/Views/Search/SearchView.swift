@@ -354,6 +354,7 @@ public struct SearchView: View {
         .padding(14)
         .frame(width: 290, alignment: .leading)
         .amberPlate(radius: 16)
+        .contentShape(Rectangle())
     }
 
     // MARK: - Section 2: Search History
@@ -496,6 +497,7 @@ public struct SearchView: View {
                 .lineLimit(1)
         }
         .frame(width: 120)
+        .contentShape(Rectangle())
     }
 
     // MARK: - Section 5: Category Topic Chips
@@ -616,6 +618,7 @@ public struct SearchView: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
         .amberPlate(radius: 12)
+        .contentShape(Rectangle())
     }
 
     // MARK: - No Results View

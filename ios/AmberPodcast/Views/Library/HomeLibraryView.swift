@@ -493,18 +493,26 @@ public struct HomeLibraryView: View {
                     impactFeedback.impactOccurred()
                     showSubscribeSheet = true
                 } label: {
-                    ZStack {
-                        Circle()
-                            .fill(Color.white.opacity(0.08))
-                            .overlay(Circle().strokeBorder(Color.white.opacity(0.14), lineWidth: 0.5))
-                            .frame(width: 38, height: 38)
-
+                    HStack(spacing: 5) {
                         Image(systemName: "plus")
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundStyle(AmberTheme.labelPrimary)
+                            .font(.system(size: 13, weight: .bold))
+                        Text("添加")
+                            .font(.system(size: 12.5, weight: .semibold, design: .rounded))
                     }
+                    .foregroundStyle(AmberTheme.labelPrimary)
+                    .padding(.horizontal, 13)
+                    .padding(.vertical, 7.5)
+                    .background(
+                        Capsule()
+                            .fill(Color(white: 0.12).opacity(0.88))
+                            .overlay(
+                                Capsule()
+                                    .strokeBorder(Color.white.opacity(0.14), lineWidth: 0.5)
+                            )
+                            .shadow(color: Color.black.opacity(0.35), radius: 12, x: 0, y: 5)
+                    )
                 }
-                .buttonStyle(TactileButtonStyle(scale: 0.92))
+                .buttonStyle(TactileButtonStyle(scale: 0.94))
             }
             .padding(.horizontal, AmberTheme.pageMargin)
             .padding(.top, topSafeOffset)
