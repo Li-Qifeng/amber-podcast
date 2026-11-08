@@ -517,68 +517,7 @@ async def run_pipeline_task(episode_id: str):
             with open(audio_path, "wb") as f:
                 f.write(resp.content)
 
-        # Step 2: Check language & execute pipeline
-        is_chinese = any('\u4e00' <= c <= '\u9fff' for c in ep.get("title", "")) or ep.get("feed_id", "").startswith("xyz_")
-        if is_chinese:
-            logger.info(f"Episode {episode_id} is native Chinese podcast. Executing subtitle extraction & AI notes.")
-            # Step 2: ASR Transcription for Chinese Subtitles
-            db.update_episode_status(episode_id, status="transcribing", progress=30)
-            asr_engine = ASREngine()
-            asr_segments = await asr_engine.transcribe_audio_file(audio_path)
-
-            # Step 3: Extract AI Chapters and Smart Notes
-            db.update_episode_status(episode_id, status="translating", progress=65)
-            translator = TranslatorEngine()
-            chapters_notes = await translator.generate_chapters_and_notes(asr_segments)
-
-            # Step 4: Build direct 1:1 alignment mappings for native Chinese audio
-            timing_sync = []
-            full_mapping = []
-            for idx, seg in enumerate(asr_segments):
-                speaker = getattr(seg, "speaker", "Speaker") or "Speaker"
-                start = getattr(seg, "start", 0.0)
-                end = getattr(seg, "end", 0.0)
-                text = getattr(seg, "text", "")
-                t_seg = {
-                    "id": idx,
-                    "speaker": speaker,
-                    "en": {"start": start, "end": end},
-                    "zh": {"start": start, "end": end}
-                }
-                timing_sync.append(t_seg)
-                m_seg = {
-                    "index": idx,
-                    "speaker": speaker,
-                    "enText": text,
-                    "zhDisplay": text,
-                    "zhSpoken": text,
-                    "enRange": {"start": start, "end": end},
-                    "zhRange": {"start": start, "end": end}
-                }
-                full_mapping.append(m_seg)
-
-            timing_path = str(work_dir / "timing_sync.json")
-            mapping_path = str(work_dir / "full_mapping.json")
-            import json
-            with open(timing_path, "w", encoding="utf-8") as f:
-                json.dump(timing_sync, f, ensure_ascii=False, indent=2)
-            with open(mapping_path, "w", encoding="utf-8") as f:
-                json.dump(full_mapping, f, ensure_ascii=False, indent=2)
-
-            # Step 5: Archive
-            db.update_episode_status(episode_id, status="synthesizing", progress=90)
-            archiver.archive_episode_bundle(
-                episode_id=episode_id,
-                chinese_audio_path=audio_path,
-                timing_sync_path=timing_path,
-                full_mapping_path=mapping_path,
-                chapters=chapters_notes.get("chapters"),
-                article_markdown=chapters_notes.get("article_markdown")
-            )
-            db.update_episode_status(episode_id, status="ready", progress=100)
-            return
-
-        # Step 2: ASR Transcription (Foreign Audio)
+        # Step 2: ASR Transcription
         db.update_episode_status(episode_id, status="transcribing", progress=25)
         asr_engine = ASREngine()
         asr_segments = await asr_engine.transcribe_audio_file(audio_path)
@@ -617,69 +556,12 @@ async def run_pipeline_task(episode_id: str):
 async def trigger_translation(
     episode_id: str,
     bg_tasks: BackgroundTasks,
-    payload: Optional[Dict[str, Any]] = None,
     token: str = Depends(verify_token)
 ):
-    """Trigger background dual-track AI translation / Chinese subtitle alignment for an episode."""
+    """Trigger background dual-track AI translation for an episode."""
     ep = db.get_episode(episode_id)
-    if not ep and payload and "episode" in payload:
-        ep_dict = payload["episode"]
-        feed_dict = payload.get("feed")
-        fid = ep_dict.get("feed_id") or ep_dict.get("feedId") or (episode_id.split("_")[0] if "_" in episode_id else "unknown_feed")
-        # Ensure feed exists
-        if not db.get_feed(fid):
-            feed_meta = feed_dict or {}
-            title = feed_meta.get("title") or "未知播客"
-            author = feed_meta.get("author") or ""
-            cover = feed_meta.get("cover_url") or feed_meta.get("coverUrl") or ""
-            furl = feed_meta.get("feed_url") or feed_meta.get("feedUrl") or ""
-            db.upsert_feed(
-                feed_id=fid,
-                source_type="apple_rss",
-                title=title,
-                author=author,
-                feed_url=furl,
-                cover_url=cover,
-                description=""
-            )
-        db.upsert_episode(
-            episode_id=episode_id,
-            feed_id=fid,
-            guid=ep_dict.get("guid") or episode_id,
-            title=ep_dict.get("title") or "单集",
-            audio_url=ep_dict.get("audio_url") or ep_dict.get("audioUrl") or "",
-            duration=ep_dict.get("duration") or 0,
-            pub_date=ep_dict.get("pub_date") or ep_dict.get("pubDate") or "",
-            shownotes=ep_dict.get("shownotes") or ""
-        )
-        ep = db.get_episode(episode_id)
-
     if not ep:
-        # Fallback: attempt to find feed_id from episode_id prefix
-        if "_" in episode_id:
-            fid = episode_id.split("_")[0]
-            # Try to resolve feed and episodes
-            try:
-                eps_data = await list_feed_episodes(feed_id=fid)
-                for item in eps_data.get("episodes", []):
-                    if item.get("id") == episode_id:
-                        db.upsert_episode(
-                            episode_id=episode_id,
-                            feed_id=fid,
-                            guid=item.get("guid") or episode_id,
-                            title=item.get("title") or "单集",
-                            audio_url=item.get("audio_url") or "",
-                            duration=item.get("duration") or 0,
-                            pub_date=item.get("pub_date") or "",
-                            shownotes=item.get("shownotes") or ""
-                        )
-                        ep = db.get_episode(episode_id)
-                        break
-            except Exception as ex:
-                logger.warning(f"Failed to auto-ingest episode {episode_id}: {ex}")
-
-    if not ep:
-        raise HTTPException(status_code=404, detail="Episode not found and could not be auto-resolved")
+        raise HTTPException(status_code=404, detail="Episode not found")
 
     if ep["status"] in ["transcribing", "translating", "synthesizing"]:
         return {"status": ep["status"], "progress": ep["progress"], "message": "Translation already in progress"}

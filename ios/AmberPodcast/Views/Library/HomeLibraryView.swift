@@ -489,6 +489,7 @@ public struct HomeLibraryView: View {
                 Spacer()
 
                 Button {
+                    impactFeedback.impactOccurred()
                     showSubscribeSheet = true
                 } label: {
                     HStack(spacing: 5) {
@@ -500,8 +501,9 @@ public struct HomeLibraryView: View {
                     .foregroundStyle(AmberTheme.labelPrimary)
                     .padding(.horizontal, 13)
                     .padding(.vertical, 7)
+                    .liquidGlassCapsule()
                 }
-                .buttonStyle(AmberCapsuleNavigationButtonStyle())
+                .buttonStyle(TactileButtonStyle(scale: 0.94))
             }
             .padding(.horizontal, AmberTheme.pageMargin)
             .padding(.top, topSafeOffset)

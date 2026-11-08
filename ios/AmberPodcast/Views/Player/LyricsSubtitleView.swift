@@ -140,7 +140,50 @@ public struct LyricsSubtitleView: View {
                 .padding(.horizontal, 24)
 
             } else {
-                notReadyActionCard
+                // Actionable Call to Action Card
+                VStack(spacing: 16) {
+                    Image(systemName: "sparkles.tv")
+                        .font(.system(size: 34, weight: .light))
+                        .foregroundStyle(AmberTheme.primaryAmber)
+
+                    VStack(spacing: 6) {
+                        Text("尚未生成 AI 双轨配音与字幕")
+                            .font(.system(size: 15.5, weight: .semibold, design: .rounded))
+                            .foregroundStyle(AmberTheme.labelPrimary)
+
+                        Text("极速 ASR 逐句打轴 · 通义千问口播台本译制 · 多角色拟真语音合成")
+                            .font(.system(size: 12))
+                            .foregroundStyle(AmberTheme.labelTertiary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 20)
+                    }
+
+                    Button {
+                        startTranslation()
+                    } label: {
+                        HStack(spacing: 6) {
+                            if isTriggering {
+                                ProgressView()
+                                    .scaleEffect(0.7)
+                            } else {
+                                Image(systemName: "waveform.badge.plus")
+                                    .font(.system(size: 12, weight: .bold))
+                            }
+                            Text("一键生成双轨配音与逐句字幕")
+                                .font(.system(size: 13, weight: .medium, design: .rounded))
+                        }
+                        .foregroundStyle(Color.black)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8.5)
+                        .background(Color.white, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    }
+                    .buttonStyle(TactileButtonStyle(scale: 0.96))
+                    .disabled(isTriggering || player.currentEpisode == nil)
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 24)
+                .amberPlate(radius: 14)
+                .padding(.horizontal, 24)
             }
 
             Spacer()
@@ -148,78 +191,20 @@ public struct LyricsSubtitleView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    private var notReadyActionCard: some View {
-        let isChineseEp = isChineseContent(player.currentEpisode?.title ?? "")
-        let btnText = isChineseEp ? "一键提取中文字幕与智能章节" : "一键生成双轨配音与逐句字幕"
-
-        return VStack(spacing: 16) {
-            Image(systemName: isChineseEp ? "waveform.badge.magnifyingglass" : "sparkles.tv")
-                .font(.system(size: 34, weight: .light))
-                .foregroundStyle(AmberTheme.primaryAmber)
-
-            VStack(spacing: 6) {
-                Text(isChineseEp ? "尚未提取中文字幕与智能笔记" : "尚未生成 AI 双轨配音与字幕")
-                    .font(.system(size: 15.5, weight: .semibold, design: .rounded))
-                    .foregroundStyle(AmberTheme.labelPrimary)
-
-                Text(isChineseEp ? "极速 ASR 中文打轴 · 原生母语高保真 · 通义千问提炼章节摘要" : "极速 ASR 逐句打轴 · 通义千问口播台本译制 · 多角色拟真语音合成")
-                    .font(.system(size: 12))
-                    .foregroundStyle(AmberTheme.labelTertiary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 20)
-            }
-
-            Button {
-                startTranslation()
-            } label: {
-                HStack(spacing: 6) {
-                    if isTriggering {
-                        ProgressView()
-                            .scaleEffect(0.7)
-                    } else {
-                        Image(systemName: isChineseEp ? "quote.bubble.fill" : "waveform.badge.plus")
-                            .font(.system(size: 12, weight: .bold))
-                    }
-                    Text(btnText)
-                        .font(.system(size: 13, weight: .medium, design: .rounded))
-                }
-                .foregroundStyle(Color.black)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8.5)
-                .background(Color.white, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-            }
-            .buttonStyle(TactileButtonStyle(scale: 0.96))
-            .disabled(isTriggering || player.currentEpisode == nil)
-        }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 24)
-        .amberPlate(radius: 14)
-        .padding(.horizontal, 24)
-    }
-
-    private func isChineseContent(_ text: String) -> Bool {
-        for scalar in text.unicodeScalars {
-            if scalar.value >= 0x4e00 && scalar.value <= 0x9fff {
-                return true
-            }
-        }
-        return false
-    }
-
     private func statusTitle(_ s: String) -> String {
-        let isChinese = isChineseContent(player.currentEpisode?.title ?? "")
         switch s {
         case "transcribing":
-            return isChinese ? "正在极速提取中文字幕打轴 (30%)..." : "正在极速 ASR 识别打轴 (25%)..."
+            return "正在极速 ASR 识别打轴 (25%)..."
         case "translating":
-            return isChinese ? "正在提炼智能章节与核心总结 (65%)..." : "通义千问正在口播译制与提炼章节 (50%)..."
+            return "通义千问正在口播译制与提炼章节 (50%)..."
         case "synthesizing":
-            return isChinese ? "正在归档并就绪逐句字幕 (90%)..." : "正在多角色拟真语音合成与对齐 (75%)..."
+            return "正在多角色拟真语音合成与对齐 (75%)..."
         default:
-            return "已提交流水线，正在排队启动..."
+            return "已提交转译流水线，正在排队启动..."
         }
     }
 
+    // MARK: - Actions
     private func syncStatusFromCurrentEpisode() {
         guard let ep = player.currentEpisode else { return }
         self.pollingStatus = ep.status
@@ -236,7 +221,7 @@ public struct LyricsSubtitleView: View {
 
         Task {
             do {
-                try await AmberAPIClient.shared.triggerTranslation(episode: ep, feed: player.currentFeed)
+                try await AmberAPIClient.shared.triggerTranslation(episodeId: ep.id)
                 await MainActor.run {
                     self.isTriggering = false
                     self.pollingStatus = "pending"

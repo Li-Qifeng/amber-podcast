@@ -3,9 +3,7 @@ import SwiftUI
 public struct FeedDetailView: View {
     public let feed: PodcastFeed
     @State private var episodes: [Episode] = []
-    @State private var isLoading = false
-    @State private var newEpisodesBannerCount = 0
-    @State private var showNewBanner = false
+    @State private var isLoading: Bool = true
     @State private var autoTranslate: Bool
     @State private var showDeleteConfirm: Bool = false
     @State private var isDeleting: Bool = false
@@ -34,7 +32,7 @@ public struct FeedDetailView: View {
                             .font(.system(size: 20, weight: .bold, design: .rounded))
                             .foregroundStyle(AmberTheme.labelPrimary)
 
-                        if isLoading && episodes.isEmpty {
+                        if isLoading {
                             ProgressView()
                                 .scaleEffect(0.7)
                                 .padding(.leading, 6)
@@ -48,43 +46,8 @@ public struct FeedDetailView: View {
                         }
 
                         Spacer()
-
-                        if isLoading && !episodes.isEmpty {
-                            HStack(spacing: 5) {
-                                ProgressView()
-                                    .scaleEffect(0.6)
-                                Text("同步更新中...")
-                                    .font(.system(size: 11))
-                                    .foregroundStyle(AmberTheme.labelTertiary)
-                            }
-                            .transition(.opacity)
-                        }
                     }
                     .padding(.horizontal, 20)
-
-                    // 2.5 Animated New Episodes Banner
-                    if showNewBanner {
-                        HStack(spacing: 8) {
-                            Image(systemName: "sparkles")
-                                .font(.system(size: 13, weight: .semibold))
-                                .foregroundStyle(AmberTheme.primaryAmber)
-                            Text("已发现 \(newEpisodesBannerCount) 条最新单集")
-                                .font(.system(size: 13, weight: .medium, design: .rounded))
-                                .foregroundStyle(AmberTheme.labelPrimary)
-                            Spacer()
-                            Image(systemName: "chevron.up")
-                                .font(.system(size: 11, weight: .bold))
-                                .foregroundStyle(AmberTheme.labelTertiary)
-                        }
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 8)
-                        .liquidGlassCapsule(tint: AmberTheme.primaryAmber.opacity(0.12))
-                        .padding(.horizontal, 16)
-                        .transition(.asymmetric(
-                            insertion: .move(edge: .top).combined(with: .opacity),
-                            removal: .opacity
-                        ))
-                    }
 
                     // 3. Episode Cards Stack or Empty State
                     if episodes.isEmpty && !isLoading {
@@ -302,42 +265,12 @@ public struct FeedDetailView: View {
     }
 
     private func loadEpisodes() async {
-        // 1. Immediately read from cache if available
-        if let cached = FeedEpisodesCache.shared.getCachedEpisodes(feedId: feed.id), !cached.isEmpty {
-            await MainActor.run {
-                if self.episodes.isEmpty {
-                    self.episodes = cached
-                }
-            }
-        } else {
-            isLoading = true
-        }
-
-        // 2. Fetch fresh from network in background
+        isLoading = true
         do {
             let fetched = try await AmberAPIClient.shared.listEpisodes(feedId: feed.id, feedUrl: feed.feedUrl)
             await MainActor.run {
-                let oldIds = Set(self.episodes.map { $0.id })
-                let newItems = fetched.filter { !oldIds.contains($0.id) }
-
-                if !newItems.isEmpty && !self.episodes.isEmpty {
-                    // There are new episodes! Animate them into the top of the list
-                    withAnimation(ForwardMotion.springFast) {
-                        self.episodes = fetched
-                        self.newEpisodesBannerCount = newItems.count
-                        self.showNewBanner = true
-                    }
-                    // Auto-hide banner after 4 seconds
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) {
-                        withAnimation(ForwardMotion.touchUp) {
-                            self.showNewBanner = false
-                        }
-                    }
-                } else {
-                    self.episodes = fetched
-                }
+                self.episodes = fetched
                 self.isLoading = false
-                FeedEpisodesCache.shared.saveEpisodes(fetched, for: feed.id)
             }
         } catch {
             await MainActor.run {

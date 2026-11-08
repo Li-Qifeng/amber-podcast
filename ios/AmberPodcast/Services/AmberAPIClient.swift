@@ -211,34 +211,6 @@ public final class AmberAPIClient: ObservableObject {
         }
     }
 
-    public func triggerTranslation(episode: Episode, feed: PodcastFeed? = nil) async throws {
-        var req = try makeRequest(endpoint: "/api/v1/episodes/\(episode.id)/translate", method: "POST")
-        let payload: [String: Any] = [
-            "episode": [
-                "id": episode.id,
-                "feed_id": episode.feedId,
-                "guid": episode.guid,
-                "title": episode.title,
-                "audio_url": episode.audioUrl,
-                "duration": episode.duration,
-                "pub_date": episode.pubDate,
-                "shownotes": episode.shownotes
-            ],
-            "feed": [
-                "id": feed?.id ?? episode.feedId,
-                "title": feed?.title ?? "",
-                "author": feed?.author ?? "",
-                "cover_url": feed?.coverUrl ?? "",
-                "feed_url": feed?.feedUrl ?? ""
-            ]
-        ]
-        req.httpBody = try? JSONSerialization.data(withJSONObject: payload)
-        let (_, resp) = try await session.data(for: req)
-        guard (resp as? HTTPURLResponse)?.statusCode == 200 else {
-            throw URLError(.badServerResponse)
-        }
-    }
-
     // MARK: - Artifacts
     public func fetchArtifacts(episodeId: String) async throws -> EpisodeArtifacts {
         let req = try makeRequest(endpoint: "/api/v1/episodes/\(episodeId)/artifacts")

@@ -53,28 +53,30 @@ public struct MainTabView: View {
                     )
 
                 // Bottom Floating Island Stack: Apple Podcasts Style Immersive Dock & MiniPlayer
-                VStack(spacing: isDockCollapsed ? 6 : 8) {
-                    if player.currentEpisode != nil {
-                        MiniPlayerView(showFullPlayer: $showFullPlayer)
-                            .frame(maxWidth: min(geo.size.width - 32, 440))
-                            .transition(.asymmetric(
-                                insertion: .move(edge: .bottom).combined(with: .opacity),
-                                removal: .move(edge: .bottom).combined(with: .opacity)
-                            ))
-                            .onTapGesture {
-                                if isDockCollapsed {
-                                    withAnimation(ForwardMotion.snapSpring) {
-                                        isDockCollapsed = false
+                AmberGlassContainer(spacing: 8) {
+                    VStack(spacing: isDockCollapsed ? 0 : 12) {
+                        if player.currentEpisode != nil {
+                            MiniPlayerView(showFullPlayer: $showFullPlayer)
+                                .frame(width: geo.size.width * (isDockCollapsed ? 0.94 : AmberTheme.dockWidthRatio))
+                                .amberGlassID("miniPlayer", in: dockNamespace)
+                                .transition(.move(edge: .bottom).combined(with: .opacity))
+                                .onTapGesture {
+                                    if isDockCollapsed {
+                                        withAnimation(ForwardMotion.snapSpring) {
+                                            isDockCollapsed = false
+                                        }
                                     }
+                                    showFullPlayer = true
                                 }
-                                showFullPlayer = true
-                            }
-                    }
+                        }
 
-                    floatingLiquidDock(geometry: geo)
+                        floatingLiquidDock(geometry: geo)
+                            .offset(y: isDockCollapsed ? (AmberTheme.dockHeight + 80) : 0)
+                            .opacity(isDockCollapsed ? 0.0 : 1.0)
+                            .animation(ForwardMotion.fluidSheet, value: isDockCollapsed)
+                    }
                 }
-                .frame(maxWidth: .infinity)
-                .padding(.bottom, max(geo.safeAreaInsets.bottom, 12))
+                .padding(.bottom, isDockCollapsed ? max(geo.safeAreaInsets.bottom, 12) : (max(geo.safeAreaInsets.bottom, 8) + 10))
                 .animation(ForwardMotion.fluidSheet, value: isDockCollapsed)
                 .animation(ForwardMotion.fluidSheet, value: player.currentEpisode?.id)
             }
@@ -95,7 +97,7 @@ public struct MainTabView: View {
             if let idx = ProcessInfo.processInfo.arguments.firstIndex(of: "-amberStartTab"),
                idx + 1 < ProcessInfo.processInfo.arguments.count,
                let tab = Int(ProcessInfo.processInfo.arguments[idx + 1]) {
-                selectedTab = min(max(tab, 0), 3)
+                selectedTab = min(max(tab, 0), 2)
             }
             if ProcessInfo.processInfo.arguments.contains("-amberOpenPlayer") {
                 showFullPlayer = true
@@ -104,7 +106,7 @@ public struct MainTabView: View {
                 let interval: TimeInterval = demoTabsSlowMotion ? 4.0 : 1.5
                 Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { _ in
                     withAnimation(demoTabAnimation) {
-                        selectedTab = (selectedTab + 1) % 4
+                        selectedTab = (selectedTab + 1) % 3
                     }
                 }
             }
@@ -117,34 +119,41 @@ public struct MainTabView: View {
     private var contentView: some View {
         switch selectedTab {
         case 0:
-            HomeView()
+            HomeLibraryView()
         case 1:
-            LibraryView()
-        case 2:
             SearchView()
-        case 3:
+        case 2:
             SettingsView()
         default:
-            HomeView()
+            HomeLibraryView()
         }
     }
 
-    // MARK: - Floating Dock (Apple Podcasts Style 4 Tabs)
+    // MARK: - Floating Dock (UIKit glass on iOS 26+, SwiftUI fallback below)
     private func floatingLiquidDock(geometry: GeometryProxy) -> some View {
         AmberTabBarRendering.dock(
             items: dockItems,
-            selection: $selectedTab,
-            isCollapsed: isDockCollapsed,
-            width: min(geometry.size.width * AmberTheme.dockWidthRatio, 360),
+            selection: Binding(
+                get: { selectedTab >= 2 ? selectedTab + 1 : selectedTab },
+                set: { index in
+                    if index == 2 {
+                        // Intercepted tab: opens the player instead of switching.
+                        showFullPlayer = true
+                    } else {
+                        selectedTab = index > 2 ? index - 1 : index
+                    }
+                }
+            ),
+            width: geometry.size.width * AmberTheme.dockWidthRatio,
             height: AmberTheme.dockHeight
         )
     }
 
     private var dockItems: [AmberDockItem] {
         [
-            AmberDockItem(icon: "house.fill", title: "首页"),
             AmberDockItem(icon: "square.stack.fill", title: "资料库"),
-            AmberDockItem(icon: "safari.fill", title: "发现"),
+            AmberDockItem(icon: "magnifyingglass", title: "发现"),
+            AmberDockItem(icon: "play.circle.fill", title: "播放"),
             AmberDockItem(icon: "gearshape.fill", title: "设置"),
         ]
     }
