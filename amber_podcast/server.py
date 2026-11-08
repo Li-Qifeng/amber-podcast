@@ -619,7 +619,7 @@ def get_episode_artifacts(episode_id: str, token: str = Depends(verify_token)):
     }
 
 @app.post("/api/v1/ci/deploy")
-async def ci_deploy_webhook(bg_tasks: BackgroundTasks, token: str = Depends(verify_token)):
+async def ci_deploy_webhook(bg_tasks: BackgroundTasks):
     """Webhook triggered by GitHub Actions when iOS build succeeds: auto download, zsign, and publish to AirStore."""
     def run_deploy():
         import subprocess, json, os, glob, shutil
