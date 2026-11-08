@@ -140,6 +140,15 @@ public struct LyricsSubtitleView: View {
                 .padding(.horizontal, 24)
 
             } else {
+                notReadyActionCard
+            }
+
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var notReadyActionCard: some View {
         let isChineseEp = isChineseContent(player.currentEpisode?.title ?? "")
         let btnText = isChineseEp ? "一键提取中文字幕与智能章节" : "一键生成双轨配音与逐句字幕"
 
@@ -182,15 +191,10 @@ public struct LyricsSubtitleView: View {
             .buttonStyle(TactileButtonStyle(scale: 0.96))
             .disabled(isTriggering || player.currentEpisode == nil)
         }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 24)
-                .amberPlate(radius: 14)
-                .padding(.horizontal, 24)
-            }
-
-            Spacer()
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 24)
+        .amberPlate(radius: 14)
+        .padding(.horizontal, 24)
     }
 
     private func isChineseContent(_ text: String) -> Bool {
