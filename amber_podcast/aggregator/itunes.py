@@ -2,12 +2,82 @@ import httpx
 import xml.etree.ElementTree as ET
 import re
 import asyncio
+import time
 from typing import List, Dict, Any, Optional
 from urllib.parse import quote
 
 class ApplePodcastAggregator:
     def __init__(self, timeout: float = 15.0):
         self.timeout = timeout
+        self._top_cache: Dict[str, Dict[str, Any]] = {}  # {country: {"time": ts, "data": [...]}}
+        self._cache_ttl = 3600 * 6  # 6 hours
+
+    async def lookup_podcasts_batch(self, ids: List[str]) -> List[Dict[str, Any]]:
+        """Batch lookup podcast metadata from iTunes API."""
+        if not ids:
+            return []
+        ids_str = ",".join(ids[:50])
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
+            try:
+                resp = await client.get(f"https://itunes.apple.com/lookup?id={ids_str}")
+                if resp.status_code != 200:
+                    return []
+                results = []
+                for item in resp.json().get("results", []):
+                    cid = str(item.get("collectionId", ""))
+                    feed_url = item.get("feedUrl", "")
+                    if not cid or not feed_url:
+                        continue
+                    genre = item.get("primaryGenreName", "")
+                    track_count = item.get("trackCount", 0)
+                    desc = f"{genre} · {track_count} 集" if track_count else genre
+                    results.append({
+                        "id": cid,
+                        "collection_id": cid,
+                        "source_type": "apple_rss",
+                        "title": item.get("collectionName", ""),
+                        "author": item.get("artistName", ""),
+                        "feed_url": feed_url,
+                        "cover_url": item.get("artworkUrl600", item.get("artworkUrl100", "")),
+                        "description": desc,
+                        "genre": genre,
+                        "track_count": track_count,
+                        "auto_translate": 0
+                    })
+                return results
+            except Exception:
+                return []
+
+    async def fetch_top_podcasts(self, country: str = "cn", limit: int = 25) -> List[Dict[str, Any]]:
+        """Fetch real-time top podcasts from Apple Podcasts RSS and resolve metadata."""
+        now = time.time()
+        if country in self._top_cache:
+            entry = self._top_cache[country]
+            if now - entry["time"] < self._cache_ttl and entry["data"]:
+                return entry["data"][:limit]
+
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                resp = await client.get(f"https://itunes.apple.com/{country}/rss/toppodcasts/limit={limit}/json")
+                if resp.status_code == 200:
+                    data = resp.json()
+                    entries = data.get("feed", {}).get("entry", [])
+                    ids = [
+                        e["id"]["attributes"]["im:id"]
+                        for e in entries
+                        if "id" in e and "attributes" in e["id"] and "im:id" in e["id"]["attributes"]
+                    ]
+                    podcasts = await self.lookup_podcasts_batch(ids)
+                    if podcasts:
+                        self._top_cache[country] = {"time": now, "data": podcasts}
+                        return podcasts[:limit]
+        except Exception:
+            pass
+
+        # Return cached even if expired
+        if country in self._top_cache and self._top_cache[country]["data"]:
+            return self._top_cache[country]["data"][:limit]
+        return []
 
     async def search_podcasts(self, query: str, limit: int = 15, country: Optional[str] = None) -> List[Dict[str, Any]]:
         """Search Apple Podcasts Directory API for shows, with multi-region support (CN + US)."""

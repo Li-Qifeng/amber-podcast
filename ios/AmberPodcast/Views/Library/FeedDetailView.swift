@@ -7,7 +7,10 @@ public struct FeedDetailView: View {
     @State private var autoTranslate: Bool
     @State private var showDeleteConfirm: Bool = false
     @State private var isDeleting: Bool = false
+    @State private var isSubscribed: Bool = false
+    @State private var isSubscribing: Bool = false
     @Environment(\.dismiss) private var dismiss
+    private let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
 
     public init(feed: PodcastFeed) {
         self.feed = feed
@@ -19,11 +22,11 @@ public struct FeedDetailView: View {
             AmberTheme.background.ignoresSafeArea()
 
             ScrollView(.vertical, showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 22) {
+                VStack(alignment: .leading, spacing: 20) {
                     // 1. Forward-style Hero Banner
                     feedHeader
 
-                    // 2. Section Header: Episodes Count
+                    // 2. Section Header: Episodes Count & Action
                     HStack(alignment: .firstTextBaseline) {
                         Text("全部单集")
                             .font(.system(size: 20, weight: .bold, design: .rounded))
@@ -35,15 +38,11 @@ public struct FeedDetailView: View {
                                 .padding(.leading, 6)
                         } else {
                             Text("\(episodes.count) 集")
-                                .font(.system(size: 11.5, weight: .medium, design: .monospaced))
+                                .font(.system(size: 12, weight: .medium, design: .monospaced))
                                 .foregroundStyle(AmberTheme.labelSecondary)
                                 .padding(.horizontal, 7)
                                 .padding(.vertical, 2.5)
-                                .background(AmberTheme.surfaceRaised, in: RoundedRectangle(cornerRadius: 4, style: .continuous))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 4, style: .continuous)
-                                        .strokeBorder(AmberTheme.borderHairline, lineWidth: 0.5)
-                                )
+                                .background(AmberTheme.surfaceRaised, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
                         }
 
                         Spacer()
@@ -80,16 +79,39 @@ public struct FeedDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Menu {
-                    Button(role: .destructive) {
-                        showDeleteConfirm = true
+                if isSubscribed {
+                    Menu {
+                        Button(role: .destructive) {
+                            showDeleteConfirm = true
+                        } label: {
+                            Label("取消订阅此播客", systemImage: "trash")
+                        }
                     } label: {
-                        Label("取消订阅此播客", systemImage: "trash")
+                        Image(systemName: "ellipsis.circle")
+                            .font(.system(size: 16))
+                            .foregroundStyle(AmberTheme.labelSecondary)
                     }
-                } label: {
-                    Image(systemName: "ellipsis.circle")
-                        .font(.system(size: 16))
-                        .foregroundStyle(AmberTheme.labelSecondary)
+                } else {
+                    Button {
+                        impactFeedback.impactOccurred()
+                        subscribeCurrentFeed()
+                    } label: {
+                        if isSubscribing {
+                            ProgressView().scaleEffect(0.7)
+                        } else {
+                            HStack(spacing: 4) {
+                                Image(systemName: "plus")
+                                    .font(.system(size: 12, weight: .bold))
+                                Text("订阅")
+                                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                            }
+                            .foregroundStyle(AmberTheme.primaryAmber)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 5)
+                            .amberGlass(.capsule, isInteractive: true)
+                        }
+                    }
+                    .disabled(isSubscribing)
                 }
             }
         }
@@ -100,6 +122,7 @@ public struct FeedDetailView: View {
                     try? await AmberAPIClient.shared.deleteFeed(feedId: feed.id)
                     await MainActor.run {
                         isDeleting = false
+                        isSubscribed = false
                         dismiss()
                     }
                 }
@@ -109,6 +132,7 @@ public struct FeedDetailView: View {
             Text("确定要取消订阅《\(feed.title)》吗？已转译的音频资源将不再保留。")
         }
         .task {
+            await checkSubscriptionStatus()
             await loadEpisodes()
         }
         .refreshable {
@@ -117,9 +141,36 @@ public struct FeedDetailView: View {
         .preferredColorScheme(.dark)
     }
 
+    // MARK: - Subscription Check
+    private func checkSubscriptionStatus() async {
+        if let feeds = try? await AmberAPIClient.shared.listFeeds() {
+            await MainActor.run {
+                self.isSubscribed = feeds.contains { $0.id == feed.id || (!feed.feedUrl.isEmpty && $0.feedUrl == feed.feedUrl) }
+            }
+        }
+    }
+
+    private func subscribeCurrentFeed() {
+        guard !feed.feedUrl.isEmpty else { return }
+        isSubscribing = true
+        Task {
+            do {
+                try await AmberAPIClient.shared.subscribe(url: feed.feedUrl, autoTranslate: autoTranslate)
+                await MainActor.run {
+                    self.isSubscribed = true
+                    self.isSubscribing = false
+                }
+            } catch {
+                await MainActor.run {
+                    self.isSubscribing = false
+                }
+            }
+        }
+    }
+
     // MARK: - Forward / Rex Style Feed Header
     private var feedHeader: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 14) {
             HStack(alignment: .top, spacing: 16) {
                 // Large Squircle Cover Artwork with Drop Shadow
                 if let url = URL(string: feed.proxiedCoverUrl), !feed.proxiedCoverUrl.isEmpty {
@@ -127,18 +178,18 @@ public struct FeedDetailView: View {
                         image
                             .resizable()
                             .scaledToFill()
-                            .frame(width: 108, height: 108)
+                            .frame(width: 104, height: 104)
                             .amberMediaCard(radius: AmberTheme.radiusCoverHero)
                     } placeholder: {
-                        coverPlaceholder(width: 108, height: 108)
+                        coverPlaceholder(width: 104, height: 104)
                     }
                 } else {
-                    coverPlaceholder(width: 108, height: 108)
+                    coverPlaceholder(width: 104, height: 104)
                 }
 
-                VStack(alignment: .leading, spacing: 5) {
+                VStack(alignment: .leading, spacing: 6) {
                     Text(feed.title)
-                        .font(.system(size: 18, weight: .bold, design: .rounded))
+                        .font(.system(size: 19, weight: .bold, design: .rounded))
                         .foregroundStyle(AmberTheme.labelPrimary)
                         .lineLimit(2)
 
@@ -147,34 +198,44 @@ public struct FeedDetailView: View {
                         .foregroundStyle(AmberTheme.labelSecondary)
                         .lineLimit(1)
 
-                    HStack(spacing: 6) {
-                        Text(feed.sourceType == "xiaoyuzhou" ? "小宇宙" : "Apple 播客")
-                            .font(.system(size: 10, weight: .medium, design: .rounded))
-                            .foregroundStyle(AmberTheme.primaryAmber)
-                            .padding(.horizontal, 7)
-                            .padding(.vertical, 3)
-                            .background(AmberTheme.primaryAmber.opacity(0.12), in: RoundedRectangle(cornerRadius: 4, style: .continuous))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 4, style: .continuous)
-                                    .strokeBorder(AmberTheme.primaryAmber.opacity(0.25), lineWidth: 0.5)
-                            )
-
-                        if autoTranslate {
-                            Text("已开启自动双轨")
-                                .font(.system(size: 10, weight: .medium, design: .rounded))
-                                .foregroundStyle(AmberTheme.accentElectric)
+                    if !isSubscribed {
+                        Button {
+                            impactFeedback.impactOccurred()
+                            subscribeCurrentFeed()
+                        } label: {
+                            HStack(spacing: 5) {
+                                Image(systemName: "plus.circle.fill")
+                                    .font(.system(size: 13))
+                                Text("一键订阅与全量转译")
+                                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                            }
+                            .foregroundStyle(Color.black)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(AmberTheme.primaryAmber, in: Capsule())
+                        }
+                        .padding(.top, 4)
+                        .disabled(isSubscribing)
+                    } else {
+                        HStack(spacing: 6) {
+                            Text(feed.sourceType == "xiaoyuzhou" ? "小宇宙" : "Apple 播客")
+                                .font(.system(size: 10.5, weight: .medium, design: .rounded))
+                                .foregroundStyle(AmberTheme.primaryAmber)
                                 .padding(.horizontal, 7)
                                 .padding(.vertical, 3)
-                                .background(AmberTheme.accentElectric.opacity(0.12), in: RoundedRectangle(cornerRadius: 4, style: .continuous))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 4, style: .continuous)
-                                        .strokeBorder(AmberTheme.accentElectric.opacity(0.25), lineWidth: 0.5)
-                                )
-                        }
+                                .background(AmberTheme.primaryAmber.opacity(0.12), in: RoundedRectangle(cornerRadius: 4, style: .continuous))
 
-                        Spacer()
+                            if autoTranslate {
+                                Text("已开启自动双轨")
+                                    .font(.system(size: 10.5, weight: .medium, design: .rounded))
+                                    .foregroundStyle(AmberTheme.accentElectric)
+                                    .padding(.horizontal, 7)
+                                    .padding(.vertical, 3)
+                                    .background(AmberTheme.accentElectric.opacity(0.12), in: RoundedRectangle(cornerRadius: 4, style: .continuous))
+                            }
+                        }
+                        .padding(.top, 4)
                     }
-                    .padding(.top, 4)
                 }
             }
             .padding(.horizontal, 20)
@@ -190,7 +251,7 @@ public struct FeedDetailView: View {
                     .padding(.horizontal, 20)
             }
         }
-        .padding(.vertical, 8)
+        .padding(.vertical, 6)
     }
 
     private func coverPlaceholder(width: CGFloat, height: CGFloat) -> some View {
@@ -207,7 +268,7 @@ public struct FeedDetailView: View {
     private func loadEpisodes() async {
         isLoading = true
         do {
-            let fetched = try await AmberAPIClient.shared.listEpisodes(feedId: feed.id)
+            let fetched = try await AmberAPIClient.shared.listEpisodes(feedId: feed.id, feedUrl: feed.feedUrl)
             await MainActor.run {
                 self.episodes = fetched
                 self.isLoading = false

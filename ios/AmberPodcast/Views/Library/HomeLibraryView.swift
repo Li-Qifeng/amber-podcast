@@ -18,7 +18,18 @@ public struct HomeLibraryView: View {
     @ObservedObject var player = DualTrackAudioPlayer.shared
     private let impactFeedback = UIImpactFeedbackGenerator(style: .light)
 
-    public init() {}
+    public init() {
+        if let raw = UserDefaults.standard.string(forKey: "amber_cached_library_json_v1"),
+           let data = raw.data(using: .utf8),
+           let lib = try? JSONDecoder().decode(AmberAPIClient.LibraryResponse.self, from: data),
+           !lib.feeds.isEmpty {
+            self._feeds = State(initialValue: lib.feeds)
+            self._recentEpisodes = State(initialValue: lib.recentEpisodes)
+            self._heroFeed = State(initialValue: lib.feeds.first)
+            self._heroEpisode = State(initialValue: lib.recentEpisodes.first)
+            self._isLoading = State(initialValue: false)
+        }
+    }
 
     public var body: some View {
         NavigationStack {
@@ -471,36 +482,29 @@ public struct HomeLibraryView: View {
 
     private func topFloatingToolbar(geometry: GeometryProxy) -> some View {
         VStack {
-            AmberGlassContainer(spacing: 12) {
-                HStack {
-                    // Quiet Brand Signature: Sentence case, no screaming uppercase
-                    HStack(spacing: 8) {
-                        Image(systemName: "waveform")
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(AmberTheme.primaryAmber)
+            HStack(alignment: .center) {
+                Text("资料库")
+                    .font(.system(size: 26, weight: .bold, design: .rounded))
+                    .foregroundStyle(AmberTheme.labelPrimary)
 
-                        Text("Amber")
-                            .font(.system(size: 15, weight: .semibold, design: .rounded))
-                            .foregroundStyle(AmberTheme.labelPrimary)
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .amberGlass(.rect(cornerRadius: AmberTheme.radiusControl))
+                Spacer()
 
-                    Spacer()
+                Button {
+                    impactFeedback.impactOccurred()
+                    showSubscribeSheet = true
+                } label: {
+                    ZStack {
+                        Circle()
+                            .fill(Color.white.opacity(0.08))
+                            .overlay(Circle().strokeBorder(Color.white.opacity(0.14), lineWidth: 0.5))
+                            .frame(width: 38, height: 38)
 
-                    Button {
-                        impactFeedback.impactOccurred()
-                        showSubscribeSheet = true
-                    } label: {
                         Image(systemName: "plus")
-                            .font(.system(size: 13, weight: .medium))
+                            .font(.system(size: 15, weight: .semibold))
                             .foregroundStyle(AmberTheme.labelPrimary)
-                            .frame(width: 32, height: 32)
-                            .amberGlass(.rect(cornerRadius: AmberTheme.radiusControl), isInteractive: true)
                     }
-                    .buttonStyle(TactileButtonStyle(scale: 0.95))
                 }
+                .buttonStyle(TactileButtonStyle(scale: 0.92))
             }
             .padding(.horizontal, AmberTheme.pageMargin)
             .padding(.top, topSafeOffset)

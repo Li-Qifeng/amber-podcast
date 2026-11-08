@@ -24,7 +24,16 @@ public struct SearchView: View {
 
     private let impactFeedback = UIImpactFeedbackGenerator(style: .light)
 
-    public init() {}
+    public init() {
+        if let raw = UserDefaults.standard.string(forKey: "amber_cached_discover_json_v1"),
+           let data = raw.data(using: .utf8),
+           let res = try? JSONDecoder().decode(AmberAPIClient.DiscoverFeedResponse.self, from: data) {
+            self._featuredShows = State(initialValue: res.featured)
+            self._topChineseShows = State(initialValue: res.topChinese)
+            self._topGlobalShows = State(initialValue: res.topGlobal)
+            self._isDiscoverLoading = State(initialValue: false)
+        }
+    }
 
     private var isUrlQuery: Bool {
         let trimmed = query.trimmingCharacters(in: .whitespaces).lowercased()
@@ -78,6 +87,9 @@ public struct SearchView: View {
             }
             .navigationTitle("发现")
             .navigationBarTitleDisplayMode(.inline)
+            .onAppear {
+                restoreDiscoverFromCache()
+            }
             .task {
                 await loadExistingSubscriptions()
                 await loadDiscoverFeed()

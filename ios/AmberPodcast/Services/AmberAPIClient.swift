@@ -172,8 +172,12 @@ public final class AmberAPIClient: ObservableObject {
     }
 
     // MARK: - Episodes
-    public func listEpisodes(feedId: String) async throws -> [Episode] {
-        let req = try makeRequest(endpoint: "/api/v1/feeds/\(feedId)/episodes")
+    public func listEpisodes(feedId: String, feedUrl: String? = nil) async throws -> [Episode] {
+        var ep = "/api/v1/feeds/\(feedId)/episodes"
+        if let feedUrl = feedUrl, !feedUrl.isEmpty, let enc = feedUrl.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) {
+            ep += "?feed_url=\(enc)"
+        }
+        let req = try makeRequest(endpoint: ep)
         let (data, resp) = try await session.data(for: req)
         guard (resp as? HTTPURLResponse)?.statusCode == 200 else {
             throw URLError(.badServerResponse)
