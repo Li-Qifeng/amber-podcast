@@ -385,15 +385,13 @@ public struct HomeView: View {
         }
         return PodcastFeed(
             id: episode.feedId,
+            sourceType: "apple_rss",
             title: "未知播客",
             author: "",
-            coverUrl: "",
             feedUrl: "",
+            coverUrl: "",
             description: "",
-            episodesCount: 1,
-            lastSync: "",
-            autoTranslate: false,
-            sourceType: "apple_rss"
+            autoTranslate: 0
         )
     }
 
