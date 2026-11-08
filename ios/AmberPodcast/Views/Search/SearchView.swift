@@ -20,6 +20,7 @@ public struct SearchView: View {
     @State private var isDiscoverLoading: Bool = false
 
     @AppStorage("amber_recent_searches_v1") private var recentSearchesRaw: String = ""
+    @AppStorage("amber_cached_discover_json_v1") private var cachedDiscoverJson: String = ""
 
     private let impactFeedback = UIImpactFeedbackGenerator(style: .light)
 
@@ -655,8 +656,32 @@ public struct SearchView: View {
         }
     }
 
+    private func restoreDiscoverFromCache() {
+        guard featuredShows.isEmpty, !cachedDiscoverJson.isEmpty,
+              let data = cachedDiscoverJson.data(using: .utf8),
+              let res = try? JSONDecoder().decode(AmberAPIClient.DiscoverFeedResponse.self, from: data) else {
+            return
+        }
+        self.featuredShows = res.featured
+        self.topChineseShows = res.topChinese
+        self.topGlobalShows = res.topGlobal
+        self.isDiscoverLoading = false
+    }
+
+    private func saveDiscoverToCache(res: AmberAPIClient.DiscoverFeedResponse) {
+        if let data = try? JSONEncoder().encode(res), let str = String(data: data, encoding: .utf8) {
+            cachedDiscoverJson = str
+        }
+    }
+
     private func loadDiscoverFeed() async {
-        isDiscoverLoading = true
+        if featuredShows.isEmpty {
+            restoreDiscoverFromCache()
+            if featuredShows.isEmpty {
+                isDiscoverLoading = true
+            }
+        }
+
         do {
             let res = try await AmberAPIClient.shared.fetchDiscoverFeed()
             await MainActor.run {
@@ -664,9 +689,13 @@ public struct SearchView: View {
                 self.topChineseShows = res.topChinese
                 self.topGlobalShows = res.topGlobal
                 self.isDiscoverLoading = false
+                self.saveDiscoverToCache(res: res)
             }
         } catch {
             await MainActor.run {
+                if self.featuredShows.isEmpty {
+                    self.restoreDiscoverFromCache()
+                }
                 self.isDiscoverLoading = false
             }
         }

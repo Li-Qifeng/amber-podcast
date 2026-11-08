@@ -202,7 +202,15 @@ public struct EpisodeRowView: View {
             }
             await MainActor.run {
                 if isCurrentPlaying {
-                    player.togglePlayPause()
+                    if !player.isPlaying {
+                        if player.fullMapping.isEmpty && currentStatus == "ready" {
+                            player.loadEpisode(episode: episode, feed: feed, artifacts: artifacts, autoPlay: true)
+                        } else {
+                            player.play()
+                        }
+                    } else {
+                        player.pause()
+                    }
                 } else {
                     player.loadEpisode(episode: episode, feed: feed, artifacts: artifacts, autoPlay: true)
                 }

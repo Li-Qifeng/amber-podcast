@@ -77,6 +77,9 @@ public final class DualTrackAudioPlayer: ObservableObject {
         artifacts: EpisodeArtifacts?,
         autoPlay: Bool = true
     ) {
+        // Teardown existing players
+        stop()
+
         self.currentEpisode = episode
         self.currentFeed = feed
         self.timingSegments = artifacts?.timingSync ?? []
@@ -84,33 +87,36 @@ public final class DualTrackAudioPlayer: ObservableObject {
         self.chapters = artifacts?.chapters ?? []
         self.articleMarkdown = artifacts?.articleMarkdown ?? ""
 
-        // Teardown existing players
-        stop()
+        // If no Chinese dual-track artifacts exist for this episode, force original track
+        if self.timingSegments.isEmpty {
+            self.trackMode = .original
+        }
 
         // 1. Prepare original audio player
         if let originalUrl = URL(string: episode.audioUrl) {
             let item = AVPlayerItem(url: originalUrl)
             self.originalPlayer = AVPlayer(playerItem: item)
+            self.originalPlayer?.automaticallyWaitsToMinimizeStalling = true
         }
 
-        // 2. Prepare Chinese audio player
-        let streamEndpoint = artifacts?.streaming.streamEndpoint ?? "/api/v1/episodes/\(episode.id)/stream/chinese"
-        let fullStreamUrlString: String
-        if streamEndpoint.lowercased().hasPrefix("http://") || streamEndpoint.lowercased().hasPrefix("https://") {
-            fullStreamUrlString = streamEndpoint
-        } else {
-            let base = AmberAPIClient.shared.serverBaseUrl.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
-            let endpoint = streamEndpoint.hasPrefix("/") ? streamEndpoint : "/\(streamEndpoint)"
-            fullStreamUrlString = "\(base)\(endpoint)"
-        }
-        if let zhUrl = URL(string: fullStreamUrlString) {
-            var asset = AVURLAsset(url: zhUrl)
-            // If Google Drive token exists, inject Authorization header
-            if let token = artifacts?.streaming.googleAccessToken, !token.isEmpty {
-                asset = AVURLAsset(url: zhUrl, options: ["AVURLAssetHTTPHeaderFieldsKey": ["Authorization": "Bearer \(token)"]])
+        // 2. Prepare Chinese audio player ONLY IF timing sync / artifacts exist
+        if !self.timingSegments.isEmpty {
+            let streamEndpoint = artifacts?.streaming.streamEndpoint ?? "/api/v1/episodes/\(episode.id)/stream/chinese"
+            let fullStreamUrlString: String
+            if streamEndpoint.lowercased().hasPrefix("http://") || streamEndpoint.lowercased().hasPrefix("https://") {
+                fullStreamUrlString = streamEndpoint
+            } else {
+                let base = AmberAPIClient.shared.serverBaseUrl.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+                let endpoint = streamEndpoint.hasPrefix("/") ? streamEndpoint : "/\(streamEndpoint)"
+                fullStreamUrlString = "\(base)\(endpoint)"
             }
-            let item = AVPlayerItem(asset: asset)
-            self.chinesePlayer = AVPlayer(playerItem: item)
+            if let zhUrl = URL(string: fullStreamUrlString) {
+                let item = AVPlayerItem(url: zhUrl)
+                self.chinesePlayer = AVPlayer(playerItem: item)
+                self.chinesePlayer?.automaticallyWaitsToMinimizeStalling = true
+            }
+        } else {
+            self.chinesePlayer = nil
         }
 
         // Attach periodic time observer to the active player
@@ -131,15 +137,17 @@ public final class DualTrackAudioPlayer: ObservableObject {
         case .original:
             return originalPlayer
         case .chinese:
-            return chinesePlayer
+            return chinesePlayer ?? originalPlayer
         case .alternating:
-            return isAlternatingPlayingEn ? originalPlayer : chinesePlayer
+            return isAlternatingPlayingEn ? originalPlayer : (chinesePlayer ?? originalPlayer)
         }
     }
 
     // MARK: - Playback Control
     public func play() {
+        try? AVAudioSession.sharedInstance().setActive(true)
         guard let player = activePlayer else { return }
+        player.play()
         player.rate = playbackRate
         isPlaying = true
         hapticFeedback.impactOccurred()

@@ -693,7 +693,15 @@ public struct HomeLibraryView: View {
             }
             await MainActor.run {
                 if player.currentEpisode?.id == episode.id {
-                    player.togglePlayPause()
+                    if !player.isPlaying {
+                        if player.fullMapping.isEmpty && episode.status == "ready" {
+                            player.loadEpisode(episode: episode, feed: feed, artifacts: artifacts, autoPlay: true)
+                        } else {
+                            player.play()
+                        }
+                    } else {
+                        player.pause()
+                    }
                 } else {
                     player.loadEpisode(episode: episode, feed: feed, artifacts: artifacts, autoPlay: true)
                 }

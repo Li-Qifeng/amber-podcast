@@ -352,7 +352,7 @@ def get_library(token: str = Depends(verify_token)):
 
 @app.api_route("/api/v1/images/proxy", methods=["GET", "HEAD"])
 async def proxy_image(url: str = Query(...)):
-    """Proxy and cache external podcast cover images (resolving CDN timeouts and network unreachability)."""
+    """Proxy, compress, and cache external podcast cover images (resolving CDN timeouts and mobile network slowness)."""
     clean_url = url.strip()
     if not clean_url:
         raise HTTPException(status_code=400, detail="Missing url")
@@ -364,19 +364,34 @@ async def proxy_image(url: str = Query(...)):
     url_hash = hashlib.md5(clean_url.encode("utf-8")).hexdigest()
     cached_file = cache_dir / f"{url_hash}.jpg"
 
+    headers = {
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "Access-Control-Allow-Origin": "*"
+    }
+
     if cached_file.exists() and cached_file.stat().st_size > 0:
-        return FileResponse(str(cached_file), media_type="image/jpeg")
+        return FileResponse(str(cached_file), media_type="image/jpeg", headers=headers)
 
     import httpx
+    from PIL import Image
     from fastapi.responses import RedirectResponse
     try:
         async with httpx.AsyncClient(timeout=12.0, follow_redirects=True) as client:
             resp = await client.get(clean_url)
             if resp.status_code == 200:
-                with open(cached_file, "wb") as f:
-                    f.write(resp.content)
-                media_type = resp.headers.get("content-type", "image/jpeg")
-                return FileResponse(str(cached_file), media_type=media_type)
+                raw_bytes = resp.content
+                # Compress high-res covers (>3000px, 5MB) into lightweight mobile-optimized 500x500 Web-ready JPEGs
+                import io
+                try:
+                    img = Image.open(io.BytesIO(raw_bytes))
+                    img.thumbnail((500, 500), Image.Resampling.LANCZOS)
+                    img.convert("RGB").save(str(cached_file), "JPEG", quality=82, optimize=True)
+                except Exception as e:
+                    logger.warning(f"PIL compression failed for {clean_url}: {e}, saving raw")
+                    with open(cached_file, "wb") as f:
+                        f.write(raw_bytes)
+
+                return FileResponse(str(cached_file), media_type="image/jpeg", headers=headers)
     except Exception as e:
         logger.warning(f"Image proxy failed for {clean_url}: {e}")
 
@@ -492,10 +507,10 @@ def get_episode_artifacts(episode_id: str, token: str = Depends(verify_token)):
     if not ep:
         raise HTTPException(status_code=404, detail="Episode not found")
 
-    # Locate archive directory
-    archive_dir = GDRIVE_DIR / "episodes" / episode_id
+    # Locate archive directory: Prefer fast local SSD storage first (sub-millisecond)
+    archive_dir = DATA_DIR / "archive" / episode_id
     if not archive_dir.exists():
-        archive_dir = DATA_DIR / "archive" / episode_id
+        archive_dir = GDRIVE_DIR / "episodes" / episode_id
 
     timing_sync = []
     full_mapping = []
@@ -538,9 +553,9 @@ def get_episode_artifacts(episode_id: str, token: str = Depends(verify_token)):
 @app.get("/api/v1/episodes/{episode_id}/stream/{track}")
 def stream_audio(episode_id: str, track: str = "chinese"):
     """Stream audio with HTTP Range support for native iOS AVPlayer seeking."""
-    archive_dir = GDRIVE_DIR / "episodes" / episode_id
+    archive_dir = DATA_DIR / "archive" / episode_id
     if not archive_dir.exists():
-        archive_dir = DATA_DIR / "archive" / episode_id
+        archive_dir = GDRIVE_DIR / "episodes" / episode_id
 
     audio_file = archive_dir / f"{track}_audio.m4a"
     if not audio_file.exists():

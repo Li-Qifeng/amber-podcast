@@ -19,39 +19,41 @@ class EpisodeArchiver:
         chapters: Optional[list] = None,
         article_markdown: Optional[str] = None
     ) -> Dict[str, Any]:
-        """Atomically move/copy synthesized artifacts to the Google Drive 5TB archive directory."""
-        # Determine target directory
-        if self.gdrive_dir.exists():
-            target_dir = self.gdrive_dir / "episodes" / episode_id
-        else:
-            # Fallback to local storage if gdrive is unmounted
-            target_dir = DATA_DIR / "archive" / episode_id
-
+        """Atomically save synthesized artifacts to local fast SSD, and replicate to Google Drive."""
+        # 1. Primary storage: Local SSD for 0.01s instant playback and streaming
+        target_dir = DATA_DIR / "archive" / episode_id
         target_dir.mkdir(parents=True, exist_ok=True)
 
-        # 1. Copy audio
         dst_chinese_audio = target_dir / "chinese_audio.m4a"
         shutil.copy2(chinese_audio_path, dst_chinese_audio)
 
-        # 2. Copy timing_sync.json & full_mapping.json
         dst_timing_sync = target_dir / "timing_sync.json"
         shutil.copy2(timing_sync_path, dst_timing_sync)
 
         dst_full_mapping = target_dir / "full_mapping.json"
         shutil.copy2(full_mapping_path, dst_full_mapping)
 
-        # 3. Save chapters.json
         dst_chapters = target_dir / "chapters.json"
         if chapters:
             with open(dst_chapters, "w", encoding="utf-8") as f:
                 json.dump(chapters, f, ensure_ascii=False, indent=2)
 
-        # 4. Save article.md
         dst_article = target_dir / "article.md"
         if article_markdown:
             with open(dst_article, "w", encoding="utf-8") as f:
                 f.write(article_markdown)
 
+        # 2. Replicate to Google Drive if mounted
+        if self.gdrive_dir.exists():
+            try:
+                gdrive_target = self.gdrive_dir / "episodes" / episode_id
+                gdrive_target.mkdir(parents=True, exist_ok=True)
+                for item in [dst_chinese_audio, dst_timing_sync, dst_full_mapping, dst_chapters, dst_article]:
+                    if item.exists():
+                        shutil.copy2(str(item), str(gdrive_target / item.name))
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).warning(f"Replication to GDrive failed: {e}")
         return {
             "archive_dir": str(target_dir),
             "chinese_audio": str(dst_chinese_audio),
@@ -77,9 +79,8 @@ class EpisodeArchiver:
             except Exception:
                 pass
 
-        if not oauth_token:
-            oauth_token = subprocess.getoutput("/root/google-cloud-sdk/bin/gcloud auth print-access-token 2>/dev/null").strip()
-
+        # We stream locally from our own server endpoint, so external oauth token is not required
+        # Avoiding slow subprocess calls on every playback request.
         target_dir = self.gdrive_dir / "episodes" / episode_id
         audio_file = target_dir / "chinese_audio.m4a"
 

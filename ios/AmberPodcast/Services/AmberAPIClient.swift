@@ -89,6 +89,12 @@ public final class AmberAPIClient: ObservableObject {
         public let topChinese: [PodcastFeed]
         public let topGlobal: [PodcastFeed]
 
+        public init(featured: [PodcastFeed], topChinese: [PodcastFeed], topGlobal: [PodcastFeed]) {
+            self.featured = featured
+            self.topChinese = topChinese
+            self.topGlobal = topGlobal
+        }
+
         enum CodingKeys: String, CodingKey {
             case featured
             case topChinese = "top_chinese"
