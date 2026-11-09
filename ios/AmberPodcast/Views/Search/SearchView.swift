@@ -84,7 +84,11 @@ public struct SearchView: View {
             }
             .navigationTitle("发现")
             .navigationBarTitleDisplayMode(.large)
-            .searchable(text: $query, prompt: "搜索全网播客、主播或 RSS 链接")
+            .searchable(
+                text: $query,
+                placement: .navigationBarDrawer(displayMode: .always),
+                prompt: "搜索全网播客、主播或 RSS 链接"
+            )
             .onSubmit(of: .search) {
                 performSearch()
             }
