@@ -35,21 +35,24 @@ public struct ScrollDirectionObserverModifier: ViewModifier {
                 }
             )
             .onPreferenceChange(ScrollOffsetPreferenceKey.self) { currentOffset in
-                let delta = currentOffset - previousOffset
-                // If user returns to top of screen, immediately restore full expanded state
-                if currentOffset >= -10 && isCollapsed {
-                    withAnimation(ForwardMotion.mercuryTab) {
-                        isCollapsed = false
+                // 1. Returning to top of screen (within 25pt) -> Always expand full dock
+                if currentOffset >= -25 {
+                    if isCollapsed {
+                        withAnimation(ForwardMotion.mercuryTab) {
+                            isCollapsed = false
+                        }
                     }
-                } else if delta < -threshold && !isCollapsed && currentOffset < -30 {
-                    // Scrolling down (content moving up) -> minimize dock to 2-button pill & compact player
-                    withAnimation(ForwardMotion.mercuryTab) {
-                        isCollapsed = true
-                    }
-                } else if delta > threshold && isCollapsed {
-                    // Scrolling up (content moving down) -> expand dock to full 4-tab bar
-                    withAnimation(ForwardMotion.mercuryTab) {
-                        isCollapsed = false
+                } else if currentOffset < -50 {
+                    // 2. Scrolled down past hero header -> collapse dock on downward motion
+                    if currentOffset < previousOffset && !isCollapsed {
+                        withAnimation(ForwardMotion.mercuryTab) {
+                            isCollapsed = true
+                        }
+                    } else if currentOffset > previousOffset + 3.0 && isCollapsed {
+                        // 3. Actively scrolling back up -> restore expanded dock
+                        withAnimation(ForwardMotion.mercuryTab) {
+                            isCollapsed = false
+                        }
                     }
                 }
                 previousOffset = currentOffset
