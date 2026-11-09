@@ -253,6 +253,18 @@ public struct Episode: Identifiable, Codable, Hashable {
     public var isProcessing: Bool {
         ["transcribing", "translating", "synthesizing", "pending"].contains(status)
     }
+
+    public var formattedDuration: String {
+        let sec = max(0, duration)
+        let m = sec / 60
+        let s = sec % 60
+        let h = m / 60
+        if h > 0 {
+            return String(format: "%d:%02d:%02d", h, m % 60, s)
+        } else {
+            return String(format: "%02d:%02d", m, s)
+        }
+    }
 }
 
 // MARK: - Timing Sync (tens of KB, resident in player)
