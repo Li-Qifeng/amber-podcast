@@ -398,7 +398,7 @@ public struct AmberNavCapsuleButtonStyle: ButtonStyle {
     }
 }
 
-// MARK: - Unified Navigation Bar Add Button (Single-layer clean circle, 120Hz smooth, zero-relayout)
+// MARK: - Unified Navigation Bar Add Button (1:1 Aligned with Search Clear Button xmark.circle.fill)
 public struct CircularGlassButtonStyle: ButtonStyle {
     private let impact = UIImpactFeedbackGenerator(style: .light)
 
@@ -426,14 +426,11 @@ public struct CircularLiquidGlassAddButton: View {
 
     public var body: some View {
         Button(action: action) {
-            Image(systemName: "plus")
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(Color.white)
+            Image(systemName: "plus.circle.fill")
+                .symbolRenderingMode(.hierarchical)
+                .font(.system(size: 22, weight: .regular))
+                .foregroundStyle(Color(uiColor: .secondaryLabel))
                 .frame(width: 32, height: 32)
-                .background(
-                    Circle()
-                        .fill(Color.white.opacity(0.12))
-                )
                 .contentShape(Circle())
         }
         .buttonStyle(CircularGlassButtonStyle())
