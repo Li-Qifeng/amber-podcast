@@ -124,7 +124,21 @@ public struct HomeLibraryView: View {
 
             // Layer 2: Transition Scrim (Smooth gradient falloff isolating artwork from text, fading into background)
             VStack(spacing: 0) {
+                // Top Protection Scrim: Ensures status bar and navigation bar items have consistent contrast
+                LinearGradient(
+                    stops: [
+                        .init(color: Color.black.opacity(0.55), location: 0.0),
+                        .init(color: Color.black.opacity(0.20), location: 0.50),
+                        .init(color: .clear, location: 1.0)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: 110)
+
                 Spacer()
+
+                // Bottom Transition Scrim
                 LinearGradient(
                     stops: [
                         .init(color: .clear, location: 0.0),
