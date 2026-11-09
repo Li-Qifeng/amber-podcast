@@ -105,7 +105,7 @@ public struct HomeLibraryView: View {
         let heroHeight = geometry.size.height * AmberTheme.heroBannerRatio
 
         ZStack(alignment: .bottomLeading) {
-            // High-Resolution Artwork Layer
+            // Layer 1: High-Resolution Artwork Layer
             if let coverUrl = heroFeed?.proxiedCoverUrl, let url = URL(string: coverUrl), !coverUrl.isEmpty {
                 AsyncImage(url: url) { phase in
                     switch phase {
@@ -123,20 +123,24 @@ public struct HomeLibraryView: View {
                 ambientHeroArtworkPlaceholder(width: geometry.size.width, height: heroHeight)
             }
 
-            // Natural Tone Falloff (Calm contrast transition to pure OLED black)
-            LinearGradient(
-                stops: [
-                    .init(color: .black.opacity(0.04), location: 0.0),
-                    .init(color: .black.opacity(0.20), location: 0.40),
-                    .init(color: .black.opacity(0.80), location: 0.72),
-                    .init(color: AmberTheme.background, location: 0.98)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
+            // Layer 2: Transition Scrim (Smooth gradient falloff isolating artwork from text, fading into background)
+            VStack(spacing: 0) {
+                Spacer()
+                LinearGradient(
+                    stops: [
+                        .init(color: .clear, location: 0.0),
+                        .init(color: Color.black.opacity(0.35), location: 0.35),
+                        .init(color: AmberTheme.background.opacity(0.85), location: 0.70),
+                        .init(color: AmberTheme.background, location: 1.0)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: heroHeight * 0.70)
+            }
             .frame(width: geometry.size.width, height: heroHeight)
 
-            // Hero Typography Overlay
+            // Layer 3: Independent Crystal-Clear Typography & CTA Layer (Always on top of scrim, never blurred)
             VStack(alignment: .leading, spacing: 8) {
                 // Honest Technical Badges (No Sparkle Slop)
                 HStack(spacing: 6) {
@@ -145,10 +149,10 @@ public struct HomeLibraryView: View {
                         .foregroundStyle(AmberTheme.primaryAmber)
                         .padding(.horizontal, 7)
                         .padding(.vertical, 3)
-                        .background(AmberTheme.primaryAmber.opacity(0.12), in: RoundedRectangle(cornerRadius: AmberTheme.radiusBadge, style: .continuous))
+                        .background(AmberTheme.primaryAmber.opacity(0.16), in: RoundedRectangle(cornerRadius: AmberTheme.radiusBadge, style: .continuous))
                         .overlay(
                             RoundedRectangle(cornerRadius: AmberTheme.radiusBadge, style: .continuous)
-                                .strokeBorder(AmberTheme.primaryAmber.opacity(0.25), lineWidth: 0.5)
+                                .strokeBorder(AmberTheme.primaryAmber.opacity(0.30), lineWidth: 0.5)
                         )
 
                     Text(heroFeed?.sourceType == "xiaoyuzhou" ? "小宇宙精选" : "Apple 播客")
@@ -163,24 +167,24 @@ public struct HomeLibraryView: View {
                         )
                 }
 
-                // L1 Hero Title (San Francisco, 24pt Medium-Bold)
+                // L1 Hero Title (Crisp, High Contrast, San Francisco 24pt Bold)
                 Text(heroEpisode?.title ?? (heroFeed?.title ?? "精选播客"))
                     .font(.system(size: 24, weight: .bold, design: .rounded))
-                    .foregroundStyle(AmberTheme.labelPrimary)
+                    .foregroundStyle(Color.white)
                     .lineLimit(2)
-                    .shadow(color: Color.black.opacity(0.7), radius: 6, y: 3)
+                    .shadow(color: Color.black.opacity(0.85), radius: 6, y: 2)
 
                 // L4 Synopsis (Clean, calm reading snippet)
                 if let shownotes = heroEpisode?.shownotes, !shownotes.isEmpty {
                     Text(cleanSnippet(shownotes))
                         .font(.system(size: 12.5, weight: .regular))
-                        .foregroundStyle(AmberTheme.labelSecondary)
+                        .foregroundStyle(Color.white.opacity(0.85))
                         .lineSpacing(3)
                         .lineLimit(2)
-                        .shadow(color: Color.black.opacity(0.5), radius: 3, y: 1)
+                        .shadow(color: Color.black.opacity(0.70), radius: 4, y: 1)
                 }
 
-                // Primary CTA (Solid White, Nested Radius, No Glow Aura)
+                // Primary CTA (Solid White, Nested Radius)
                 Button {
                     if let ep = heroEpisode, let f = heroFeed {
                         playEpisode(ep, feed: f)

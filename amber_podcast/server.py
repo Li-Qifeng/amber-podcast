@@ -339,7 +339,7 @@ def get_library(token: str = Depends(verify_token)):
     }
 
 @app.api_route("/api/v1/images/proxy", methods=["GET", "HEAD"])
-async def proxy_image(url: str = Query(...)):
+async def proxy_image(url: str = Query(...), w: int = Query(1200, ge=100, le=3000)):
     """Proxy, compress, and cache external podcast cover images (resolving CDN timeouts and mobile network slowness)."""
     clean_url = url.strip()
     if not clean_url:
@@ -349,7 +349,7 @@ async def proxy_image(url: str = Query(...)):
     cache_dir.mkdir(parents=True, exist_ok=True)
 
     import hashlib
-    url_hash = hashlib.md5(clean_url.encode("utf-8")).hexdigest()
+    url_hash = hashlib.md5(f"{clean_url}_w{w}".encode("utf-8")).hexdigest()
     cached_file = cache_dir / f"{url_hash}.jpg"
 
     headers = {
@@ -362,12 +362,12 @@ async def proxy_image(url: str = Query(...)):
         if not ph.exists():
             try:
                 from PIL import Image, ImageDraw
-                img = Image.new("RGB", (500, 500), color="#18181b")
+                img = Image.new("RGB", (w, w), color="#18181b")
                 draw = ImageDraw.Draw(img)
                 heights = [30, 60, 95, 140, 180, 210, 190, 150, 110, 70, 45, 25]
                 for i, h in enumerate(heights):
-                    x = 110 + i * 24
-                    draw.rounded_rectangle([x, 250 - h//2, x + 12, 250 + h//2], radius=6, fill="#d4a373")
+                    x = int(w * 0.22) + i * 24
+                    draw.rounded_rectangle([x, w//2 - h//2, x + 12, w//2 + h//2], radius=6, fill="#d4a373")
                 img.save(str(ph), "JPEG", quality=85)
             except Exception:
                 pass
@@ -386,8 +386,8 @@ async def proxy_image(url: str = Query(...)):
                 import io
                 try:
                     img = Image.open(io.BytesIO(raw_bytes))
-                    img.thumbnail((500, 500), Image.Resampling.LANCZOS)
-                    img.convert("RGB").save(str(cached_file), "JPEG", quality=82, optimize=True)
+                    img.thumbnail((w, w), Image.Resampling.LANCZOS)
+                    img.convert("RGB").save(str(cached_file), "JPEG", quality=90, optimize=True)
                 except Exception as e:
                     logger.warning(f"PIL compression failed for {clean_url}: {e}, saving raw")
                     with open(cached_file, "wb") as f:
