@@ -789,6 +789,17 @@ async def ci_deploy_webhook(bg_tasks: BackgroundTasks):
                 json.dump(d, open(p_json, "w"), ensure_ascii=False, indent=2)
 
             logger.info(f"Automated AirStore deployment succeeded for Amber Podcast v{version}!")
+
+            # 5. Notify user in Discord thread via Hermes CLI
+            try:
+                notify_msg = f"🚀 **Amber 播客 v{version} 构建并部署成功！**\n\n- 状态: 已自动签名并上架 AirStore Pro\n- 交付文件: `amber-podcast_signed.ipa` ({sz} MB)\n- 核心更新: 单层圆底防重排加号按钮、iOS 17/18 onScrollGeometryChange 原生监听、Dock 左右双侧分流避让、MiniPlayer 胶囊居中平滑下沉。"
+                subprocess.run([
+                    "hermes", "send",
+                    "--to", "discord:1506792208802513046:1558541255569440830",
+                    notify_msg
+                ], capture_output=True, text=True, timeout=15)
+            except Exception as notify_err:
+                logger.warning(f"Failed to send Discord notification: {notify_err}")
         except Exception as e:
             logger.error(f"Automated AirStore deployment failed: {e}")
 
