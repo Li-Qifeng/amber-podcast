@@ -77,7 +77,7 @@ public final class DualTrackAudioPlayer: ObservableObject {
     public func loadEpisode(
         episode: Episode,
         feed: PodcastFeed,
-        artifacts: EpisodeArtifacts?,
+        artifacts: EpisodeArtifacts? = nil,
         autoPlay: Bool = true
     ) {
         // Teardown existing players

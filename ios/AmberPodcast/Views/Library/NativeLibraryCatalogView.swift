@@ -2,7 +2,7 @@ import SwiftUI
 
 public struct NativeLibraryCatalogView: View {
     @ObservedObject private var store = LibraryStore.shared
-    @EnvironmentObject private var player: AudioPlayerService
+    @ObservedObject private var player = DualTrackAudioPlayer.shared
     @State private var showSubscribeSheet = false
     private let impactFeedback = UIImpactFeedbackGenerator(style: .light)
 
@@ -162,7 +162,7 @@ public struct NativeLibraryCatalogView: View {
 public struct LatestEpisodesListView: View {
     public let episodes: [Episode]
     public let feeds: [PodcastFeed]
-    @EnvironmentObject private var player: AudioPlayerService
+    @ObservedObject private var player = DualTrackAudioPlayer.shared
 
     public var body: some View {
         ZStack {

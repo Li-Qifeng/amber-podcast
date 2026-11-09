@@ -7,6 +7,17 @@ public struct ScrollOffsetPreferenceKey: PreferenceKey {
     }
 }
 
+private struct IsDockCollapsedKey: EnvironmentKey {
+    static let defaultValue: Binding<Bool> = .constant(false)
+}
+
+public extension EnvironmentValues {
+    var isDockCollapsed: Binding<Bool> {
+        get { self[IsDockCollapsedKey.self] }
+        set { self[IsDockCollapsedKey.self] = newValue }
+    }
+}
+
 public struct ScrollDirectionObserverModifier: ViewModifier {
     @Binding public var isCollapsed: Bool
     public var threshold: CGFloat = 24.0

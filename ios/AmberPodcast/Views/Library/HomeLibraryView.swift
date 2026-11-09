@@ -14,7 +14,7 @@ public struct HomeLibraryView: View {
     @State private var errorMessage: String? = nil
 
     @AppStorage("amber_cached_library_json_v2") private var cachedLibraryJson: String = ""
-    @Environment(\.isDockCollapsed) private var isDockCollapsed
+    @Environment(\.isDockCollapsed) private var isDockCollapsed: Binding<Bool>
 
     @ObservedObject var player = DualTrackAudioPlayer.shared
     private let impactFeedback = UIImpactFeedbackGenerator(style: .light)

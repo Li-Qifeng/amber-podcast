@@ -21,7 +21,7 @@ public struct SearchView: View {
 
     @AppStorage("amber_recent_searches_v1") private var recentSearchesRaw: String = ""
     @AppStorage("amber_cached_discover_json_v1") private var cachedDiscoverJson: String = ""
-    @Environment(\.isDockCollapsed) private var isDockCollapsed
+    @Environment(\.isDockCollapsed) private var isDockCollapsed: Binding<Bool>
 
     private let impactFeedback = UIImpactFeedbackGenerator(style: .light)
 
