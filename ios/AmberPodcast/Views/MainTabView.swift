@@ -44,23 +44,38 @@ public struct MainTabView: View {
 
                 // Bottom Floating Island Stack: Apple Podcasts Style Immersive Dock & MiniPlayer
                 AmberGlassContainer(spacing: 8) {
-                    VStack(spacing: 8) {
-                        if player.currentEpisode != nil {
+                    if isDockCollapsed && player.currentEpisode != nil {
+                        // Bilateral Collapsed Mode: Dock splits to left and right wings, MiniPlayer sinks to center
+                        HStack(spacing: 8) {
+                            bilateralDockWing(indices: [0, 1])
+
                             MiniPlayerView(showFullPlayer: $showFullPlayer)
-                                .frame(width: isDockCollapsed ? min(geo.size.width - 64, 420) : min(geo.size.width - 32, 560))
-                                .scaleEffect(isDockCollapsed ? 0.96 : 1.0)
-                                .opacity(isDockCollapsed ? 0.92 : 1.0)
+                                .frame(width: max(geo.size.width - 180, 180))
                                 .amberGlassID("miniPlayer", in: dockNamespace)
-                                .transition(.move(edge: .bottom).combined(with: .opacity))
+                                .transition(.scale(scale: 0.95).combined(with: .opacity))
                                 .onTapGesture {
-                                    if isDockCollapsed {
-                                        scrollCoordinator.reset()
-                                    }
                                     showFullPlayer = true
                                 }
-                        }
 
-                        floatingLiquidDock(geometry: geo)
+                            bilateralDockWing(indices: [2, 3])
+                        }
+                        .padding(.horizontal, 12)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                    } else {
+                        // Expanded Vertical Stack Mode
+                        VStack(spacing: 8) {
+                            if player.currentEpisode != nil {
+                                MiniPlayerView(showFullPlayer: $showFullPlayer)
+                                    .frame(width: min(geo.size.width - 32, 560))
+                                    .amberGlassID("miniPlayer", in: dockNamespace)
+                                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                                    .onTapGesture {
+                                        showFullPlayer = true
+                                    }
+                            }
+
+                            floatingLiquidDock(geometry: geo)
+                        }
                     }
                 }
                 .padding(.bottom, max(geo.safeAreaInsets.bottom, 8) + 6)
@@ -117,6 +132,34 @@ public struct MainTabView: View {
     }
 
     // MARK: - Floating Dock (UIKit glass on iOS 26+, SwiftUI fallback below)
+    private func bilateralDockWing(indices: [Int]) -> some View {
+        HStack(spacing: 8) {
+            ForEach(indices, id: \.self) { idx in
+                let item = dockItems[idx]
+                Button {
+                    selectedTab = idx
+                    scrollCoordinator.reset()
+                } label: {
+                    Image(systemName: item.icon)
+                        .font(.system(size: 16, weight: selectedTab == idx ? .bold : .medium))
+                        .foregroundStyle(selectedTab == idx ? AmberTheme.primaryAmber : AmberTheme.labelSecondary)
+                        .frame(width: 28, height: 28)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.horizontal, 8)
+        .frame(height: 48)
+        .background(
+            Capsule()
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    Capsule()
+                        .strokeBorder(Color.white.opacity(0.12), lineWidth: 0.5)
+                )
+        )
+    }
+
     private func floatingLiquidDock(geometry: GeometryProxy) -> some View {
         let dockWidth: CGFloat = isDockCollapsed ? 152 : min(geometry.size.width * AmberTheme.dockWidthRatio, 420)
         let items = isDockCollapsed ? collapsedDockItems : dockItems
