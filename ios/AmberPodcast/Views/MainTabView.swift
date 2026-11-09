@@ -43,35 +43,37 @@ public struct MainTabView: View {
                     .ignoresSafeArea()
 
                 // Bottom Floating Island Stack: Continuous Apple Podcasts Style Sinking & Expanding
-                ZStack(alignment: .bottom) {
-                    // Full Dock (Fades out when collapsed)
-                    floatingLiquidDock(geometry: geo)
-                        .opacity(isDockCollapsed && player.currentEpisode != nil ? 0 : 1)
-                        .scaleEffect(isDockCollapsed && player.currentEpisode != nil ? 0.92 : 1.0)
-                        .allowsHitTesting(!isDockCollapsed || player.currentEpisode == nil)
-
-                    // Bilateral Wings (Left active tab, right search/settings)
-                    if player.currentEpisode != nil {
+                AmberGlassContainer(spacing: 8) {
+                    if isDockCollapsed && player.currentEpisode != nil {
+                        // Bilateral Collapsed Mode: Left wing + Centered MiniPlayer + Right wing
                         HStack(spacing: 8) {
                             minimizedTabWing(index: selectedTab)
-                            Spacer()
+
+                            MiniPlayerView(showFullPlayer: $showFullPlayer)
+                                .frame(width: max(min(geo.size.width - 136, 424), 160))
+                                .matchedGeometryEffect(id: "miniPlayer", in: dockNamespace)
+                                .onTapGesture {
+                                    showFullPlayer = true
+                                }
+
                             minimizedTabWing(index: selectedTab == 2 ? 3 : 2)
                         }
                         .frame(width: min(geo.size.width - 32, 560))
-                        .opacity(isDockCollapsed ? 1 : 0)
-                        .scaleEffect(isDockCollapsed ? 1.0 : 0.88)
-                        .allowsHitTesting(isDockCollapsed)
-                    }
-
-                    // MiniPlayer (Continuous physical translation along Y: -58pt -> 0pt)
-                    if player.currentEpisode != nil {
-                        MiniPlayerView(showFullPlayer: $showFullPlayer)
-                            .frame(width: isDockCollapsed ? max(min(geo.size.width - 136, 424), 160) : min(geo.size.width - 32, 560))
-                            .offset(y: isDockCollapsed ? 0 : -58)
-                            .zIndex(100)
-                            .onTapGesture {
-                                showFullPlayer = true
+                    } else {
+                        // Expanded Vertical Stack Mode: Clean 8pt gap, zero overlap, perfectly centered
+                        VStack(spacing: 8) {
+                            if player.currentEpisode != nil {
+                                MiniPlayerView(showFullPlayer: $showFullPlayer)
+                                    .frame(width: min(geo.size.width - 32, 560))
+                                    .matchedGeometryEffect(id: "miniPlayer", in: dockNamespace)
+                                    .onTapGesture {
+                                        showFullPlayer = true
+                                    }
                             }
+
+                            floatingLiquidDock(geometry: geo)
+                        }
+                        .frame(width: min(geo.size.width - 32, 560))
                     }
                 }
                 .frame(maxWidth: .infinity)
