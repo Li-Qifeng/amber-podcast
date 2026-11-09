@@ -56,12 +56,17 @@ public struct AmberScrollTopProbe: View {
 }
 
 public extension View {
-    /// Native iOS 17+ high-performance scroll observer directly listening to underlying UIScrollView contentOffset.y.
+    /// Native iOS 18+ high-performance scroll observer directly listening to underlying UIScrollView contentOffset.y.
+    @ViewBuilder
     func amberScrollObservable() -> some View {
-        self.onScrollGeometryChange(for: CGFloat.self, of: { geometry in
-            geometry.contentOffset.y
-        }) { oldValue, newValue in
-            AmberScrollCoordinator.shared.handleOffset(newValue)
+        if #available(iOS 18.0, *) {
+            self.onScrollGeometryChange(for: CGFloat.self, of: { geometry in
+                geometry.contentOffset.y
+            }) { oldValue, newValue in
+                AmberScrollCoordinator.shared.handleOffset(newValue)
+            }
+        } else {
+            self
         }
     }
 
