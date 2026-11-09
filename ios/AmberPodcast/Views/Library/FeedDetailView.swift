@@ -9,12 +9,18 @@ public struct FeedDetailView: View {
     @State private var isDeleting: Bool = false
     @State private var isSubscribed: Bool = false
     @State private var isSubscribing: Bool = false
+    @State private var newEpisodesCount: Int = 0
+    @State private var pendingEpisodes: [Episode]? = nil
     @Environment(\.dismiss) private var dismiss
     private let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
 
     public init(feed: PodcastFeed) {
         self.feed = feed
         self._autoTranslate = State(initialValue: feed.autoTranslate == 1)
+        if let cached = FeedEpisodesCache.get(feedId: feed.id), !cached.isEmpty {
+            self._episodes = State(initialValue: cached)
+            self._isLoading = State(initialValue: false)
+        }
     }
 
     public var body: some View {
@@ -48,6 +54,29 @@ public struct FeedDetailView: View {
                         Spacer()
                     }
                     .padding(.horizontal, 20)
+
+                    if newEpisodesCount > 0 {
+                        Button {
+                            applyNewEpisodes()
+                        } label: {
+                            HStack(spacing: 6) {
+                                Image(systemName: "sparkles")
+                                    .font(.system(size: 12, weight: .bold))
+                                    .foregroundStyle(AmberTheme.primaryAmber)
+                                Text("发现 \(newEpisodesCount) 条新单集，轻触查看")
+                                    .font(.system(size: 12.5, weight: .semibold, design: .rounded))
+                                    .foregroundStyle(AmberTheme.labelPrimary)
+                                Image(systemName: "arrow.up")
+                                    .font(.system(size: 11, weight: .bold))
+                                    .foregroundStyle(AmberTheme.labelSecondary)
+                            }
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 8)
+                            .liquidGlassCapsule()
+                        }
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .padding(.horizontal, 20)
+                    }
 
                     // 3. Episode Cards Stack or Empty State
                     if episodes.isEmpty && !isLoading {
@@ -264,12 +293,38 @@ public struct FeedDetailView: View {
         .amberMediaCard(radius: AmberTheme.radiusCoverHero)
     }
 
+    private func applyNewEpisodes() {
+        guard let p = pendingEpisodes else { return }
+        impactFeedback.impactOccurred()
+        withAnimation(ForwardMotion.touchUp) {
+            self.episodes = p
+            FeedEpisodesCache.set(feedId: self.feed.id, episodes: p)
+            self.newEpisodesCount = 0
+            self.pendingEpisodes = nil
+        }
+    }
+
     private func loadEpisodes() async {
-        isLoading = true
+        if episodes.isEmpty {
+            isLoading = true
+        }
         do {
             let fetched = try await AmberAPIClient.shared.listEpisodes(feedId: feed.id, feedUrl: feed.feedUrl)
             await MainActor.run {
-                self.episodes = fetched
+                if self.episodes.isEmpty {
+                    self.episodes = fetched
+                    FeedEpisodesCache.set(feedId: self.feed.id, episodes: fetched)
+                } else {
+                    let newOnes = fetched.filter { f in !self.episodes.contains(where: { $0.id == f.id }) }
+                    if !newOnes.isEmpty {
+                        withAnimation(ForwardMotion.touchUp) {
+                            self.newEpisodesCount = newOnes.count
+                            self.pendingEpisodes = fetched
+                        }
+                    } else {
+                        FeedEpisodesCache.set(feedId: self.feed.id, episodes: fetched)
+                    }
+                }
                 self.isLoading = false
             }
         } catch {

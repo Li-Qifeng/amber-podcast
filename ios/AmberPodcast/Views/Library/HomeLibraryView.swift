@@ -14,6 +14,7 @@ public struct HomeLibraryView: View {
     @State private var errorMessage: String? = nil
 
     @AppStorage("amber_cached_library_json_v2") private var cachedLibraryJson: String = ""
+    @Environment(\.isDockCollapsed) private var isDockCollapsed
 
     @ObservedObject var player = DualTrackAudioPlayer.shared
     private let impactFeedback = UIImpactFeedbackGenerator(style: .light)
@@ -60,7 +61,9 @@ public struct HomeLibraryView: View {
                                 // Bottom Clearance for floating Dock & MiniPlayer
                                 Color.clear.frame(height: 168)
                             }
+                            .trackScrollDirection(isCollapsed: isDockCollapsed)
                         }
+                        .amberScrollSpace()
                         .ignoresSafeArea(edges: .top)
                     }
 
@@ -482,14 +485,13 @@ public struct HomeLibraryView: View {
     private func topFloatingToolbar(geometry: GeometryProxy) -> some View {
         VStack {
             HStack(alignment: .center) {
-                Text("资料库")
+                Text("首页")
                     .font(.system(size: 26, weight: .bold, design: .rounded))
                     .foregroundStyle(AmberTheme.labelPrimary)
 
                 Spacer()
 
                 Button {
-                    impactFeedback.impactOccurred()
                     showSubscribeSheet = true
                 } label: {
                     HStack(spacing: 5) {
@@ -503,7 +505,7 @@ public struct HomeLibraryView: View {
                     .padding(.vertical, 7)
                     .liquidGlassCapsule()
                 }
-                .buttonStyle(TactileButtonStyle(scale: 0.94))
+                .buttonStyle(AmberNavCapsuleButtonStyle())
             }
             .padding(.horizontal, AmberTheme.pageMargin)
             .padding(.top, topSafeOffset)

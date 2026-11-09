@@ -147,11 +147,11 @@ public struct LyricsSubtitleView: View {
                         .foregroundStyle(AmberTheme.primaryAmber)
 
                     VStack(spacing: 6) {
-                        Text("尚未生成 AI 双轨配音与字幕")
+                        Text(isChinesePodcast ? "尚未提取 AI 中文字幕与速读笔记" : "尚未生成 AI 双轨配音与字幕")
                             .font(.system(size: 15.5, weight: .semibold, design: .rounded))
                             .foregroundStyle(AmberTheme.labelPrimary)
 
-                        Text("极速 ASR 逐句打轴 · 通义千问口播台本译制 · 多角色拟真语音合成")
+                        Text(isChinesePodcast ? "极速 ASR 逐句识别打轴 · 通义千问智能提炼章节与速读笔记 · 保留原声人质" : "极速 ASR 逐句打轴 · 通义千问口播台本译制 · 多角色拟真语音合成")
                             .font(.system(size: 12))
                             .foregroundStyle(AmberTheme.labelTertiary)
                             .multilineTextAlignment(.center)
@@ -169,7 +169,7 @@ public struct LyricsSubtitleView: View {
                                 Image(systemName: "waveform.badge.plus")
                                     .font(.system(size: 12, weight: .bold))
                             }
-                            Text("一键生成双轨配音与逐句字幕")
+                            Text(isChinesePodcast ? "一键提取原声中文字幕与速读笔记" : "一键生成双轨配音与逐句字幕")
                                 .font(.system(size: 13, weight: .medium, design: .rounded))
                         }
                         .foregroundStyle(Color.black)
@@ -191,16 +191,23 @@ public struct LyricsSubtitleView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
+    private var isChinesePodcast: Bool {
+        guard let ep = player.currentEpisode else { return false }
+        let titleHasChinese = ep.title.unicodeScalars.contains { $0.value >= 0x4E00 && $0.value <= 0x9FFF }
+        let feedHasChinese = (player.currentFeed?.title ?? "").unicodeScalars.contains { $0.value >= 0x4E00 && $0.value <= 0x9FFF }
+        return titleHasChinese || feedHasChinese || (player.currentFeed?.id.hasPrefix("xyz_") ?? false)
+    }
+
     private func statusTitle(_ s: String) -> String {
         switch s {
         case "transcribing":
             return "正在极速 ASR 识别打轴 (25%)..."
         case "translating":
-            return "通义千问正在口播译制与提炼章节 (50%)..."
+            return isChinesePodcast ? "通义千问正在提炼章节与速读笔记 (65%)..." : "通义千问正在口播译制与提炼章节 (50%)..."
         case "synthesizing":
-            return "正在多角色拟真语音合成与对齐 (75%)..."
+            return isChinesePodcast ? "正在打包对齐原声字幕资产 (90%)..." : "正在多角色拟真语音合成与对齐 (75%)..."
         default:
-            return "已提交转译流水线，正在排队启动..."
+            return isChinesePodcast ? "已提交中文字幕提取任务，排队启动中..." : "已提交转译流水线，正在排队启动..."
         }
     }
 
@@ -221,7 +228,7 @@ public struct LyricsSubtitleView: View {
 
         Task {
             do {
-                try await AmberAPIClient.shared.triggerTranslation(episodeId: ep.id)
+                try await AmberAPIClient.shared.triggerTranslation(episode: ep, feed: player.currentFeed)
                 await MainActor.run {
                     self.isTriggering = false
                     self.pollingStatus = "pending"
@@ -231,7 +238,7 @@ public struct LyricsSubtitleView: View {
             } catch {
                 await MainActor.run {
                     self.isTriggering = false
-                    self.errorMessage = "提交转译失败: \(error.localizedDescription)"
+                    self.errorMessage = isChinesePodcast ? "提交字幕提取失败: \(error.localizedDescription)" : "提交转译失败: \(error.localizedDescription)"
                     self.showErrorAlert = true
                 }
             }

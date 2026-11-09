@@ -1,0 +1,52 @@
+import SwiftUI
+
+public struct ScrollOffsetPreferenceKey: PreferenceKey {
+    public static var defaultValue: CGFloat = 0
+    public static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
+    }
+}
+
+public struct ScrollDirectionObserverModifier: ViewModifier {
+    @Binding public var isCollapsed: Bool
+    public var threshold: CGFloat = 24.0
+
+    @State private var previousOffset: CGFloat = 0
+
+    public func body(content: Content) -> some View {
+        content
+            .background(
+                GeometryReader { proxy in
+                    Color.clear.preference(
+                        key: ScrollOffsetPreferenceKey.self,
+                        value: proxy.frame(in: .named("amberScrollSpace")).minY
+                    )
+                }
+            )
+            .onPreferenceChange(ScrollOffsetPreferenceKey.self) { currentOffset in
+                let delta = currentOffset - previousOffset
+                if delta < -threshold && !isCollapsed && currentOffset < -30 {
+                    // Scrolling down (content moving up) -> minimize dock to 2-button pill
+                    withAnimation(ForwardMotion.mercuryTab) {
+                        isCollapsed = true
+                    }
+                } else if delta > threshold && isCollapsed {
+                    // Scrolling up (content moving down) -> expand dock to full 4-tab bar
+                    withAnimation(ForwardMotion.mercuryTab) {
+                        isCollapsed = false
+                    }
+                }
+                previousOffset = currentOffset
+            }
+    }
+}
+
+public extension View {
+    func trackScrollDirection(isCollapsed: Binding<Bool>, threshold: CGFloat = 24.0) -> some View {
+        self.modifier(ScrollDirectionObserverModifier(isCollapsed: isCollapsed, threshold: threshold))
+    }
+
+    func amberScrollSpace() -> some View {
+        self.coordinateSpace(name: "amberScrollSpace")
+    }
+}

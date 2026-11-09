@@ -155,6 +155,10 @@ class Database:
     def update_playback_progress(self, episode_id: str, position_ms: int, duration_ms: int,
                                  track_mode: str = "chinese", is_finished: int = 0) -> None:
         now = int(time.time())
+        # Safeguard: if episode is not yet persisted in database (e.g. preview mode), skip foreign key failure
+        if not self.get_episode(episode_id):
+            return
+
         with self.get_conn() as conn:
             conn.execute("""
                 INSERT INTO playback_progress (episode_id, position_ms, duration_ms, track_mode, is_finished, updated_at)

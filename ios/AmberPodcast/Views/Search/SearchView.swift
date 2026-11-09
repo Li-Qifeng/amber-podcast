@@ -21,6 +21,7 @@ public struct SearchView: View {
 
     @AppStorage("amber_recent_searches_v1") private var recentSearchesRaw: String = ""
     @AppStorage("amber_cached_discover_json_v1") private var cachedDiscoverJson: String = ""
+    @Environment(\.isDockCollapsed) private var isDockCollapsed
 
     private let impactFeedback = UIImpactFeedbackGenerator(style: .light)
 
@@ -52,19 +53,8 @@ public struct SearchView: View {
             ZStack {
                 AmberTheme.background.ignoresSafeArea()
 
-                VStack(spacing: 0) {
-                    // 1. Search Input Field
-                    searchBarHeader
-                        .padding(.horizontal, 20)
-                        .padding(.top, 10)
-                        .padding(.bottom, 10)
-
-                    // 2. Direct Link Banner (when URL pasted)
-                    if isUrlQuery {
-                        directUrlBanner
-                    }
-
-                    // 3. Results or Apple Podcasts Discovery Feed
+                Group {
+                    // Results or Apple Podcasts Discovery Feed
                     if isSearching {
                         VStack(spacing: 14) {
                             ProgressView()
@@ -83,6 +73,9 @@ public struct SearchView: View {
                         // Apple Podcasts Style Discovery Stream
                         discoveryStreamView
                     }
+                }
+                .safeAreaInset(edge: .top, spacing: 0) {
+                    stickySearchGlassHeader
                 }
             }
             .navigationTitle("发现")
@@ -104,6 +97,31 @@ public struct SearchView: View {
                 Text(errorMessage ?? "操作完成")
             }
         }
+    }
+
+    // MARK: - Sticky Liquid Glass Search Header
+    private var stickySearchGlassHeader: some View {
+        VStack(spacing: 6) {
+            searchBarHeader
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+                .padding(.bottom, 6)
+
+            if isUrlQuery {
+                directUrlBanner
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 8)
+            }
+        }
+        .background(
+            Rectangle()
+                .fill(AmberTheme.background.opacity(0.82))
+                .background(.ultraThinMaterial)
+                .overlay(
+                    Divider().background(AmberTheme.borderHairline.opacity(0.5)),
+                    alignment: .bottom
+                )
+        )
     }
 
     // MARK: - Search Bar Header
@@ -137,7 +155,7 @@ public struct SearchView: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 9)
-        .amberPlate(radius: 10)
+        .liquidGlassCapsule()
     }
 
     // MARK: - Direct URL Banner
@@ -207,7 +225,9 @@ public struct SearchView: View {
             }
             .padding(.horizontal, 16)
             .padding(.bottom, 140)
+            .trackScrollDirection(isCollapsed: isDockCollapsed)
         }
+        .amberScrollSpace()
     }
 
     // MARK: - Apple Podcasts Style Discovery Stream
@@ -240,7 +260,9 @@ public struct SearchView: View {
                 Spacer(minLength: 120)
             }
             .padding(.top, 6)
+            .trackScrollDirection(isCollapsed: isDockCollapsed)
         }
+        .amberScrollSpace()
     }
 
     // MARK: - Section 1: Featured Carousel
