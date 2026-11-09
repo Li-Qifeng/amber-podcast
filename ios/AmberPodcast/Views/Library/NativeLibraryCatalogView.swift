@@ -184,7 +184,8 @@ public struct LatestEpisodesListView: View {
                                     .font(.system(size: 15, weight: .medium))
                                     .foregroundStyle(AmberTheme.labelPrimary)
                                     .lineLimit(2)
-                                Text("\(f?.title ?? \"未知\") · \(ep.formattedDuration)")
+                                let podcastTitle = f?.title ?? "未知"
+                                Text("\(podcastTitle) · \(ep.formattedDuration)")
                                     .font(.system(size: 12))
                                     .foregroundStyle(AmberTheme.labelSecondary)
                             }
