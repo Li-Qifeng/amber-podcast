@@ -4,7 +4,6 @@ public struct NativeLibraryCatalogView: View {
     @ObservedObject private var store = LibraryStore.shared
     @ObservedObject private var player = DualTrackAudioPlayer.shared
     @State private var showSubscribeSheet = false
-    @Environment(\.isDockCollapsed) private var isDockCollapsed: Binding<Bool>
     private let impactFeedback = UIImpactFeedbackGenerator(style: .light)
 
     public init() {}
@@ -15,118 +14,158 @@ public struct NativeLibraryCatalogView: View {
                 AmberTheme.background
                     .ignoresSafeArea()
 
-                List {
-                    // Quick Action Sections
-                    Section {
-                        NavigationLink {
-                            FeedListView()
-                        } label: {
-                            Label {
+                ScrollView(.vertical, showsIndicators: false) {
+                    VStack(spacing: 20) {
+                        AmberScrollTopProbe()
+
+                        // Quick Action Sections
+                        VStack(spacing: 0) {
+                            NavigationLink {
+                                FeedListView()
+                            } label: {
                                 HStack {
-                                    Text("节目")
-                                        .font(.system(size: 16, weight: .regular))
-                                        .foregroundStyle(AmberTheme.labelPrimary)
+                                    Label {
+                                        Text("节目")
+                                            .font(.system(size: 16, weight: .regular))
+                                            .foregroundStyle(AmberTheme.labelPrimary)
+                                    } icon: {
+                                        Image(systemName: "square.stack.fill")
+                                            .foregroundStyle(AmberTheme.primaryAmber)
+                                    }
                                     Spacer()
                                     Text("\(store.feeds.count)")
                                         .font(.system(size: 15))
                                         .foregroundStyle(AmberTheme.labelSecondary)
+                                    Image(systemName: "chevron.right")
+                                        .font(.system(size: 13, weight: .semibold))
+                                        .foregroundStyle(AmberTheme.labelTertiary)
                                 }
-                            } icon: {
-                                Image(systemName: "square.stack.fill")
-                                    .foregroundStyle(AmberTheme.primaryAmber)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 14)
                             }
-                        }
 
-                        NavigationLink {
-                            LatestEpisodesListView(episodes: store.recentEpisodes, feeds: store.feeds)
-                        } label: {
-                            Label {
+                            Divider().background(AmberTheme.borderHairline).padding(.leading, 50)
+
+                            NavigationLink {
+                                LatestEpisodesListView(episodes: store.recentEpisodes, feeds: store.feeds)
+                            } label: {
                                 HStack {
-                                    Text("最新单集")
-                                        .font(.system(size: 16, weight: .regular))
-                                        .foregroundStyle(AmberTheme.labelPrimary)
+                                    Label {
+                                        Text("最新单集")
+                                            .font(.system(size: 16, weight: .regular))
+                                            .foregroundStyle(AmberTheme.labelPrimary)
+                                    } icon: {
+                                        Image(systemName: "sparkles")
+                                            .foregroundStyle(AmberTheme.primaryAmber)
+                                    }
                                     Spacer()
                                     Text("\(store.recentEpisodes.count)")
                                         .font(.system(size: 15))
                                         .foregroundStyle(AmberTheme.labelSecondary)
+                                    Image(systemName: "chevron.right")
+                                        .font(.system(size: 13, weight: .semibold))
+                                        .foregroundStyle(AmberTheme.labelTertiary)
                                 }
-                            } icon: {
-                                Image(systemName: "sparkles")
-                                    .foregroundStyle(AmberTheme.primaryAmber)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 14)
+                            }
+
+                            Divider().background(AmberTheme.borderHairline).padding(.leading, 50)
+
+                            NavigationLink {
+                                DownloadedEpisodesListView()
+                            } label: {
+                                HStack {
+                                    Label {
+                                        Text("已下载")
+                                            .font(.system(size: 16, weight: .regular))
+                                            .foregroundStyle(AmberTheme.labelPrimary)
+                                    } icon: {
+                                        Image(systemName: "arrow.down.circle.fill")
+                                            .foregroundStyle(AmberTheme.primaryAmber)
+                                    }
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .font(.system(size: 13, weight: .semibold))
+                                        .foregroundStyle(AmberTheme.labelTertiary)
+                                }
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 14)
                             }
                         }
+                        .background(AmberTheme.surfaceCard.opacity(0.85), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        .padding(.horizontal, 16)
 
-                        NavigationLink {
-                            DownloadedEpisodesListView()
-                        } label: {
-                            Label {
-                                Text("已下载")
-                                    .font(.system(size: 16, weight: .regular))
-                                    .foregroundStyle(AmberTheme.labelPrimary)
-                            } icon: {
-                                Image(systemName: "arrow.down.circle.fill")
-                                    .foregroundStyle(AmberTheme.primaryAmber)
-                            }
-                        }
-                    }
-                    .listRowBackground(AmberTheme.surfaceCard.opacity(0.85))
+                        // Downloaded & Followed Channels
+                        if !store.feeds.isEmpty {
+                            VStack(alignment: .leading, spacing: 10) {
+                                Text("关注的播客")
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundStyle(AmberTheme.labelSecondary)
+                                    .textCase(.uppercase)
+                                    .padding(.horizontal, 20)
 
-                    // Downloaded & Followed Channels
-                    if !store.feeds.isEmpty {
-                        Section("关注的播客") {
-                            ForEach(store.feeds) { feed in
-                                NavigationLink {
-                                    FeedDetailView(feed: feed)
-                                } label: {
-                                    HStack(spacing: 12) {
-                                        if !feed.proxiedCoverUrl.isEmpty, let url = URL(string: feed.proxiedCoverUrl) {
-                                            CachedAsyncImage(url: url) { image in
-                                                image.resizable().aspectRatio(contentMode: .fill)
-                                            } placeholder: {
-                                                Color(white: 0.15)
+                                VStack(spacing: 0) {
+                                    ForEach(Array(store.feeds.enumerated()), id: \.element.id) { index, feed in
+                                        NavigationLink {
+                                            FeedDetailView(feed: feed)
+                                        } label: {
+                                            HStack(spacing: 12) {
+                                                if !feed.proxiedCoverUrl.isEmpty, let url = URL(string: feed.proxiedCoverUrl) {
+                                                    CachedAsyncImage(url: url) { image in
+                                                        image.resizable().aspectRatio(contentMode: .fill)
+                                                    } placeholder: {
+                                                        Color(white: 0.15)
+                                                    }
+                                                    .frame(width: 44, height: 44)
+                                                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                                                } else {
+                                                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                                        .fill(Color(white: 0.15))
+                                                        .frame(width: 44, height: 44)
+                                                        .overlay(
+                                                            Image(systemName: "waveform")
+                                                                .foregroundColor(AmberTheme.labelTertiary)
+                                                        )
+                                                }
+
+                                                VStack(alignment: .leading, spacing: 3) {
+                                                    Text(feed.title)
+                                                        .font(.system(size: 15, weight: .semibold))
+                                                        .foregroundStyle(AmberTheme.labelPrimary)
+                                                        .lineLimit(1)
+
+                                                    Text(feed.author)
+                                                        .font(.system(size: 12))
+                                                        .foregroundStyle(AmberTheme.labelSecondary)
+                                                        .lineLimit(1)
+                                                }
+                                                Spacer()
+                                                Image(systemName: "chevron.right")
+                                                    .font(.system(size: 13, weight: .semibold))
+                                                    .foregroundStyle(AmberTheme.labelTertiary)
                                             }
-                                            .frame(width: 44, height: 44)
-                                            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                                        } else {
-                                            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                                .fill(Color(white: 0.15))
-                                                .frame(width: 44, height: 44)
-                                                .overlay(
-                                                    Image(systemName: "waveform")
-                                                        .foregroundColor(AmberTheme.labelTertiary)
-                                                )
+                                            .padding(.horizontal, 16)
+                                            .padding(.vertical, 10)
                                         }
 
-                                        VStack(alignment: .leading, spacing: 3) {
-                                            Text(feed.title)
-                                                .font(.system(size: 15, weight: .semibold))
-                                                .foregroundStyle(AmberTheme.labelPrimary)
-                                                .lineLimit(1)
-
-                                            Text(feed.author)
-                                                .font(.system(size: 12))
-                                                .foregroundStyle(AmberTheme.labelSecondary)
-                                                .lineLimit(1)
+                                        if index < store.feeds.count - 1 {
+                                            Divider().background(AmberTheme.borderHairline).padding(.leading, 72)
                                         }
                                     }
-                                    .padding(.vertical, 4)
                                 }
+                                .background(AmberTheme.surfaceCard.opacity(0.85), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                                .padding(.horizontal, 16)
                             }
                         }
-                        .listRowBackground(AmberTheme.surfaceCard.opacity(0.85))
-                    }
 
-                    // Bottom clearance for Dock
-                    Color.clear
-                        .frame(height: 120)
-                        .listRowBackground(Color.clear)
-                        .listRowSeparator(.hidden)
+                        // Bottom clearance for Dock
+                        Color.clear.frame(height: 140)
+                    }
+                    .padding(.top, 12)
                 }
-                .listStyle(.insetGrouped)
-                .scrollContentBackground(.hidden)
-                .trackScrollDirection(isCollapsed: isDockCollapsed)
+                .amberScrollObservable()
             }
-            .amberScrollSpace()
             .navigationTitle("资料库")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {

@@ -21,7 +21,6 @@ public struct SearchView: View {
 
     @AppStorage("amber_recent_searches_v1") private var recentSearchesRaw: String = ""
     @AppStorage("amber_cached_discover_json_v1") private var cachedDiscoverJson: String = ""
-    @Environment(\.isDockCollapsed) private var isDockCollapsed: Binding<Bool>
 
     private let impactFeedback = UIImpactFeedbackGenerator(style: .light)
 
@@ -159,6 +158,8 @@ public struct SearchView: View {
     private var searchResultsList: some View {
         ScrollView(.vertical, showsIndicators: false) {
             LazyVStack(spacing: 12) {
+                AmberScrollTopProbe()
+
                 ForEach(searchResults) { item in
                     let isSub = isItemSubscribed(item)
                     if let existing = subscribedFeeds.first(where: {
@@ -178,15 +179,16 @@ public struct SearchView: View {
             }
             .padding(.horizontal, 16)
             .padding(.bottom, 140)
-            .trackScrollDirection(isCollapsed: isDockCollapsed)
         }
-        .amberScrollSpace()
+        .amberScrollObservable()
     }
 
     // MARK: - Apple Podcasts Style Discovery Stream
     private var discoveryStreamView: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 26) {
+                AmberScrollTopProbe()
+
                 // 1. Featured Editorial Banners Carousel
                 if !featuredShows.isEmpty {
                     featuredCarouselSection
@@ -213,9 +215,8 @@ public struct SearchView: View {
                 Spacer(minLength: 120)
             }
             .padding(.top, 6)
-            .trackScrollDirection(isCollapsed: isDockCollapsed)
         }
-        .amberScrollSpace()
+        .amberScrollObservable()
     }
 
     // MARK: - Section 1: Featured Carousel

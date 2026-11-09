@@ -2,10 +2,14 @@ import SwiftUI
 
 public struct MainTabView: View {
     @ObservedObject var player = DualTrackAudioPlayer.shared
+    @ObservedObject private var scrollCoordinator = AmberScrollCoordinator.shared
     @State private var selectedTab: Int = 0
     @State private var showFullPlayer: Bool = false
-    @State private var isDockCollapsed: Bool = false
     @Namespace private var dockNamespace
+
+    private var isDockCollapsed: Bool {
+        scrollCoordinator.isDockCollapsed
+    }
 
 
     #if DEBUG
@@ -37,7 +41,6 @@ public struct MainTabView: View {
                 contentView
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .ignoresSafeArea()
-                    .environment(\.isDockCollapsed, $isDockCollapsed)
 
                 // Bottom Floating Island Stack: Apple Podcasts Style Immersive Dock & MiniPlayer
                 AmberGlassContainer(spacing: 8) {
@@ -51,9 +54,7 @@ public struct MainTabView: View {
                                 .transition(.move(edge: .bottom).combined(with: .opacity))
                                 .onTapGesture {
                                     if isDockCollapsed {
-                                        withAnimation(ForwardMotion.mercuryTab) {
-                                            isDockCollapsed = false
-                                        }
+                                        scrollCoordinator.reset()
                                     }
                                     showFullPlayer = true
                                 }
@@ -70,9 +71,7 @@ public struct MainTabView: View {
         }
         .ignoresSafeArea()
         .onChange(of: selectedTab) { _ in
-            withAnimation(ForwardMotion.mercuryTab) {
-                isDockCollapsed = false
-            }
+            scrollCoordinator.reset()
         }
         .fullScreenCover(isPresented: $showFullPlayer) {
             FullPlayerView(isPresented: $showFullPlayer)
@@ -134,9 +133,7 @@ public struct MainTabView: View {
                 set: { newIndex in
                     if isDockCollapsed {
                         selectedTab = newIndex == 1 ? 2 : 0
-                        withAnimation(ForwardMotion.mercuryTab) {
-                            isDockCollapsed = false
-                        }
+                        scrollCoordinator.reset()
                     } else {
                         selectedTab = newIndex
                     }
@@ -147,9 +144,7 @@ public struct MainTabView: View {
         )
         .onTapGesture {
             if isDockCollapsed {
-                withAnimation(ForwardMotion.mercuryTab) {
-                    isDockCollapsed = false
-                }
+                scrollCoordinator.reset()
             }
         }
     }
