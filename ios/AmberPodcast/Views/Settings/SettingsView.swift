@@ -4,7 +4,7 @@ public struct SettingsView: View {
     /// Version shown in About comes from the bundle, not a hardcoded string.
     static var appVersionText: String {
         let info = Bundle.main.infoDictionary
-        let short = info?["CFBundleShortVersionString"] as? String ?? "2.8.1"
+        let short = info?["CFBundleShortVersionString"] as? String ?? "2.8.2"
         let build = info?["CFBundleVersion"] as? String ?? "1"
         return "\(short) (build \(build))"
     }
@@ -98,6 +98,7 @@ public struct SettingsView: View {
             ) {
                 Button("清空全部本地媒体与索引缓存", role: .destructive) {
                     URLCache.shared.removeAllCachedResponses()
+                    AmberImageCache.shared.clearAll()
                     UserDefaults.standard.removeObject(forKey: "amber_cached_library_json_v1")
                     UserDefaults.standard.removeObject(forKey: "amber_cached_discover_json_v1")
                     let tmp = FileManager.default.temporaryDirectory

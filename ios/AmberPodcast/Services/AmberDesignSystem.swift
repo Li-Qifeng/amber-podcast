@@ -398,19 +398,20 @@ public struct AmberNavCapsuleButtonStyle: ButtonStyle {
     }
 }
 
-// MARK: - Unified Liquid Glass Circular Add Button (Apple Podcasts Style)
+// MARK: - Unified Liquid Glass Circular Add Button (Lens Bubble Expansion Style)
 public struct CircularGlassButtonStyle: ButtonStyle {
     private let impact = UIImpactFeedbackGenerator(style: .light)
 
     public init() {}
 
     public func makeBody(configuration: Configuration) -> some View {
+        let isPressed = configuration.isPressed
+
         configuration.label
-            .scaleEffect(configuration.isPressed ? 0.92 : 1.0)
-            .opacity(configuration.isPressed ? 0.60 : 1.0)
-            .animation(ForwardMotion.touchDown, value: configuration.isPressed)
-            .onChange(of: configuration.isPressed) { isPressed in
-                if isPressed {
+            .scaleEffect(isPressed ? 1.07 : 1.0)
+            .animation(.spring(response: 0.24, dampingFraction: 0.62), value: isPressed)
+            .onChange(of: isPressed) { pressed in
+                if pressed {
                     impact.prepare()
                     impact.impactOccurred()
                 }
@@ -427,33 +428,58 @@ public struct CircularLiquidGlassAddButton: View {
 
     public var body: some View {
         Button(action: action) {
-            ZStack {
-                Circle()
-                    .fill(.ultraThinMaterial)
-                    .frame(width: 36, height: 36)
-                    .overlay(
-                        Circle()
-                            .strokeBorder(
-                                LinearGradient(
-                                    colors: [
-                                        Color.white.opacity(0.24),
-                                        Color.white.opacity(0.08)
-                                    ],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                ),
-                                lineWidth: 0.5
-                            )
-                    )
-                    .shadow(color: Color.black.opacity(0.18), radius: 5, y: 2.5)
-
-                Image(systemName: "plus")
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(AmberTheme.labelPrimary)
-            }
-            .contentShape(Circle())
+            CircularGlassIconView()
         }
         .buttonStyle(CircularGlassButtonStyle())
+    }
+}
+
+private struct CircularGlassIconView: View {
+    @Environment(\.isEnabled) private var isEnabled
+
+    var body: some View {
+        ZStack {
+            // Liquid Glass Translucent Base
+            Circle()
+                .fill(.ultraThinMaterial)
+                .frame(width: 36, height: 36)
+
+            // Dynamic Specular Glass Tint (Reflective sheen)
+            Circle()
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            Color.white.opacity(0.18),
+                            Color.white.opacity(0.04)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .frame(width: 36, height: 36)
+
+            // Precision Refractive Hairline Stroke
+            Circle()
+                .strokeBorder(
+                    LinearGradient(
+                        colors: [
+                            Color.white.opacity(0.38),
+                            Color.white.opacity(0.12)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 0.5
+                )
+                .frame(width: 36, height: 36)
+
+            // Crisp White Plus Glyph
+            Image(systemName: "plus")
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(Color.white)
+        }
+        .shadow(color: Color.black.opacity(0.20), radius: 6, y: 2.5)
+        .contentShape(Circle())
     }
 }
 

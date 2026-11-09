@@ -80,12 +80,10 @@ public struct NativeLibraryCatalogView: View {
                                 } label: {
                                     HStack(spacing: 12) {
                                         if !feed.proxiedCoverUrl.isEmpty, let url = URL(string: feed.proxiedCoverUrl) {
-                                            AsyncImage(url: url) { phase in
-                                                if let image = phase.image {
-                                                    image.resizable().aspectRatio(contentMode: .fill)
-                                                } else {
-                                                    Color(white: 0.15)
-                                                }
+                                            CachedAsyncImage(url: url) { image in
+                                                image.resizable().aspectRatio(contentMode: .fill)
+                                            } placeholder: {
+                                                Color(white: 0.15)
                                             }
                                             .frame(width: 44, height: 44)
                                             .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
@@ -168,12 +166,10 @@ public struct FeedListView: View {
                     } label: {
                         HStack(spacing: 12) {
                             if !feed.proxiedCoverUrl.isEmpty, let url = URL(string: feed.proxiedCoverUrl) {
-                                AsyncImage(url: url) { phase in
-                                    if let image = phase.image {
-                                        image.resizable().aspectRatio(contentMode: .fill)
-                                    } else {
-                                        Color(white: 0.15)
-                                    }
+                                CachedAsyncImage(url: url) { image in
+                                    image.resizable().aspectRatio(contentMode: .fill)
+                                } placeholder: {
+                                    Color(white: 0.15)
                                 }
                                 .frame(width: 48, height: 48)
                                 .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))

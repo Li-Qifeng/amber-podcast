@@ -107,17 +107,14 @@ public struct HomeLibraryView: View {
         ZStack(alignment: .bottomLeading) {
             // Layer 1: High-Resolution Artwork Layer
             if let coverUrl = heroFeed?.proxiedCoverUrl, let url = URL(string: coverUrl), !coverUrl.isEmpty {
-                AsyncImage(url: url) { phase in
-                    switch phase {
-                    case .success(let img):
-                        img
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: geometry.size.width, height: heroHeight)
-                            .clipped()
-                    default:
-                        ambientHeroArtworkPlaceholder(width: geometry.size.width, height: heroHeight)
-                    }
+                CachedAsyncImage(url: url) { img in
+                    img
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: geometry.size.width, height: heroHeight)
+                        .clipped()
+                } placeholder: {
+                    ambientHeroArtworkPlaceholder(width: geometry.size.width, height: heroHeight)
                 }
             } else {
                 ambientHeroArtworkPlaceholder(width: geometry.size.width, height: heroHeight)
@@ -320,17 +317,14 @@ public struct HomeLibraryView: View {
                 // 16:9 Card Artwork
                 ZStack(alignment: .bottomLeading) {
                     if let url = URL(string: feed.proxiedCoverUrl), !feed.proxiedCoverUrl.isEmpty {
-                        AsyncImage(url: url) { phase in
-                            switch phase {
-                            case .success(let img):
-                                img
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: width, height: height)
-                                    .clipped()
-                            default:
-                                coverPlaceholder(width: width, height: height, title: feed.title)
-                            }
+                        CachedAsyncImage(url: url) { img in
+                            img
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: width, height: height)
+                                .clipped()
+                        } placeholder: {
+                            coverPlaceholder(width: width, height: height, title: feed.title)
                         }
                     } else {
                         coverPlaceholder(width: width, height: height, title: feed.title)
@@ -417,7 +411,7 @@ public struct HomeLibraryView: View {
                             VStack(alignment: .leading, spacing: 6) {
                                 ZStack(alignment: .bottomTrailing) {
                                     if let url = URL(string: feed.proxiedCoverUrl), !feed.proxiedCoverUrl.isEmpty {
-                                        AsyncImage(url: url) { img in
+                                        CachedAsyncImage(url: url) { img in
                                             img
                                                 .resizable()
                                                 .scaledToFill()
