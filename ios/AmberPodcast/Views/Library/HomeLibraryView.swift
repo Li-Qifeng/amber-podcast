@@ -63,6 +63,7 @@ public struct HomeLibraryView: View {
                                 Color.clear.frame(height: 168)
                             }
                         }
+                        .scrollBounceBehavior(.always, axes: .vertical)
                         .amberScrollObservable(tab: 0)
                         .ignoresSafeArea(edges: .top)
                     }

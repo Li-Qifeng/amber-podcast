@@ -29,6 +29,8 @@ public struct FeedDetailView: View {
 
             ScrollView(.vertical, showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 20) {
+                    AmberScrollTopProbe()
+
                     // 1. Forward-style Hero Banner
                     feedHeader
 
@@ -104,6 +106,8 @@ public struct FeedDetailView: View {
                 }
                 .padding(.bottom, 140) // Clearance for floating mini player & dock
             }
+            .scrollBounceBehavior(.always, axes: .vertical)
+            .amberScrollObservable()
         }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {

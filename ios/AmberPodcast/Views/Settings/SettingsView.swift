@@ -54,6 +54,8 @@ public struct SettingsView: View {
 
                 ScrollView(.vertical, showsIndicators: false) {
                     VStack(spacing: 22) {
+                        AmberScrollTopProbe(tab: 3)
+
                         // Section 1: Server Gateway & Network
                         gatewaySection
 
@@ -76,6 +78,8 @@ public struct SettingsView: View {
                     .padding(.top, 14)
                     .padding(.bottom, 120) // Clearance for floating MiniPlayer
                 }
+                .scrollBounceBehavior(.always, axes: .vertical)
+                .amberScrollObservable(tab: 3)
             }
             .navigationTitle("设置")
             .navigationBarTitleDisplayMode(.inline)

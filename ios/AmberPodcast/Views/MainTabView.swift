@@ -50,21 +50,23 @@ public struct MainTabView: View {
                             minimizedTabWing(index: selectedTab)
 
                             MiniPlayerView(showFullPlayer: $showFullPlayer)
-                                .frame(width: max(min(geo.size.width - 136, 424), 160))
+                                .frame(height: 50)
+                                .frame(maxWidth: .infinity)
                                 .matchedGeometryEffect(id: "miniPlayer", in: dockNamespace)
                                 .onTapGesture {
                                     showFullPlayer = true
                                 }
 
-                            minimizedTabWing(index: selectedTab == 2 ? 3 : 2)
+                            minimizedTabWing(index: selectedTab == 2 ? 0 : 2)
                         }
-                        .frame(width: min(geo.size.width - 32, 560))
+                        .frame(width: min(geo.size.width - 32, 560), height: 50)
+                        .transition(.scale(scale: 0.96).combined(with: .opacity))
                     } else {
                         // Expanded Vertical Stack Mode: Clean 8pt gap, zero overlap, perfectly centered
                         VStack(spacing: 8) {
                             if player.currentEpisode != nil {
                                 MiniPlayerView(showFullPlayer: $showFullPlayer)
-                                    .frame(width: min(geo.size.width - 32, 560))
+                                    .frame(width: min(geo.size.width - 32, 560), height: 54)
                                     .matchedGeometryEffect(id: "miniPlayer", in: dockNamespace)
                                     .onTapGesture {
                                         showFullPlayer = true
@@ -74,6 +76,7 @@ public struct MainTabView: View {
                             floatingLiquidDock(geometry: geo)
                         }
                         .frame(width: min(geo.size.width - 32, 560))
+                        .transition(.scale(scale: 0.98).combined(with: .opacity))
                     }
                 }
                 .frame(maxWidth: .infinity)
@@ -133,16 +136,17 @@ public struct MainTabView: View {
     // MARK: - Floating Dock (UIKit glass on iOS 26+, SwiftUI fallback below)
     private func minimizedTabWing(index: Int) -> some View {
         let item = dockItems[index]
+        let isSelected = selectedTab == index
         return Button {
-            if isDockCollapsed {
+            withAnimation(ForwardMotion.mercuryTab) {
                 scrollCoordinator.reset()
+                selectedTab = index
             }
-            selectedTab = index
         } label: {
             Image(systemName: item.icon)
-                .font(.system(size: 16, weight: selectedTab == index ? .bold : .medium))
-                .foregroundStyle(selectedTab == index ? AmberTheme.primaryAmber : AmberTheme.labelSecondary)
-                .frame(width: 44, height: 44)
+                .font(.system(size: 18, weight: isSelected ? .bold : .medium))
+                .foregroundStyle(isSelected ? AmberTheme.primaryAmber : AmberTheme.labelSecondary)
+                .frame(width: 50, height: 50)
         }
         .buttonStyle(.plain)
         .background(
@@ -150,32 +154,22 @@ public struct MainTabView: View {
                 .fill(.ultraThinMaterial)
                 .overlay(
                     Circle()
-                        .strokeBorder(Color.white.opacity(0.14), lineWidth: 0.5)
+                        .strokeBorder(Color.white.opacity(0.18), lineWidth: 0.5)
                 )
         )
-        .shadow(color: Color.black.opacity(0.18), radius: 6, y: 3)
+        .shadow(color: Color.black.opacity(0.18), radius: 8, y: 4)
     }
 
     private func floatingLiquidDock(geometry: GeometryProxy) -> some View {
-        let dockWidth: CGFloat = isDockCollapsed ? 152 : min(geometry.size.width * AmberTheme.dockWidthRatio, 420)
-        let items = isDockCollapsed ? collapsedDockItems : dockItems
+        let dockWidth: CGFloat = min(geometry.size.width * AmberTheme.dockWidthRatio, 420)
+        let items = dockItems
 
         return AmberTabBarRendering.dock(
             items: items,
             selection: Binding(
-                get: {
-                    if isDockCollapsed {
-                        return selectedTab == 2 ? 1 : 0
-                    }
-                    return selectedTab
-                },
+                get: { selectedTab },
                 set: { newIndex in
-                    if isDockCollapsed {
-                        selectedTab = newIndex == 1 ? 2 : 0
-                        scrollCoordinator.reset()
-                    } else {
-                        selectedTab = newIndex
-                    }
+                    selectedTab = newIndex
                 }
             ),
             width: dockWidth,

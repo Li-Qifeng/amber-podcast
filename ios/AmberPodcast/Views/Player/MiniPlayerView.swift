@@ -18,7 +18,7 @@ public struct MiniPlayerView: View {
         if let episode = player.currentEpisode {
             VStack(spacing: 0) {
                 // Main Mini Player Liquid Glass Capsule Island
-                HStack(spacing: 12) {
+                HStack(spacing: 10) {
                     // 1. Cover Artwork (Squircle)
                     coverArtworkView
 
@@ -83,11 +83,13 @@ public struct MiniPlayerView: View {
                         .transition(.scale.combined(with: .opacity))
                     }
                 }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 8)
+                .padding(.horizontal, 12)
+                .padding(.vertical, scrollCoordinator.isDockCollapsed ? 6 : 8)
 
-                // 5. Hairline Micro Progress Bar
-                progressBarView
+                // 5. Hairline Micro Progress Bar (only visible in expanded mode)
+                if !scrollCoordinator.isDockCollapsed {
+                    progressBarView
+                }
             }
             .amberGlass(.capsule, isInteractive: true)
             .offset(y: dragOffsetY)
@@ -140,8 +142,11 @@ public struct MiniPlayerView: View {
                     image
                         .resizable()
                         .scaledToFill()
-                        .frame(width: 40, height: 40)
-                        .amberMediaCard(radius: 10)
+                        .frame(
+                            width: scrollCoordinator.isDockCollapsed ? 36 : 40,
+                            height: scrollCoordinator.isDockCollapsed ? 36 : 40
+                        )
+                        .amberMediaCard(radius: 8)
                 } placeholder: {
                     coverPlaceholder
                 }
@@ -156,8 +161,11 @@ public struct MiniPlayerView: View {
             Color(white: 0.15)
             Image(systemName: "headphones").font(.caption).foregroundStyle(.white.opacity(0.6))
         }
-        .frame(width: 40, height: 40)
-        .amberMediaCard(radius: 10)
+        .frame(
+            width: scrollCoordinator.isDockCollapsed ? 36 : 40,
+            height: scrollCoordinator.isDockCollapsed ? 36 : 40
+        )
+        .amberMediaCard(radius: 8)
     }
 
     private var trackModeBadge: some View {
