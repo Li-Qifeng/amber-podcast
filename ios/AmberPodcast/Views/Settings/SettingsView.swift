@@ -98,6 +98,7 @@ public struct SettingsView: View {
             ) {
                 Button("清空全部本地媒体与索引缓存", role: .destructive) {
                     URLCache.shared.removeAllCachedResponses()
+                    AmberImageCache.shared.clearAll()
                     UserDefaults.standard.removeObject(forKey: "amber_cached_library_json_v1")
                     UserDefaults.standard.removeObject(forKey: "amber_cached_discover_json_v1")
                     let tmp = FileManager.default.temporaryDirectory
