@@ -8,15 +8,16 @@ public final class AmberScrollCoordinator: ObservableObject {
     @Published public var isDockCollapsed: Bool = false
 
     public private(set) var currentTab: Int = 0
-    private var tabBaselines: [Int: CGFloat] = [:]
     private var tabLastOffsets: [Int: CGFloat] = [:]
-    private var accumulatedDownwardScroll: CGFloat = 0
+    private var downwardDistance: CGFloat = 0
+    private var upwardDistance: CGFloat = 0
 
     private init() {}
 
     public func setTab(_ tab: Int) {
         currentTab = tab
-        accumulatedDownwardScroll = 0
+        downwardDistance = 0
+        upwardDistance = 0
         if isDockCollapsed {
             withAnimation(ForwardMotion.mercuryTab) {
                 isDockCollapsed = false
@@ -25,56 +26,50 @@ public final class AmberScrollCoordinator: ObservableObject {
     }
 
     public func reset() {
-        tabBaselines.removeAll()
         tabLastOffsets.removeAll()
-        accumulatedDownwardScroll = 0
-        isDockCollapsed = false
+        downwardDistance = 0
+        upwardDistance = 0
+        if isDockCollapsed {
+            withAnimation(ForwardMotion.mercuryTab) {
+                isDockCollapsed = false
+            }
+        }
     }
 
     public func handleOffset(_ offset: CGFloat, forTab tab: Int? = nil) {
         let activeTab = tab ?? currentTab
 
-        guard let baseline = tabBaselines[activeTab] else {
-            // First scroll event on this tab establishes the local baseline (whether 0 or -140)
-            tabBaselines[activeTab] = offset
+        guard let last = tabLastOffsets[activeTab] else {
+            // First scroll event on this tab seeds the lastOffset
             tabLastOffsets[activeTab] = offset
             return
         }
 
-        let last = tabLastOffsets[activeTab] ?? offset
         let delta = offset - last
+        tabLastOffsets[activeTab] = offset
 
-        // 1. Returning to top rest position -> always expand
-        if offset <= baseline + 15 {
-            accumulatedDownwardScroll = 0
-            if isDockCollapsed {
-                withAnimation(ForwardMotion.mercuryTab) {
-                    isDockCollapsed = false
-                }
-            }
-            tabLastOffsets[activeTab] = offset
-            return
-        }
+        // Filter out sub-pixel noise
+        if abs(delta) < 0.8 { return }
 
-        // 2. Downward scroll -> collapse
-        if delta > 1.2 {
-            accumulatedDownwardScroll += delta
-            if accumulatedDownwardScroll > 20 && !isDockCollapsed {
+        if delta > 0 {
+            // Scrolling down (finger moves up, content offset increases)
+            downwardDistance += delta
+            upwardDistance = 0
+            if downwardDistance > 20 && !isDockCollapsed {
                 withAnimation(ForwardMotion.mercuryTab) {
                     isDockCollapsed = true
                 }
             }
-        } else if delta < -3.0 {
-            // 3. Upward flick -> expand
-            accumulatedDownwardScroll = 0
-            if isDockCollapsed {
+        } else {
+            // Scrolling up (finger moves down, content offset decreases)
+            upwardDistance += abs(delta)
+            downwardDistance = 0
+            if (upwardDistance > 12 || delta < -3.5) && isDockCollapsed {
                 withAnimation(ForwardMotion.mercuryTab) {
                     isDockCollapsed = false
                 }
             }
         }
-
-        tabLastOffsets[activeTab] = offset
     }
 
     public func updateScroll(globalY: CGFloat, forTab tab: Int? = nil) {
