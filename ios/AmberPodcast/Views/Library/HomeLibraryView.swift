@@ -482,7 +482,7 @@ public struct HomeLibraryView: View {
     private func topFloatingToolbar(geometry: GeometryProxy) -> some View {
         VStack {
             HStack(alignment: .center) {
-                Text("资料库")
+                Text("首页")
                     .font(.system(size: 26, weight: .bold, design: .rounded))
                     .foregroundStyle(AmberTheme.labelPrimary)
 

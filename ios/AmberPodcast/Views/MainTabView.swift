@@ -97,7 +97,7 @@ public struct MainTabView: View {
             if let idx = ProcessInfo.processInfo.arguments.firstIndex(of: "-amberStartTab"),
                idx + 1 < ProcessInfo.processInfo.arguments.count,
                let tab = Int(ProcessInfo.processInfo.arguments[idx + 1]) {
-                selectedTab = min(max(tab, 0), 2)
+                selectedTab = min(max(tab, 0), 3)
             }
             if ProcessInfo.processInfo.arguments.contains("-amberOpenPlayer") {
                 showFullPlayer = true
@@ -106,7 +106,7 @@ public struct MainTabView: View {
                 let interval: TimeInterval = demoTabsSlowMotion ? 4.0 : 1.5
                 Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { _ in
                     withAnimation(demoTabAnimation) {
-                        selectedTab = (selectedTab + 1) % 3
+                        selectedTab = (selectedTab + 1) % 4
                     }
                 }
             }
@@ -121,8 +121,10 @@ public struct MainTabView: View {
         case 0:
             HomeLibraryView()
         case 1:
-            SearchView()
+            NativeLibraryCatalogView()
         case 2:
+            SearchView()
+        case 3:
             SettingsView()
         default:
             HomeLibraryView()
@@ -133,17 +135,7 @@ public struct MainTabView: View {
     private func floatingLiquidDock(geometry: GeometryProxy) -> some View {
         AmberTabBarRendering.dock(
             items: dockItems,
-            selection: Binding(
-                get: { selectedTab >= 2 ? selectedTab + 1 : selectedTab },
-                set: { index in
-                    if index == 2 {
-                        // Intercepted tab: opens the player instead of switching.
-                        showFullPlayer = true
-                    } else {
-                        selectedTab = index > 2 ? index - 1 : index
-                    }
-                }
-            ),
+            selection: $selectedTab,
             width: geometry.size.width * AmberTheme.dockWidthRatio,
             height: AmberTheme.dockHeight
         )
@@ -151,9 +143,9 @@ public struct MainTabView: View {
 
     private var dockItems: [AmberDockItem] {
         [
+            AmberDockItem(icon: "house.fill", title: "首页"),
             AmberDockItem(icon: "square.stack.fill", title: "资料库"),
             AmberDockItem(icon: "magnifyingglass", title: "发现"),
-            AmberDockItem(icon: "play.circle.fill", title: "播放"),
             AmberDockItem(icon: "gearshape.fill", title: "设置"),
         ]
     }
