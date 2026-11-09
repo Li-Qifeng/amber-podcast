@@ -44,7 +44,9 @@ public struct MainTabView: View {
                     VStack(spacing: 8) {
                         if player.currentEpisode != nil {
                             MiniPlayerView(showFullPlayer: $showFullPlayer)
-                                .frame(width: min(geo.size.width - 32, 560))
+                                .frame(width: isDockCollapsed ? min(geo.size.width - 64, 420) : min(geo.size.width - 32, 560))
+                                .scaleEffect(isDockCollapsed ? 0.96 : 1.0)
+                                .opacity(isDockCollapsed ? 0.92 : 1.0)
                                 .amberGlassID("miniPlayer", in: dockNamespace)
                                 .transition(.move(edge: .bottom).combined(with: .opacity))
                                 .onTapGesture {

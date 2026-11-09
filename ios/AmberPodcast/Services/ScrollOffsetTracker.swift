@@ -20,7 +20,7 @@ public extension EnvironmentValues {
 
 public struct ScrollDirectionObserverModifier: ViewModifier {
     @Binding public var isCollapsed: Bool
-    public var threshold: CGFloat = 24.0
+    public var threshold: CGFloat = 3.5
 
     @State private var previousOffset: CGFloat = 0
 
@@ -36,8 +36,13 @@ public struct ScrollDirectionObserverModifier: ViewModifier {
             )
             .onPreferenceChange(ScrollOffsetPreferenceKey.self) { currentOffset in
                 let delta = currentOffset - previousOffset
-                if delta < -threshold && !isCollapsed && currentOffset < -30 {
-                    // Scrolling down (content moving up) -> minimize dock to 2-button pill
+                // If user returns to top of screen, immediately restore full expanded state
+                if currentOffset >= -10 && isCollapsed {
+                    withAnimation(ForwardMotion.mercuryTab) {
+                        isCollapsed = false
+                    }
+                } else if delta < -threshold && !isCollapsed && currentOffset < -30 {
+                    // Scrolling down (content moving up) -> minimize dock to 2-button pill & compact player
                     withAnimation(ForwardMotion.mercuryTab) {
                         isCollapsed = true
                     }
@@ -53,7 +58,7 @@ public struct ScrollDirectionObserverModifier: ViewModifier {
 }
 
 public extension View {
-    func trackScrollDirection(isCollapsed: Binding<Bool>, threshold: CGFloat = 24.0) -> some View {
+    func trackScrollDirection(isCollapsed: Binding<Bool>, threshold: CGFloat = 3.5) -> some View {
         self.modifier(ScrollDirectionObserverModifier(isCollapsed: isCollapsed, threshold: threshold))
     }
 
