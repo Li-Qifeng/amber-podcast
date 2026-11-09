@@ -55,7 +55,7 @@ final class GlassTabBarView: UIView, UITabBarDelegate {
             .foregroundColor: UIColor(AmberTheme.labelTertiary),
             .font: UIFont.systemFont(ofSize: 11, weight: .medium),
         ]
-        item.selected.iconColor = .white
+        item.selected.iconColor = UIColor(AmberTheme.primaryAmber)
         item.selected.titleTextAttributes = [
             .foregroundColor: UIColor(AmberTheme.primaryAmber),
             .font: UIFont.systemFont(ofSize: 11, weight: .semibold),
