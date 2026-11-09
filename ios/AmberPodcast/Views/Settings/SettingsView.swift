@@ -4,7 +4,7 @@ public struct SettingsView: View {
     /// Version shown in About comes from the bundle, not a hardcoded string.
     static var appVersionText: String {
         let info = Bundle.main.infoDictionary
-        let short = info?["CFBundleShortVersionString"] as? String ?? "2.7.6"
+        let short = info?["CFBundleShortVersionString"] as? String ?? "2.8.0"
         let build = info?["CFBundleVersion"] as? String ?? "1"
         return "\(short) (build \(build))"
     }
