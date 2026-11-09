@@ -23,19 +23,21 @@ public struct MiniPlayerView: View {
                     coverArtworkView
 
                     // 2. Titles & Current Track Mode Pill
-                    VStack(alignment: .leading, spacing: 2.5) {
+                    VStack(alignment: .leading, spacing: 2) {
                         Text(episode.title)
-                            .font(.system(size: 13, weight: .semibold, design: .rounded))
+                            .font(.system(size: 12.5, weight: .semibold, design: .rounded))
                             .foregroundStyle(AmberTheme.labelPrimary)
                             .lineLimit(1)
 
-                        HStack(spacing: 6) {
-                            trackModeBadge
+                        if !scrollCoordinator.isDockCollapsed {
+                            HStack(spacing: 6) {
+                                trackModeBadge
 
-                            Text(player.currentFeed?.title ?? "")
-                                .font(.system(size: 11, weight: .medium))
-                                .foregroundStyle(AmberTheme.labelTertiary)
-                                .lineLimit(1)
+                                Text(player.currentFeed?.title ?? "")
+                                    .font(.system(size: 11, weight: .medium))
+                                    .foregroundStyle(AmberTheme.labelTertiary)
+                                    .lineLimit(1)
+                            }
                         }
                     }
 
