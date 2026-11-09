@@ -398,6 +398,65 @@ public struct AmberNavCapsuleButtonStyle: ButtonStyle {
     }
 }
 
+// MARK: - Unified Liquid Glass Circular Add Button (Apple Podcasts Style)
+public struct CircularGlassButtonStyle: ButtonStyle {
+    private let impact = UIImpactFeedbackGenerator(style: .light)
+
+    public init() {}
+
+    public func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.92 : 1.0)
+            .opacity(configuration.isPressed ? 0.60 : 1.0)
+            .animation(ForwardMotion.touchDown, value: configuration.isPressed)
+            .onChange(of: configuration.isPressed) { isPressed in
+                if isPressed {
+                    impact.prepare()
+                    impact.impactOccurred()
+                }
+            }
+    }
+}
+
+public struct CircularLiquidGlassAddButton: View {
+    public let action: () -> Void
+
+    public init(action: @escaping () -> Void) {
+        self.action = action
+    }
+
+    public var body: some View {
+        Button(action: action) {
+            ZStack {
+                Circle()
+                    .fill(.ultraThinMaterial)
+                    .frame(width: 36, height: 36)
+                    .overlay(
+                        Circle()
+                            .strokeBorder(
+                                LinearGradient(
+                                    colors: [
+                                        Color.white.opacity(0.24),
+                                        Color.white.opacity(0.08)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 0.5
+                            )
+                    )
+                    .shadow(color: Color.black.opacity(0.18), radius: 5, y: 2.5)
+
+                Image(systemName: "plus")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(AmberTheme.labelPrimary)
+            }
+            .contentShape(Circle())
+        }
+        .buttonStyle(CircularGlassButtonStyle())
+    }
+}
+
 // MARK: - Native Liquid Glass ButtonStyle
 public struct LiquidGlassButtonStyle: ButtonStyle {
     public var tint: Color? = nil

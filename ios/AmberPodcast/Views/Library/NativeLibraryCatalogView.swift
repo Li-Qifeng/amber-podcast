@@ -4,6 +4,7 @@ public struct NativeLibraryCatalogView: View {
     @ObservedObject private var store = LibraryStore.shared
     @ObservedObject private var player = DualTrackAudioPlayer.shared
     @State private var showSubscribeSheet = false
+    @Environment(\.isDockCollapsed) private var isDockCollapsed: Binding<Bool>
     private let impactFeedback = UIImpactFeedbackGenerator(style: .light)
 
     public init() {}
@@ -125,25 +126,15 @@ public struct NativeLibraryCatalogView: View {
                 }
                 .listStyle(.insetGrouped)
                 .scrollContentBackground(.hidden)
+                .trackScrollDirection(isCollapsed: isDockCollapsed)
             }
+            .amberScrollSpace()
             .navigationTitle("资料库")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button {
+                    CircularLiquidGlassAddButton {
                         showSubscribeSheet = true
-                    } label: {
-                        HStack(spacing: 5) {
-                            Image(systemName: "plus")
-                                .font(.system(size: 13, weight: .bold))
-                            Text("添加")
-                                .font(.system(size: 13, weight: .medium, design: .rounded))
-                        }
-                        .foregroundStyle(AmberTheme.labelPrimary)
-                        .padding(.horizontal, 13)
-                        .padding(.vertical, 7)
-                        .liquidGlassCapsule()
                     }
-                    .buttonStyle(AmberNavCapsuleButtonStyle())
                 }
             }
             .sheet(isPresented: $showSubscribeSheet) {

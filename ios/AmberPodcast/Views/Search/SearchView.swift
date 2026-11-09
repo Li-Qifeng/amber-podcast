@@ -53,7 +53,13 @@ public struct SearchView: View {
             ZStack {
                 AmberTheme.background.ignoresSafeArea()
 
-                Group {
+                VStack(spacing: 0) {
+                    if isUrlQuery {
+                        directUrlBanner
+                            .padding(.top, 8)
+                            .transition(.move(edge: .top).combined(with: .opacity))
+                    }
+
                     // Results or Apple Podcasts Discovery Feed
                     if isSearching {
                         VStack(spacing: 14) {
@@ -74,12 +80,14 @@ public struct SearchView: View {
                         discoveryStreamView
                     }
                 }
-                .safeAreaInset(edge: .top, spacing: 0) {
-                    stickySearchGlassHeader
-                }
+                .animation(ForwardMotion.mercuryTab, value: isUrlQuery)
             }
             .navigationTitle("发现")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitleDisplayMode(.large)
+            .searchable(text: $query, prompt: "搜索全网播客、主播或 RSS 链接")
+            .onSubmit(of: .search) {
+                performSearch()
+            }
             .onAppear {
                 restoreDiscoverFromCache()
             }
@@ -97,65 +105,6 @@ public struct SearchView: View {
                 Text(errorMessage ?? "操作完成")
             }
         }
-    }
-
-    // MARK: - Sticky Liquid Glass Search Header
-    private var stickySearchGlassHeader: some View {
-        VStack(spacing: 6) {
-            searchBarHeader
-                .padding(.horizontal, 16)
-                .padding(.top, 8)
-                .padding(.bottom, 6)
-
-            if isUrlQuery {
-                directUrlBanner
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 8)
-            }
-        }
-        .background(
-            Rectangle()
-                .fill(AmberTheme.background.opacity(0.82))
-                .background(.ultraThinMaterial)
-                .overlay(
-                    Divider().background(AmberTheme.borderHairline.opacity(0.5)),
-                    alignment: .bottom
-                )
-        )
-    }
-
-    // MARK: - Search Bar Header
-    private var searchBarHeader: some View {
-        HStack(spacing: 10) {
-            Image(systemName: "magnifyingglass")
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(AmberTheme.primaryAmber)
-
-            TextField("搜索全网播客、主播或粘贴 RSS / 小宇宙链接...", text: $query)
-                .font(.system(size: 13.5, weight: .regular))
-                .foregroundStyle(AmberTheme.labelPrimary)
-                .autocorrectionDisabled()
-                .textInputAutocapitalization(.never)
-                .submitLabel(.search)
-                .onSubmit {
-                    performSearch()
-                }
-
-            if !query.isEmpty {
-                Button {
-                    query = ""
-                    searchResults = []
-                    hasSearched = false
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 15))
-                        .foregroundStyle(AmberTheme.labelTertiary)
-                }
-            }
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 9)
-        .liquidGlassCapsule()
     }
 
     // MARK: - Direct URL Banner

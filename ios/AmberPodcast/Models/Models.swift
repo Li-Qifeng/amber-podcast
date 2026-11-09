@@ -35,7 +35,7 @@ public struct PodcastFeed: Identifiable, Codable, Hashable {
         guard let encoded = coverUrl.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
             return coverUrl
         }
-        return "\(AmberAPIClient.shared.serverBaseUrl)/api/v1/images/proxy?url=\(encoded)"
+        return "\(AmberAPIClient.shared.serverBaseUrl)/api/v1/images/proxy?url=\(encoded)&w=1200"
     }
 
     enum CodingKeys: String, CodingKey {

@@ -76,7 +76,7 @@ struct LegacyDockBar: View {
                 VStack(spacing: 3) {
                     Image(systemName: item.icon)
                         .font(.system(size: 17, weight: isSelected ? .semibold : .regular))
-                        .foregroundStyle(isSelected ? AmberTheme.labelPrimary : AmberTheme.labelTertiary)
+                        .foregroundStyle(isSelected ? AmberTheme.primaryAmber : AmberTheme.labelTertiary)
                         .scaleEffect(isSelected ? 1.04 : 1.0)
 
                     Text(item.title)
