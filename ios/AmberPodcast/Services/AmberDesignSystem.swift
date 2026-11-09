@@ -370,6 +370,34 @@ public struct TactileButtonStyle: ButtonStyle {
     }
 }
 
+// MARK: - Apple Navigation Bar Capsule ButtonStyle (Matches Native Modal Cancel Feel)
+public struct AmberNavCapsuleButtonStyle: ButtonStyle {
+    public var scale: CGFloat = 0.96
+    public var pressedOpacity: Double = 0.45
+    private let impact = UIImpactFeedbackGenerator(style: .light)
+
+    public init(scale: CGFloat = 0.96, pressedOpacity: Double = 0.45) {
+        self.scale = scale
+        self.pressedOpacity = pressedOpacity
+    }
+
+    public func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .opacity(configuration.isPressed ? pressedOpacity : 1.0)
+            .scaleEffect(configuration.isPressed ? scale : 1.0)
+            .animation(
+                configuration.isPressed ? ForwardMotion.touchDown : ForwardMotion.touchUp,
+                value: configuration.isPressed
+            )
+            .onChange(of: configuration.isPressed) { isPressed in
+                if isPressed {
+                    impact.prepare()
+                    impact.impactOccurred()
+                }
+            }
+    }
+}
+
 // MARK: - Native Liquid Glass ButtonStyle
 public struct LiquidGlassButtonStyle: ButtonStyle {
     public var tint: Color? = nil
