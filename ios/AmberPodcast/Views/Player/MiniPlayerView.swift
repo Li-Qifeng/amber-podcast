@@ -2,8 +2,8 @@ import SwiftUI
 
 public struct MiniPlayerView: View {
     @ObservedObject var player = DualTrackAudioPlayer.shared
+    @ObservedObject private var scrollCoordinator = AmberScrollCoordinator.shared
     @Binding var showFullPlayer: Bool
-    @Environment(\.isDockCollapsed) private var isDockCollapsed: Binding<Bool>
 
     @State private var dragOffsetY: CGFloat = 0
     @State private var isDragging: Bool = false
@@ -67,7 +67,7 @@ public struct MiniPlayerView: View {
                     .buttonStyle(TactileButtonStyle(scale: 0.94))
 
                     // 4. Skip forward 30s (hidden in compact/collapsed scroll mode)
-                    if !isDockCollapsed.wrappedValue {
+                    if !scrollCoordinator.isDockCollapsed {
                         Button {
                             player.skipForward(30)
                             impactFeedback.impactOccurred()

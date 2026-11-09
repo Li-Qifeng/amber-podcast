@@ -14,7 +14,6 @@ public struct HomeLibraryView: View {
     @State private var errorMessage: String? = nil
 
     @AppStorage("amber_cached_library_json_v2") private var cachedLibraryJson: String = ""
-    @Environment(\.isDockCollapsed) private var isDockCollapsed: Binding<Bool>
 
     @ObservedObject var player = DualTrackAudioPlayer.shared
     private let impactFeedback = UIImpactFeedbackGenerator(style: .light)
@@ -47,6 +46,8 @@ public struct HomeLibraryView: View {
                     } else {
                         ScrollView(.vertical, showsIndicators: false) {
                             VStack(alignment: .leading, spacing: 0) {
+                                AmberScrollTopProbe()
+
                                 // 1. Quiet Acoustic Hero Banner (58% Balanced Proportion)
                                 heroBannerSection(geometry: geo)
 
@@ -61,9 +62,8 @@ public struct HomeLibraryView: View {
                                 // Bottom Clearance for floating Dock & MiniPlayer
                                 Color.clear.frame(height: 168)
                             }
-                            .trackScrollDirection(isCollapsed: isDockCollapsed)
                         }
-                        .amberScrollSpace()
+                        .amberScrollObservable()
                         .ignoresSafeArea(edges: .top)
                     }
                 }

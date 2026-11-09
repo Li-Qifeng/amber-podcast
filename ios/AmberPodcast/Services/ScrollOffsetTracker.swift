@@ -1,71 +1,101 @@
 import SwiftUI
 
-public struct ScrollOffsetPreferenceKey: PreferenceKey {
-    public static var defaultValue: CGFloat = 0
-    public static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        value = nextValue()
+/// PreferenceKey capturing absolute physical screen Y position (.global) of the scroll content top anchor.
+public struct AmberScrollGlobalYPreferenceKey: PreferenceKey {
+    public static var defaultValue: CGFloat? = nil
+    public static func reduce(value: inout CGFloat?, nextValue: () -> CGFloat?) {
+        if let next = nextValue() {
+            value = next
+        }
     }
 }
 
-private struct IsDockCollapsedKey: EnvironmentKey {
-    static let defaultValue: Binding<Bool> = .constant(false)
-}
+/// Global coordinator orchestrating Apple Podcasts style Dock and MiniPlayer scroll minimization.
+@MainActor
+public final class AmberScrollCoordinator: ObservableObject {
+    public static let shared = AmberScrollCoordinator()
 
-public extension EnvironmentValues {
-    var isDockCollapsed: Binding<Bool> {
-        get { self[IsDockCollapsedKey.self] }
-        set { self[IsDockCollapsedKey.self] = newValue }
+    @Published public var isDockCollapsed: Bool = false
+
+    private var initialTopY: CGFloat? = nil
+    private var previousY: CGFloat? = nil
+
+    private init() {}
+
+    public func reset() {
+        initialTopY = nil
+        previousY = nil
+        isDockCollapsed = false
     }
-}
 
-public struct ScrollDirectionObserverModifier: ViewModifier {
-    @Binding public var isCollapsed: Bool
-    public var threshold: CGFloat = 3.5
+    public func updateScroll(globalY: CGFloat) {
+        if initialTopY == nil {
+            initialTopY = globalY
+            previousY = globalY
+            return
+        }
 
-    @State private var previousOffset: CGFloat = 0
+        guard let initial = initialTopY, let prev = previousY else { return }
+        let scrollDistance = initial - globalY // Scrolled down -> globalY becomes smaller -> distance > 0
+        let delta = prev - globalY // Downward finger motion -> delta > 0
 
-    public func body(content: Content) -> some View {
-        content
-            .background(
-                GeometryReader { proxy in
-                    Color.clear.preference(
-                        key: ScrollOffsetPreferenceKey.self,
-                        value: proxy.frame(in: .named("amberScrollSpace")).minY
-                    )
+        // 1. Returning near top of screen (within 35pt of starting offset) -> always expand full dock
+        if scrollDistance <= 35 {
+            if isDockCollapsed {
+                withAnimation(ForwardMotion.mercuryTab) {
+                    isDockCollapsed = false
                 }
-            )
-            .onPreferenceChange(ScrollOffsetPreferenceKey.self) { currentOffset in
-                // 1. Returning to top of screen (within 25pt) -> Always expand full dock
-                if currentOffset >= -25 {
-                    if isCollapsed {
-                        withAnimation(ForwardMotion.mercuryTab) {
-                            isCollapsed = false
-                        }
-                    }
-                } else if currentOffset < -50 {
-                    // 2. Scrolled down past hero header -> collapse dock on downward motion
-                    if currentOffset < previousOffset && !isCollapsed {
-                        withAnimation(ForwardMotion.mercuryTab) {
-                            isCollapsed = true
-                        }
-                    } else if currentOffset > previousOffset + 3.0 && isCollapsed {
-                        // 3. Actively scrolling back up -> restore expanded dock
-                        withAnimation(ForwardMotion.mercuryTab) {
-                            isCollapsed = false
-                        }
-                    }
-                }
-                previousOffset = currentOffset
             }
+        } else if scrollDistance > 75 {
+            // 2. Scrolled past top area:
+            // Continuous downward motion (delta > 2.0pt) -> collapse dock into pill
+            if delta > 2.0 && !isDockCollapsed {
+                withAnimation(ForwardMotion.mercuryTab) {
+                    isDockCollapsed = true
+                }
+            } else if delta < -4.0 && isDockCollapsed {
+                // Continuous upward flick (delta < -4.0pt) -> expand back to full 4-tab dock
+                withAnimation(ForwardMotion.mercuryTab) {
+                    isDockCollapsed = false
+                }
+            }
+        }
+
+        previousY = globalY
+    }
+}
+
+/// 1pt invisible anchor placed at the very top inside ScrollView to report true physical coordinates.
+public struct AmberScrollTopProbe: View {
+    public init() {}
+
+    public var body: some View {
+        GeometryReader { proxy in
+            Color.clear.preference(
+                key: AmberScrollGlobalYPreferenceKey.self,
+                value: proxy.frame(in: .global).minY
+            )
+        }
+        .frame(height: 1)
     }
 }
 
 public extension View {
+    /// Observes top probe in physical screen coordinates and coordinates Dock/MiniPlayer minimization.
+    func amberScrollObservable() -> some View {
+        self.onPreferenceChange(AmberScrollGlobalYPreferenceKey.self) { y in
+            if let y = y {
+                AmberScrollCoordinator.shared.updateScroll(globalY: y)
+            }
+        }
+    }
+
+    // Deprecated compatibility shims
     func trackScrollDirection(isCollapsed: Binding<Bool>, threshold: CGFloat = 3.5) -> some View {
-        self.modifier(ScrollDirectionObserverModifier(isCollapsed: isCollapsed, threshold: threshold))
+        self
     }
 
     func amberScrollSpace() -> some View {
-        self.coordinateSpace(name: "amberScrollSpace")
+        self
     }
 }
