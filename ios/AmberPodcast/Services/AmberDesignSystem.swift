@@ -398,20 +398,18 @@ public struct AmberNavCapsuleButtonStyle: ButtonStyle {
     }
 }
 
-// MARK: - Unified Liquid Glass Circular Add Button (Aligned with Search Clear Button xmark.circle.fill)
+// MARK: - Unified Liquid Glass Circular Add Button (Single-layer clean circle, 120Hz smooth)
 public struct CircularGlassButtonStyle: ButtonStyle {
     private let impact = UIImpactFeedbackGenerator(style: .light)
 
     public init() {}
 
     public func makeBody(configuration: Configuration) -> some View {
-        let isPressed = configuration.isPressed
-
         configuration.label
-            .scaleEffect(isPressed ? 1.06 : 1.0)
-            .opacity(isPressed ? 0.95 : 1.0)
-            .animation(.spring(response: 0.22, dampingFraction: 0.65), value: isPressed)
-            .onChange(of: isPressed) { pressed in
+            .opacity(configuration.isPressed ? 0.60 : 1.0)
+            .scaleEffect(configuration.isPressed ? 0.94 : 1.0)
+            .animation(.easeOut(duration: 0.15), value: configuration.isPressed)
+            .onChange(of: configuration.isPressed) { pressed in
                 if pressed {
                     impact.prepare()
                     impact.impactOccurred()
@@ -429,12 +427,16 @@ public struct CircularLiquidGlassAddButton: View {
 
     public var body: some View {
         Button(action: action) {
-            Image(systemName: "plus.circle.fill")
-                .font(.system(size: 26, weight: .regular))
-                .symbolRenderingMode(.hierarchical)
-                .foregroundStyle(Color.white.opacity(0.88))
-                .frame(width: 32, height: 32)
-                .contentShape(Circle())
+            ZStack {
+                Circle()
+                    .fill(Color.white.opacity(0.12))
+                    .frame(width: 32, height: 32)
+
+                Image(systemName: "plus")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(Color.white)
+            }
+            .contentShape(Circle())
         }
         .buttonStyle(CircularGlassButtonStyle())
     }
