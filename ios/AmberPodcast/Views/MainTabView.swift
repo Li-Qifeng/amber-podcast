@@ -37,32 +37,19 @@ public struct MainTabView: View {
                 contentView
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .ignoresSafeArea()
-                    .simultaneousGesture(
-                        DragGesture(minimumDistance: 15)
-                            .onChanged { gesture in
-                                if gesture.translation.height < -22 && !isDockCollapsed {
-                                    withAnimation(ForwardMotion.fluidSheet) {
-                                        isDockCollapsed = true
-                                    }
-                                } else if gesture.translation.height > 22 && isDockCollapsed {
-                                    withAnimation(ForwardMotion.fluidSheet) {
-                                        isDockCollapsed = false
-                                    }
-                                }
-                            }
-                    )
+                    .environment(\.isDockCollapsed, $isDockCollapsed)
 
                 // Bottom Floating Island Stack: Apple Podcasts Style Immersive Dock & MiniPlayer
                 AmberGlassContainer(spacing: 8) {
-                    VStack(spacing: isDockCollapsed ? 0 : 12) {
+                    VStack(spacing: 8) {
                         if player.currentEpisode != nil {
                             MiniPlayerView(showFullPlayer: $showFullPlayer)
-                                .frame(width: geo.size.width * (isDockCollapsed ? 0.94 : AmberTheme.dockWidthRatio))
+                                .frame(width: min(geo.size.width - 32, 560))
                                 .amberGlassID("miniPlayer", in: dockNamespace)
                                 .transition(.move(edge: .bottom).combined(with: .opacity))
                                 .onTapGesture {
                                     if isDockCollapsed {
-                                        withAnimation(ForwardMotion.snapSpring) {
+                                        withAnimation(ForwardMotion.mercuryTab) {
                                             isDockCollapsed = false
                                         }
                                     }
@@ -71,20 +58,17 @@ public struct MainTabView: View {
                         }
 
                         floatingLiquidDock(geometry: geo)
-                            .offset(y: isDockCollapsed ? (AmberTheme.dockHeight + 80) : 0)
-                            .opacity(isDockCollapsed ? 0.0 : 1.0)
-                            .animation(ForwardMotion.fluidSheet, value: isDockCollapsed)
                     }
                 }
-                .padding(.bottom, isDockCollapsed ? max(geo.safeAreaInsets.bottom, 12) : (max(geo.safeAreaInsets.bottom, 8) + 10))
-                .animation(ForwardMotion.fluidSheet, value: isDockCollapsed)
-                .animation(ForwardMotion.fluidSheet, value: player.currentEpisode?.id)
+                .padding(.bottom, max(geo.safeAreaInsets.bottom, 8) + 6)
+                .animation(ForwardMotion.mercuryTab, value: isDockCollapsed)
+                .animation(ForwardMotion.mercuryTab, value: player.currentEpisode?.id)
             }
             .ignoresSafeArea()
         }
         .ignoresSafeArea()
         .onChange(of: selectedTab) { _ in
-            withAnimation(ForwardMotion.snapSpring) {
+            withAnimation(ForwardMotion.mercuryTab) {
                 isDockCollapsed = false
             }
         }
@@ -133,12 +117,39 @@ public struct MainTabView: View {
 
     // MARK: - Floating Dock (UIKit glass on iOS 26+, SwiftUI fallback below)
     private func floatingLiquidDock(geometry: GeometryProxy) -> some View {
-        AmberTabBarRendering.dock(
-            items: dockItems,
-            selection: $selectedTab,
-            width: geometry.size.width * AmberTheme.dockWidthRatio,
+        let dockWidth: CGFloat = isDockCollapsed ? 152 : min(geometry.size.width * AmberTheme.dockWidthRatio, 420)
+        let items = isDockCollapsed ? collapsedDockItems : dockItems
+
+        return AmberTabBarRendering.dock(
+            items: items,
+            selection: Binding(
+                get: {
+                    if isDockCollapsed {
+                        return selectedTab == 2 ? 1 : 0
+                    }
+                    return selectedTab
+                },
+                set: { newIndex in
+                    if isDockCollapsed {
+                        selectedTab = newIndex == 1 ? 2 : 0
+                        withAnimation(ForwardMotion.mercuryTab) {
+                            isDockCollapsed = false
+                        }
+                    } else {
+                        selectedTab = newIndex
+                    }
+                }
+            ),
+            width: dockWidth,
             height: AmberTheme.dockHeight
         )
+        .onTapGesture {
+            if isDockCollapsed {
+                withAnimation(ForwardMotion.mercuryTab) {
+                    isDockCollapsed = false
+                }
+            }
+        }
     }
 
     private var dockItems: [AmberDockItem] {
@@ -147,6 +158,13 @@ public struct MainTabView: View {
             AmberDockItem(icon: "square.stack.fill", title: "资料库"),
             AmberDockItem(icon: "magnifyingglass", title: "发现"),
             AmberDockItem(icon: "gearshape.fill", title: "设置"),
+        ]
+    }
+
+    private var collapsedDockItems: [AmberDockItem] {
+        [
+            AmberDockItem(icon: "house.fill", title: "首页"),
+            AmberDockItem(icon: "magnifyingglass", title: "发现"),
         ]
     }
 

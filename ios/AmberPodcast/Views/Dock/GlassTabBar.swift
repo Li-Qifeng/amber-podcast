@@ -89,6 +89,24 @@ final class GlassTabBarView: UIView, UITabBarDelegate {
         applySelection(index)
     }
 
+    func setItems(_ newItems: [AmberDockItem], selectedIndex: Int) {
+        let currentTitles = tabBar.items?.compactMap { $0.title } ?? []
+        let newTitles = newItems.map { $0.title }
+        if currentTitles != newTitles {
+            tabBar.items = newItems.enumerated().map { index, item in
+                UITabBarItem(
+                    title: item.title,
+                    image: UIImage(
+                        systemName: item.icon,
+                        withConfiguration: UIImage.SymbolConfiguration(pointSize: 22, weight: .regular)
+                    ),
+                    tag: index
+                )
+            }
+        }
+        setSelectedIndex(selectedIndex)
+    }
+
     private func applySelection(_ index: Int) {
         guard let items = tabBar.items, index >= 0, index < items.count else { return }
         suppressCallback = true
@@ -119,6 +137,6 @@ struct GlassTabBar: UIViewRepresentable {
     }
 
     func updateUIView(_ view: GlassTabBarView, context: Context) {
-        view.setSelectedIndex(selectedIndex)
+        view.setItems(items, selectedIndex: selectedIndex)
     }
 }

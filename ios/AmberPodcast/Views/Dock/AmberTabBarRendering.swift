@@ -36,7 +36,7 @@ struct LegacyDockBar: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            ForEach(Array(items.enumerated()), id: \.offset) { index, item in
+            ForEach(Array(items.enumerated()), id: \.element.title) { index, item in
                 itemView(index: index, item: item)
             }
         }
