@@ -47,19 +47,22 @@ public struct MainTabView: View {
                     if isDockCollapsed && player.currentEpisode != nil {
                         // Bilateral Collapsed Mode: Dock splits to left and right wings, MiniPlayer sinks to center
                         HStack(spacing: 8) {
-                            bilateralDockWing(indices: [0, 1])
+                            // Leading Wing: Active Tab
+                            minimizedTabWing(index: selectedTab)
 
+                            // Center Sunk Capsule: Compact MiniPlayer
                             MiniPlayerView(showFullPlayer: $showFullPlayer)
-                                .frame(width: max(geo.size.width - 180, 180))
+                                .frame(width: max(geo.size.width - 128, 180))
                                 .amberGlassID("miniPlayer", in: dockNamespace)
-                                .transition(.scale(scale: 0.95).combined(with: .opacity))
+                                .transition(.scale(scale: 0.96).combined(with: .opacity))
                                 .onTapGesture {
                                     showFullPlayer = true
                                 }
 
-                            bilateralDockWing(indices: [2, 3])
+                            // Trailing Wing: Quick Search / Settings Tab
+                            minimizedTabWing(index: selectedTab == 2 ? 3 : 2)
                         }
-                        .padding(.horizontal, 12)
+                        .padding(.horizontal, 16)
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                     } else {
                         // Expanded Vertical Stack Mode
@@ -132,32 +135,29 @@ public struct MainTabView: View {
     }
 
     // MARK: - Floating Dock (UIKit glass on iOS 26+, SwiftUI fallback below)
-    private func bilateralDockWing(indices: [Int]) -> some View {
-        HStack(spacing: 8) {
-            ForEach(indices, id: \.self) { idx in
-                let item = dockItems[idx]
-                Button {
-                    selectedTab = idx
-                    scrollCoordinator.reset()
-                } label: {
-                    Image(systemName: item.icon)
-                        .font(.system(size: 16, weight: selectedTab == idx ? .bold : .medium))
-                        .foregroundStyle(selectedTab == idx ? AmberTheme.primaryAmber : AmberTheme.labelSecondary)
-                        .frame(width: 28, height: 28)
-                }
-                .buttonStyle(.plain)
+    private func minimizedTabWing(index: Int) -> some View {
+        let item = dockItems[index]
+        return Button {
+            if isDockCollapsed {
+                scrollCoordinator.reset()
             }
+            selectedTab = index
+        } label: {
+            Image(systemName: item.icon)
+                .font(.system(size: 16, weight: selectedTab == index ? .bold : .medium))
+                .foregroundStyle(selectedTab == index ? AmberTheme.primaryAmber : AmberTheme.labelSecondary)
+                .frame(width: 44, height: 44)
         }
-        .padding(.horizontal, 8)
-        .frame(height: 48)
+        .buttonStyle(.plain)
         .background(
-            Capsule()
+            Circle()
                 .fill(.ultraThinMaterial)
                 .overlay(
-                    Capsule()
-                        .strokeBorder(Color.white.opacity(0.12), lineWidth: 0.5)
+                    Circle()
+                        .strokeBorder(Color.white.opacity(0.14), lineWidth: 0.5)
                 )
         )
+        .shadow(color: Color.black.opacity(0.18), radius: 6, y: 3)
     }
 
     private func floatingLiquidDock(geometry: GeometryProxy) -> some View {
