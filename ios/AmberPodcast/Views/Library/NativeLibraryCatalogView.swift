@@ -129,21 +129,9 @@ public struct NativeLibraryCatalogView: View {
             .navigationTitle("资料库")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button {
+                    CircularLiquidGlassAddButton {
                         showSubscribeSheet = true
-                    } label: {
-                        HStack(spacing: 5) {
-                            Image(systemName: "plus")
-                                .font(.system(size: 13, weight: .bold))
-                            Text("添加")
-                                .font(.system(size: 13, weight: .medium, design: .rounded))
-                        }
-                        .foregroundStyle(AmberTheme.labelPrimary)
-                        .padding(.horizontal, 13)
-                        .padding(.vertical, 7)
-                        .liquidGlassCapsule()
                     }
-                    .buttonStyle(AmberNavCapsuleButtonStyle())
                 }
             }
             .sheet(isPresented: $showSubscribeSheet) {
