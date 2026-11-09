@@ -398,7 +398,7 @@ public struct AmberNavCapsuleButtonStyle: ButtonStyle {
     }
 }
 
-// MARK: - Unified Liquid Glass Circular Add Button (Lens Bubble Expansion Style)
+// MARK: - Unified Liquid Glass Circular Add Button (Aligned with Search Clear Button xmark.circle.fill)
 public struct CircularGlassButtonStyle: ButtonStyle {
     private let impact = UIImpactFeedbackGenerator(style: .light)
 
@@ -408,8 +408,9 @@ public struct CircularGlassButtonStyle: ButtonStyle {
         let isPressed = configuration.isPressed
 
         configuration.label
-            .scaleEffect(isPressed ? 1.07 : 1.0)
-            .animation(.spring(response: 0.24, dampingFraction: 0.62), value: isPressed)
+            .scaleEffect(isPressed ? 1.06 : 1.0)
+            .opacity(isPressed ? 0.95 : 1.0)
+            .animation(.spring(response: 0.22, dampingFraction: 0.65), value: isPressed)
             .onChange(of: isPressed) { pressed in
                 if pressed {
                     impact.prepare()
@@ -428,58 +429,14 @@ public struct CircularLiquidGlassAddButton: View {
 
     public var body: some View {
         Button(action: action) {
-            CircularGlassIconView()
+            Image(systemName: "plus.circle.fill")
+                .font(.system(size: 26, weight: .regular))
+                .symbolRenderingMode(.hierarchical)
+                .foregroundStyle(Color.white.opacity(0.88))
+                .frame(width: 32, height: 32)
+                .contentShape(Circle())
         }
         .buttonStyle(CircularGlassButtonStyle())
-    }
-}
-
-private struct CircularGlassIconView: View {
-    @Environment(\.isEnabled) private var isEnabled
-
-    var body: some View {
-        ZStack {
-            // Liquid Glass Translucent Base
-            Circle()
-                .fill(.ultraThinMaterial)
-                .frame(width: 36, height: 36)
-
-            // Dynamic Specular Glass Tint (Reflective sheen)
-            Circle()
-                .fill(
-                    LinearGradient(
-                        colors: [
-                            Color.white.opacity(0.18),
-                            Color.white.opacity(0.04)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .frame(width: 36, height: 36)
-
-            // Precision Refractive Hairline Stroke
-            Circle()
-                .strokeBorder(
-                    LinearGradient(
-                        colors: [
-                            Color.white.opacity(0.38),
-                            Color.white.opacity(0.12)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ),
-                    lineWidth: 0.5
-                )
-                .frame(width: 36, height: 36)
-
-            // Crisp White Plus Glyph
-            Image(systemName: "plus")
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(Color.white)
-        }
-        .shadow(color: Color.black.opacity(0.20), radius: 6, y: 2.5)
-        .contentShape(Circle())
     }
 }
 

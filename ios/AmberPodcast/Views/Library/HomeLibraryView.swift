@@ -66,15 +66,17 @@ public struct HomeLibraryView: View {
                         .amberScrollSpace()
                         .ignoresSafeArea(edges: .top)
                     }
-
-                    // Top Minimalist Header
-                    topFloatingToolbar(geometry: geo)
                 }
-                .ignoresSafeArea()
             }
-            .ignoresSafeArea()
-            .toolbar(.hidden, for: .navigationBar)
-            .navigationBarBackButtonHidden(true)
+            .navigationTitle("首页")
+            .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    CircularLiquidGlassAddButton {
+                        showSubscribeSheet = true
+                    }
+                }
+            }
             .sheet(isPresented: $showSubscribeSheet) {
                 subscribeSheet
             }
@@ -467,36 +469,6 @@ public struct HomeLibraryView: View {
                 .scrollTargetLayout()
             }
             .scrollTargetBehavior(.viewAligned)
-        }
-    }
-
-    // MARK: - Top Floating Minimalist Bar
-    private var topSafeOffset: CGFloat {
-        if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-           let window = scene.windows.first(where: { $0.isKeyWindow }) {
-            let top = window.safeAreaInsets.top
-            return top > 0 ? top + 6 : 54
-        }
-        return 54
-    }
-
-    private func topFloatingToolbar(geometry: GeometryProxy) -> some View {
-        VStack {
-            HStack(alignment: .center) {
-                Text("首页")
-                    .font(.system(size: 26, weight: .bold, design: .rounded))
-                    .foregroundStyle(AmberTheme.labelPrimary)
-
-                Spacer()
-
-                CircularLiquidGlassAddButton {
-                    showSubscribeSheet = true
-                }
-            }
-            .padding(.horizontal, AmberTheme.pageMargin)
-            .padding(.top, topSafeOffset)
-
-            Spacer()
         }
     }
 
