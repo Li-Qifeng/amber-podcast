@@ -398,7 +398,7 @@ public struct AmberNavCapsuleButtonStyle: ButtonStyle {
     }
 }
 
-// MARK: - Unified Liquid Glass Circular Add Button (Single-layer clean circle, 120Hz smooth)
+// MARK: - Unified Navigation Bar Add Button (Single-layer clean circle, 120Hz smooth, zero-relayout)
 public struct CircularGlassButtonStyle: ButtonStyle {
     private let impact = UIImpactFeedbackGenerator(style: .light)
 
@@ -406,9 +406,8 @@ public struct CircularGlassButtonStyle: ButtonStyle {
 
     public func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .opacity(configuration.isPressed ? 0.60 : 1.0)
-            .scaleEffect(configuration.isPressed ? 0.94 : 1.0)
-            .animation(.easeOut(duration: 0.15), value: configuration.isPressed)
+            .opacity(configuration.isPressed ? 0.45 : 1.0)
+            .animation(.easeInOut(duration: 0.12), value: configuration.isPressed)
             .onChange(of: configuration.isPressed) { pressed in
                 if pressed {
                     impact.prepare()
@@ -427,16 +426,15 @@ public struct CircularLiquidGlassAddButton: View {
 
     public var body: some View {
         Button(action: action) {
-            ZStack {
-                Circle()
-                    .fill(Color.white.opacity(0.12))
-                    .frame(width: 32, height: 32)
-
-                Image(systemName: "plus")
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(Color.white)
-            }
-            .contentShape(Circle())
+            Image(systemName: "plus")
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(Color.white)
+                .frame(width: 32, height: 32)
+                .background(
+                    Circle()
+                        .fill(Color.white.opacity(0.12))
+                )
+                .contentShape(Circle())
         }
         .buttonStyle(CircularGlassButtonStyle())
     }
