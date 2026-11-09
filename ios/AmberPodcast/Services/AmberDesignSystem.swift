@@ -427,16 +427,11 @@ public struct CircularLiquidGlassAddButton: View {
     public var body: some View {
         Button(action: action) {
             Image(systemName: "plus")
-                .font(.system(size: 13, weight: .semibold))
+                .font(.system(size: 15, weight: .semibold))
                 .foregroundStyle(Color(uiColor: .label))
-                .frame(width: 28, height: 28)
-                .background(
-                    Circle()
-                        .fill(Color(uiColor: .tertiarySystemFill))
-                )
+                .frame(width: 32, height: 32)
                 .contentShape(Circle())
         }
-        .buttonStyle(CircularGlassButtonStyle())
     }
 }
 
