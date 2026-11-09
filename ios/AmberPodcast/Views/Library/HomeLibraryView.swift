@@ -63,7 +63,7 @@ public struct HomeLibraryView: View {
                                 Color.clear.frame(height: 168)
                             }
                         }
-                        .amberScrollObservable()
+                        .amberScrollObservable(tab: 0)
                         .ignoresSafeArea(edges: .top)
                     }
                 }

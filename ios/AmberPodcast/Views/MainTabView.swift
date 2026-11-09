@@ -42,42 +42,34 @@ public struct MainTabView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .ignoresSafeArea()
 
-                // Bottom Floating Island Stack: Apple Podcasts Style Immersive Dock & MiniPlayer
-                AmberGlassContainer(spacing: 8) {
-                    if isDockCollapsed && player.currentEpisode != nil {
-                        // Bilateral Collapsed Mode: Dock splits to left and right wings, MiniPlayer sinks to center
-                        HStack(spacing: 8) {
-                            // Leading Wing: Active Tab
-                            minimizedTabWing(index: selectedTab)
-
-                            // Center Sunk Capsule: Compact MiniPlayer
-                            MiniPlayerView(showFullPlayer: $showFullPlayer)
-                                .frame(width: max(geo.size.width - 128, 180))
-                                .amberGlassID("miniPlayer", in: dockNamespace)
-                                .transition(.scale(scale: 0.96).combined(with: .opacity))
-                                .onTapGesture {
-                                    showFullPlayer = true
-                                }
-
-                            // Trailing Wing: Quick Search / Settings Tab
-                            minimizedTabWing(index: selectedTab == 2 ? 3 : 2)
-                        }
-                        .padding(.horizontal, 16)
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
-                    } else {
-                        // Expanded Vertical Stack Mode
-                        VStack(spacing: 8) {
-                            if player.currentEpisode != nil {
-                                MiniPlayerView(showFullPlayer: $showFullPlayer)
-                                    .frame(width: min(geo.size.width - 32, 560))
-                                    .amberGlassID("miniPlayer", in: dockNamespace)
-                                    .transition(.move(edge: .bottom).combined(with: .opacity))
-                                    .onTapGesture {
-                                        showFullPlayer = true
-                                    }
+                // Bottom Floating Island Stack: Continuous Apple Podcasts Style Sinking & Expanding
+                VStack(spacing: isDockCollapsed && player.currentEpisode != nil ? -50 : 8) {
+                    if player.currentEpisode != nil {
+                        MiniPlayerView(showFullPlayer: $showFullPlayer)
+                            .frame(width: isDockCollapsed ? max(min(geo.size.width - 136, 424), 160) : min(geo.size.width - 32, 560))
+                            .onTapGesture {
+                                showFullPlayer = true
                             }
+                    }
 
-                            floatingLiquidDock(geometry: geo)
+                    ZStack {
+                        // Full Dock (Fades out when collapsed)
+                        floatingLiquidDock(geometry: geo)
+                            .opacity(isDockCollapsed && player.currentEpisode != nil ? 0 : 1)
+                            .scaleEffect(isDockCollapsed && player.currentEpisode != nil ? 0.94 : 1.0)
+                            .allowsHitTesting(!isDockCollapsed || player.currentEpisode == nil)
+
+                        // Bilateral Wings (Left active tab, right search/settings)
+                        if player.currentEpisode != nil {
+                            HStack(spacing: 8) {
+                                minimizedTabWing(index: selectedTab)
+                                Spacer()
+                                minimizedTabWing(index: selectedTab == 2 ? 3 : 2)
+                            }
+                            .frame(width: min(geo.size.width - 32, 560))
+                            .opacity(isDockCollapsed ? 1 : 0)
+                            .scaleEffect(isDockCollapsed ? 1.0 : 0.88)
+                            .allowsHitTesting(isDockCollapsed)
                         }
                     }
                 }
@@ -88,8 +80,8 @@ public struct MainTabView: View {
             .ignoresSafeArea()
         }
         .ignoresSafeArea()
-        .onChange(of: selectedTab) { _ in
-            scrollCoordinator.reset()
+        .onChange(of: selectedTab) { newTab in
+            scrollCoordinator.setTab(newTab)
         }
         .fullScreenCover(isPresented: $showFullPlayer) {
             FullPlayerView(isPresented: $showFullPlayer)

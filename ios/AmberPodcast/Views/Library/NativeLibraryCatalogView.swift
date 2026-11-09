@@ -164,7 +164,8 @@ public struct NativeLibraryCatalogView: View {
                     }
                     .padding(.top, 12)
                 }
-                .amberScrollObservable()
+                .scrollBounceBehavior(.always, axes: .vertical)
+                .amberScrollObservable(tab: 1)
             }
             .navigationTitle("资料库")
             .toolbar {

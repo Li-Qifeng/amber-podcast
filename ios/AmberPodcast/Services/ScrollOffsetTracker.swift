@@ -7,44 +7,59 @@ public final class AmberScrollCoordinator: ObservableObject {
 
     @Published public var isDockCollapsed: Bool = false
 
-    private var initialOffset: CGFloat? = nil
-    private var lastOffset: CGFloat = 0
+    public private(set) var currentTab: Int = 0
+    private var tabBaselines: [Int: CGFloat] = [:]
+    private var tabLastOffsets: [Int: CGFloat] = [:]
     private var accumulatedDownwardScroll: CGFloat = 0
 
     private init() {}
 
+    public func setTab(_ tab: Int) {
+        currentTab = tab
+        accumulatedDownwardScroll = 0
+        if isDockCollapsed {
+            withAnimation(ForwardMotion.mercuryTab) {
+                isDockCollapsed = false
+            }
+        }
+    }
+
     public func reset() {
-        initialOffset = nil
-        lastOffset = 0
+        tabBaselines.removeAll()
+        tabLastOffsets.removeAll()
         accumulatedDownwardScroll = 0
         isDockCollapsed = false
     }
 
-    public func handleOffset(_ offset: CGFloat) {
-        if initialOffset == nil {
-            initialOffset = offset
-            lastOffset = offset
+    public func handleOffset(_ offset: CGFloat, forTab tab: Int? = nil) {
+        let activeTab = tab ?? currentTab
+
+        guard let baseline = tabBaselines[activeTab] else {
+            // First scroll event on this tab establishes the local baseline (whether 0 or -140)
+            tabBaselines[activeTab] = offset
+            tabLastOffsets[activeTab] = offset
             return
         }
 
-        let delta = offset - lastOffset
+        let last = tabLastOffsets[activeTab] ?? offset
+        let delta = offset - last
 
         // 1. Returning to top rest position -> always expand
-        if let initial = initialOffset, offset <= initial + 15 {
+        if offset <= baseline + 15 {
             accumulatedDownwardScroll = 0
             if isDockCollapsed {
                 withAnimation(ForwardMotion.mercuryTab) {
                     isDockCollapsed = false
                 }
             }
-            lastOffset = offset
+            tabLastOffsets[activeTab] = offset
             return
         }
 
         // 2. Downward scroll -> collapse
-        if delta > 1.5 {
+        if delta > 1.2 {
             accumulatedDownwardScroll += delta
-            if accumulatedDownwardScroll > 25 && !isDockCollapsed {
+            if accumulatedDownwardScroll > 20 && !isDockCollapsed {
                 withAnimation(ForwardMotion.mercuryTab) {
                     isDockCollapsed = true
                 }
@@ -59,11 +74,11 @@ public final class AmberScrollCoordinator: ObservableObject {
             }
         }
 
-        lastOffset = offset
+        tabLastOffsets[activeTab] = offset
     }
 
-    public func updateScroll(globalY: CGFloat) {
-        handleOffset(-globalY)
+    public func updateScroll(globalY: CGFloat, forTab tab: Int? = nil) {
+        handleOffset(-globalY, forTab: tab)
     }
 }
 
@@ -91,16 +106,16 @@ public struct AmberScrollProbePreferenceKey: PreferenceKey {
 public extension View {
     /// Native scroll observer: iOS 18+ uses onScrollGeometryChange; iOS 17 uses top probe preference key.
     @ViewBuilder
-    func amberScrollObservable() -> some View {
+    func amberScrollObservable(tab: Int = 0) -> some View {
         if #available(iOS 18.0, *) {
             self.onScrollGeometryChange(for: CGFloat.self, of: { geometry in
                 geometry.contentOffset.y
             }) { oldValue, newValue in
-                AmberScrollCoordinator.shared.handleOffset(newValue)
+                AmberScrollCoordinator.shared.handleOffset(newValue, forTab: tab)
             }
         } else {
             self.onPreferenceChange(AmberScrollProbePreferenceKey.self) { probeGlobalY in
-                AmberScrollCoordinator.shared.updateScroll(globalY: probeGlobalY)
+                AmberScrollCoordinator.shared.handleOffset(-probeGlobalY, forTab: tab)
             }
         }
     }

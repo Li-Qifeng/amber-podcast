@@ -180,7 +180,8 @@ public struct SearchView: View {
             .padding(.horizontal, 16)
             .padding(.bottom, 140)
         }
-        .amberScrollObservable()
+        .scrollBounceBehavior(.always, axes: .vertical)
+        .amberScrollObservable(tab: 2)
     }
 
     // MARK: - Apple Podcasts Style Discovery Stream
@@ -216,7 +217,8 @@ public struct SearchView: View {
             }
             .padding(.top, 6)
         }
-        .amberScrollObservable()
+        .scrollBounceBehavior(.always, axes: .vertical)
+        .amberScrollObservable(tab: 2)
     }
 
     // MARK: - Section 1: Featured Carousel
