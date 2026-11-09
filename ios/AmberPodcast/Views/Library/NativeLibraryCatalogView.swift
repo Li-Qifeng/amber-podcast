@@ -68,7 +68,7 @@ public struct NativeLibraryCatalogView: View {
                             }
                         }
                     }
-                    .listRowBackground(AmberTheme.surfaceDark.opacity(0.85))
+                    .listRowBackground(AmberTheme.surfaceCard.opacity(0.85))
 
                     // Downloaded & Followed Channels
                     if !store.feeds.isEmpty {
@@ -78,7 +78,7 @@ public struct NativeLibraryCatalogView: View {
                                     FeedDetailView(feed: feed)
                                 } label: {
                                     HStack(spacing: 12) {
-                                        if let coverUrl = feed.coverUrl, let url = URL(string: coverUrl) {
+                                        if !feed.proxiedCoverUrl.isEmpty, let url = URL(string: feed.proxiedCoverUrl) {
                                             AsyncImage(url: url) { phase in
                                                 if let image = phase.image {
                                                     image.resizable().aspectRatio(contentMode: .fill)
@@ -114,7 +114,7 @@ public struct NativeLibraryCatalogView: View {
                                 }
                             }
                         }
-                        .listRowBackground(AmberTheme.surfaceDark.opacity(0.85))
+                        .listRowBackground(AmberTheme.surfaceCard.opacity(0.85))
                     }
 
                     // Bottom clearance for Dock
@@ -158,11 +158,77 @@ public struct NativeLibraryCatalogView: View {
     }
 }
 
-// Sub-list views for Library sections
+// MARK: - Subscribed Feeds List
+public struct FeedListView: View {
+    @ObservedObject private var store = LibraryStore.shared
+
+    public init() {}
+
+    public var body: some View {
+        ZStack {
+            AmberTheme.background.ignoresSafeArea()
+            if store.feeds.isEmpty {
+                Text("暂无订阅节目")
+                    .foregroundColor(AmberTheme.labelTertiary)
+            } else {
+                List(store.feeds) { feed in
+                    NavigationLink {
+                        FeedDetailView(feed: feed)
+                    } label: {
+                        HStack(spacing: 12) {
+                            if !feed.proxiedCoverUrl.isEmpty, let url = URL(string: feed.proxiedCoverUrl) {
+                                AsyncImage(url: url) { phase in
+                                    if let image = phase.image {
+                                        image.resizable().aspectRatio(contentMode: .fill)
+                                    } else {
+                                        Color(white: 0.15)
+                                    }
+                                }
+                                .frame(width: 48, height: 48)
+                                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                            } else {
+                                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                    .fill(Color(white: 0.15))
+                                    .frame(width: 48, height: 48)
+                                    .overlay(
+                                        Image(systemName: "waveform")
+                                            .foregroundColor(AmberTheme.labelTertiary)
+                                    )
+                            }
+
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text(feed.title)
+                                    .font(.system(size: 15, weight: .semibold))
+                                    .foregroundStyle(AmberTheme.labelPrimary)
+                                    .lineLimit(1)
+
+                                Text(feed.author)
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(AmberTheme.labelSecondary)
+                                    .lineLimit(1)
+                            }
+                        }
+                        .padding(.vertical, 4)
+                    }
+                }
+                .listStyle(.plain)
+                .scrollContentBackground(.hidden)
+            }
+        }
+        .navigationTitle("节目")
+    }
+}
+
+// MARK: - Latest Episodes List
 public struct LatestEpisodesListView: View {
     public let episodes: [Episode]
     public let feeds: [PodcastFeed]
     @ObservedObject private var player = DualTrackAudioPlayer.shared
+
+    public init(episodes: [Episode], feeds: [PodcastFeed]) {
+        self.episodes = episodes
+        self.feeds = feeds
+    }
 
     public var body: some View {
         ZStack {
@@ -172,30 +238,7 @@ public struct LatestEpisodesListView: View {
                     .foregroundColor(AmberTheme.labelTertiary)
             } else {
                 List(episodes) { ep in
-                    let f = feeds.first(where: { $0.id == ep.feedId })
-                    Button {
-                        if let f = f {
-                            player.loadEpisode(episode: ep, feed: f, autoPlay: true)
-                        }
-                    } label: {
-                        HStack(spacing: 12) {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(ep.title)
-                                    .font(.system(size: 15, weight: .medium))
-                                    .foregroundStyle(AmberTheme.labelPrimary)
-                                    .lineLimit(2)
-                                let podcastTitle = f?.title ?? "未知"
-                                Text("\(podcastTitle) · \(ep.formattedDuration)")
-                                    .font(.system(size: 12))
-                                    .foregroundStyle(AmberTheme.labelSecondary)
-                            }
-                            Spacer()
-                            Image(systemName: "play.circle.fill")
-                                .font(.system(size: 24))
-                                .foregroundStyle(AmberTheme.primaryAmber)
-                        }
-                        .padding(.vertical, 4)
-                    }
+                    episodeRow(ep)
                 }
                 .listStyle(.plain)
                 .scrollContentBackground(.hidden)
@@ -203,9 +246,40 @@ public struct LatestEpisodesListView: View {
         }
         .navigationTitle("最新单集")
     }
+
+    @ViewBuilder
+    private func episodeRow(_ ep: Episode) -> some View {
+        let f = feeds.first(where: { $0.id == ep.feedId })
+        let podcastTitle = f?.title ?? "未知"
+        Button {
+            if let f = f {
+                player.loadEpisode(episode: ep, feed: f, autoPlay: true)
+            }
+        } label: {
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(ep.title)
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundStyle(AmberTheme.labelPrimary)
+                        .lineLimit(2)
+                    Text("\(podcastTitle) · \(ep.formattedDuration)")
+                        .font(.system(size: 12))
+                        .foregroundStyle(AmberTheme.labelSecondary)
+                }
+                Spacer()
+                Image(systemName: "play.circle.fill")
+                    .font(.system(size: 24))
+                    .foregroundStyle(AmberTheme.primaryAmber)
+            }
+            .padding(.vertical, 4)
+        }
+    }
 }
 
+// MARK: - Downloaded Episodes List
 public struct DownloadedEpisodesListView: View {
+    public init() {}
+
     public var body: some View {
         ZStack {
             AmberTheme.background.ignoresSafeArea()
