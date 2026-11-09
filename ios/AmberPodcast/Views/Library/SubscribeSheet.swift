@@ -1,7 +1,7 @@
 import SwiftUI
 
 public struct SubscribeSheet: View {
-    public var onSubscribed: ((PodcastFeed) -> Void)? = nil
+    public var onSubscribed: ((PodcastFeed?) -> Void)? = nil
 
     @Environment(\.dismiss) private var dismiss
     @State private var newUrlInput: String = ""
@@ -10,7 +10,7 @@ public struct SubscribeSheet: View {
     @State private var errorMessage: String? = nil
     private let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
 
-    public init(onSubscribed: ((PodcastFeed) -> Void)? = nil) {
+    public init(onSubscribed: ((PodcastFeed?) -> Void)? = nil) {
         self.onSubscribed = onSubscribed
     }
 

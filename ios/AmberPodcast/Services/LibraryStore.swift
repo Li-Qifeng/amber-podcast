@@ -69,10 +69,10 @@ public final class LibraryStore: ObservableObject {
         }
     }
 
-    public func subscribe(url: String, autoTranslate: Bool) async throws -> PodcastFeed {
-        let feed = try await AmberAPIClient.shared.subscribe(url: url, autoTranslate: autoTranslate)
+    public func subscribe(url: String, autoTranslate: Bool) async throws -> PodcastFeed? {
+        try await AmberAPIClient.shared.subscribe(url: url, autoTranslate: autoTranslate)
         await loadData()
-        return feed
+        return self.feeds.first(where: { $0.feedUrl == url })
     }
 
     public func deleteFeed(id: String) async throws {
