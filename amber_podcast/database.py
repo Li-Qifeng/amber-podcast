@@ -76,25 +76,10 @@ class Database:
                     feed_url: str, cover_url: str, description: str, auto_translate: int = 0) -> Optional[Dict[str, Any]]:
         now = int(time.time())
         with self.get_conn() as conn:
-            existing = conn.execute("SELECT id FROM feeds WHERE feed_url = ?", (feed_url,)).fetchone()
-            if existing and existing["id"] != feed_id:
-                actual_id = existing["id"]
-                conn.execute("""
-                    UPDATE feeds SET
-                        title = ?,
-                        author = ?,
-                        cover_url = ?,
-                        description = ?,
-                        auto_translate = ?,
-                        updated_at = ?
-                    WHERE id = ?
-                """, (title, author, cover_url, description, auto_translate, now, actual_id))
-                return self.get_feed(actual_id)
-
             conn.execute("""
                 INSERT INTO feeds (id, source_type, title, author, feed_url, cover_url, description, auto_translate, created_at, updated_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ON CONFLICT(id) DO UPDATE SET
+                ON CONFLICT(feed_url) DO UPDATE SET
                     title=excluded.title,
                     author=excluded.author,
                     cover_url=excluded.cover_url,
@@ -102,7 +87,8 @@ class Database:
                     auto_translate=excluded.auto_translate,
                     updated_at=excluded.updated_at
             """, (feed_id, source_type, title, author, feed_url, cover_url, description, auto_translate, now, now))
-        return self.get_feed(feed_id)
+        # feed_url 是唯一标识，返回按 URL 查到的实际 feed（可能是历史旧 id）
+        return self.get_feed_by_url(feed_url)
 
     def get_feed(self, feed_id: str) -> Optional[Dict[str, Any]]:
         with self.get_conn() as conn:

@@ -2,6 +2,7 @@ import os
 import asyncio
 import logging
 import time
+import hashlib
 from typing import Optional, List, Dict, Any
 from pathlib import Path
 from fastapi import FastAPI, Depends, HTTPException, Header, Query, BackgroundTasks, status
@@ -10,6 +11,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 logger = logging.getLogger("amber_podcast")
+
+def stable_hash(s: str) -> str:
+    """稳定的 8 位数字 hash（跨进程一致），替代 Python 内置 hash()。
+
+    Python 内置 hash(str) 受 PYTHONHASHSEED 随机化影响，每次进程启动结果不同，
+    会导致同一 URL/guid 生成不同的 feed_id/episode_id，触发重复订阅与外键约束失败。
+    """
+    return f"{int(hashlib.sha256(s.encode('utf-8')).hexdigest(), 16) % 100000000:08d}"
 
 from amber_podcast.config import AUTH_TOKEN, SERVER_HOST, SERVER_PORT, GDRIVE_DIR, DATA_DIR, SCRATCH_DIR
 from amber_podcast.database import Database
@@ -297,7 +306,10 @@ async def subscribe_feed(
             return {"feed": feed, "episode_count": len(data.get("episodes", []))}
     else:
         # Standard RSS feed
-        feed_id = f"feed_rss_{abs(hash(url)) % 100000000:08d}"
+        feed_id = f"feed_rss_{stable_hash(url)}"
+        existing = db.get_feed_by_url(url)
+        if existing:
+            feed_id = existing["id"]  # 复用已有 feed id，保证幂等（避免重复订阅产生重复记录）
         data = await apple_agg.fetch_and_parse_feed(url, feed_id)
         feed_info = data["feed"]
         feed = db.upsert_feed(
@@ -424,7 +436,7 @@ async def preview_feed(
     if not clean_url:
         raise HTTPException(status_code=400, detail="Empty feed url")
     
-    feed_id = f"preview_{abs(hash(clean_url)) % 100000000:08d}"
+    feed_id = f"preview_{stable_hash(clean_url)}"
     if clean_url in _ephemeral_feed_cache and "parsed" in _ephemeral_feed_cache[clean_url]:
         entry = _ephemeral_feed_cache[clean_url]
         if time.time() - entry["ts"] < 1800:
@@ -622,15 +634,12 @@ async def trigger_translation(
         ep_dict = payload["episode"]
         feed_dict = payload.get("feed")
         fid = ep_dict.get("feed_id") or ep_dict.get("feedId") or (episode_id.split("_")[0] if "_" in episode_id else "unknown_feed")
-        feed_meta = feed_dict or {}
-        furl = feed_meta.get("feed_url") or feed_meta.get("feedUrl") or ""
-        existing_feed = db.get_feed(fid) or (db.get_feed_by_url(furl) if furl else None)
-        if existing_feed:
-            fid = existing_feed["id"]
-        else:
+        if not db.get_feed(fid):
+            feed_meta = feed_dict or {}
             title = feed_meta.get("title") or "未知播客"
             author = feed_meta.get("author") or ""
             cover = feed_meta.get("cover_url") or feed_meta.get("coverUrl") or ""
+            furl = feed_meta.get("feed_url") or feed_meta.get("feedUrl") or ""
             db.upsert_feed(
                 feed_id=fid,
                 source_type="apple_rss",

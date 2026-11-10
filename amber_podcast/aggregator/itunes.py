@@ -3,8 +3,13 @@ import xml.etree.ElementTree as ET
 import re
 import asyncio
 import time
+import hashlib
 from typing import List, Dict, Any, Optional
 from urllib.parse import quote
+
+def stable_id(s: str) -> str:
+    """稳定的 8 位数字 hash（跨进程一致），替代 Python 内置 hash(str)。"""
+    return f"{int(hashlib.sha256(s.encode('utf-8')).hexdigest(), 16) % 100000000:08d}"
 
 class ApplePodcastAggregator:
     def __init__(self, timeout: float = 15.0):
@@ -175,7 +180,7 @@ class ApplePodcastAggregator:
             duration_sec = self._parse_duration(duration_str)
 
             # Generate stable episode id
-            ep_id = f"{feed_id}_{abs(hash(guid or audio_url)) % 100000000:08d}"
+            ep_id = f"{feed_id}_{stable_id(guid or audio_url)}"
 
             episodes.append({
                 "id": ep_id,
