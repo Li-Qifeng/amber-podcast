@@ -858,7 +858,20 @@ async def ci_deploy_webhook(bg_tasks: BackgroundTasks):
             # 5. Notify user in Discord thread via Hermes CLI
             try:
                 hermes_bin = "/usr/local/bin/hermes" if os.path.exists("/usr/local/bin/hermes") else "hermes"
-                notify_msg = f"🚀 **Amber 播客 v{version} 构建并部署成功！**\n\n- 状态: 已自动签名并上架 AirStore Pro\n- 交付文件: `amber-podcast_signed.ipa` ({sz} MB)\n- 核心更新: 单层圆底防重排加号按钮、iOS 17/18 onScrollGeometryChange 原生监听、Dock 左右双侧分流避让、MiniPlayer 胶囊居中平滑下沉。"
+                # 动态读取最近提交作为更新说明，避免硬编码过时内容
+                try:
+                    recent = subprocess.run(
+                        ["git", "-C", "/root/projects/amber-podcast", "log", "--oneline", "-6"],
+                        capture_output=True, text=True, timeout=10
+                    ).stdout.strip()
+                except Exception:
+                    recent = "（更新说明获取失败，请查看 AirStore）"
+                notify_msg = (
+                    f"🚀 **Amber 播客 v{version} 已上架 AirStore Pro**\n\n"
+                    f"- 状态: 自动签名并部署成功\n"
+                    f"- 交付: `amber-podcast_signed.ipa` ({sz} MB)\n"
+                    f"- 最近提交:\n```\n{recent}\n```"
+                )
                 subprocess.run([
                     hermes_bin, "send",
                     "--to", "discord:1506792208802513046:1558541255569440830",
