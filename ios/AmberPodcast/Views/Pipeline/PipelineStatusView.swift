@@ -49,15 +49,17 @@ public struct PipelineStatusView: View {
                         showSettingsSheet = true
                     } label: {
                         Image(systemName: "gearshape.fill")
-                            .font(.system(size: 15, weight: .medium))
-                            .foregroundStyle(AmberTheme.labelSecondary)
-                            .padding(8)
-                            .background(Color.white.opacity(0.08), in: Circle())
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(Color(uiColor: .label))
+                            .frame(width: 32, height: 32)
+                            .contentShape(Circle())
                     }
                 }
             }
             .sheet(isPresented: $showSettingsSheet) {
-                SettingsView()
+                NavigationStack {
+                    SettingsView()
+                }
             }
             .task {
                 await loadStatus()

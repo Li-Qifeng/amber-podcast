@@ -523,7 +523,7 @@ async def run_pipeline_task(episode_id: str):
             logger.info(f"Episode {episode_id} is native Chinese podcast. Executing ASR subtitle extraction & AI notes.")
             db.update_episode_status(episode_id, status="transcribing", progress=30)
             asr_engine = ASREngine()
-            asr_segments = await asr_engine.transcribe_audio_file(audio_path)
+            asr_segments = await asr_engine.transcribe_audio_file(audio_path, language="zh")
 
             db.update_episode_status(episode_id, status="translating", progress=65)
             translator = TranslatorEngine()
@@ -622,12 +622,15 @@ async def trigger_translation(
         ep_dict = payload["episode"]
         feed_dict = payload.get("feed")
         fid = ep_dict.get("feed_id") or ep_dict.get("feedId") or (episode_id.split("_")[0] if "_" in episode_id else "unknown_feed")
-        if not db.get_feed(fid):
-            feed_meta = feed_dict or {}
+        feed_meta = feed_dict or {}
+        furl = feed_meta.get("feed_url") or feed_meta.get("feedUrl") or ""
+        existing_feed = db.get_feed(fid) or (db.get_feed_by_url(furl) if furl else None)
+        if existing_feed:
+            fid = existing_feed["id"]
+        else:
             title = feed_meta.get("title") or "未知播客"
             author = feed_meta.get("author") or ""
             cover = feed_meta.get("cover_url") or feed_meta.get("coverUrl") or ""
-            furl = feed_meta.get("feed_url") or feed_meta.get("feedUrl") or ""
             db.upsert_feed(
                 feed_id=fid,
                 source_type="apple_rss",

@@ -139,18 +139,12 @@ public struct AmberScrollProbePreferenceKey: PreferenceKey {
 }
 
 public extension View {
-    /// Native scroll observer: iOS 26+ native TabView manages minimization on UIKit render thread at 120Hz.
+    /// Native scroll observer: iOS 18+ native TabView manages minimization on UIKit render thread at 120Hz.
     /// Manual GeometryReader and onScrollGeometryChange listeners are bypassed to eliminate scroll stutter.
     @ViewBuilder
     func amberScrollObservable(tab: Int? = nil) -> some View {
-        if #available(iOS 26.0, *) {
+        if #available(iOS 18.0, *) {
             self
-        } else if #available(iOS 18.0, *) {
-            self.onScrollGeometryChange(for: CGFloat.self, of: { geometry in
-                geometry.visibleRect.minY
-            }) { oldValue, newValue in
-                AmberScrollCoordinator.shared.handleOffset(newValue, forTab: tab)
-            }
         } else {
             self
         }

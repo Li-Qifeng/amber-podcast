@@ -48,41 +48,38 @@ public struct SettingsView: View {
     public init() {}
 
     public var body: some View {
-        NavigationStack {
-            ZStack {
-                AmberTheme.background.ignoresSafeArea()
+        // 注意：此视图在 Sheet 中呈现，外层已有 NavigationStack，不再重复套
+        ZStack {
+            AmberTheme.background.ignoresSafeArea()
 
-                ScrollView(.vertical, showsIndicators: false) {
-                    VStack(spacing: 22) {
-                        AmberScrollTopProbe(tab: 3)
+            ScrollView(.vertical, showsIndicators: false) {
+                VStack(spacing: 22) {
+                    // Section 1: Server Gateway & Network
+                    gatewaySection
 
-                        // Section 1: Server Gateway & Network
-                        gatewaySection
+                    // Section 2: AI Translation Preferences
+                    aiPreferencesSection
 
-                        // Section 2: AI Translation Preferences
-                        aiPreferencesSection
+                    // Section 3: Acoustic Playback Engine
+                    acousticEngineSection
 
-                        // Section 3: Acoustic Playback Engine
-                        acousticEngineSection
+                    // Section 4: Appearance & Liquid Glass
+                    appearanceSection
 
-                        // Section 4: Appearance & Liquid Glass
-                        appearanceSection
+                    // Section 5: Storage & Cache Governance
+                    storageSection
 
-                        // Section 5: Storage & Cache Governance
-                        storageSection
-
-                        // Section 6: About & System Info
-                        aboutSection
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 14)
-                    .padding(.bottom, 120) // Clearance for floating MiniPlayer
+                    // Section 6: About & System Info
+                    aboutSection
                 }
-                .scrollBounceBehavior(.always, axes: .vertical)
-                .amberScrollObservable(tab: 3)
+                .padding(.horizontal, 20)
+                .padding(.top, 14)
+                .padding(.bottom, 60)
             }
-            .navigationTitle("设置")
-            .navigationBarTitleDisplayMode(.inline)
+            .scrollBounceBehavior(.always, axes: .vertical)
+        }
+        .navigationTitle("设置")
+        .navigationBarTitleDisplayMode(.inline)
             .onAppear {
                 self.serverUrl = apiClient.serverBaseUrl
                 self.authToken = apiClient.authToken

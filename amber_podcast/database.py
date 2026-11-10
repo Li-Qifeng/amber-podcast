@@ -76,6 +76,21 @@ class Database:
                     feed_url: str, cover_url: str, description: str, auto_translate: int = 0) -> Optional[Dict[str, Any]]:
         now = int(time.time())
         with self.get_conn() as conn:
+            existing = conn.execute("SELECT id FROM feeds WHERE feed_url = ?", (feed_url,)).fetchone()
+            if existing and existing["id"] != feed_id:
+                actual_id = existing["id"]
+                conn.execute("""
+                    UPDATE feeds SET
+                        title = ?,
+                        author = ?,
+                        cover_url = ?,
+                        description = ?,
+                        auto_translate = ?,
+                        updated_at = ?
+                    WHERE id = ?
+                """, (title, author, cover_url, description, auto_translate, now, actual_id))
+                return self.get_feed(actual_id)
+
             conn.execute("""
                 INSERT INTO feeds (id, source_type, title, author, feed_url, cover_url, description, auto_translate, created_at, updated_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -92,6 +107,11 @@ class Database:
     def get_feed(self, feed_id: str) -> Optional[Dict[str, Any]]:
         with self.get_conn() as conn:
             row = conn.execute("SELECT * FROM feeds WHERE id = ?", (feed_id,)).fetchone()
+            return dict(row) if row else None
+
+    def get_feed_by_url(self, feed_url: str) -> Optional[Dict[str, Any]]:
+        with self.get_conn() as conn:
+            row = conn.execute("SELECT * FROM feeds WHERE feed_url = ?", (feed_url,)).fetchone()
             return dict(row) if row else None
 
     def list_feeds(self) -> List[Dict[str, Any]]:

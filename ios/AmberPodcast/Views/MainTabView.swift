@@ -23,7 +23,7 @@ public struct MainTabView: View {
 
     public var body: some View {
         Group {
-            if #available(iOS 26.0, *) {
+            if #available(iOS 18.0, *) {
                 NativeApplePodcastTabView(
                     selectedTab: $selectedTab,
                     showFullPlayer: $showFullPlayer,
@@ -64,8 +64,8 @@ public struct MainTabView: View {
     }
 }
 
-// MARK: - Native Apple Podcasts Liquid Glass Tab View (iOS 26+)
-@available(iOS 26.0, *)
+// MARK: - Native Apple Podcasts Liquid Glass Tab View (iOS 18+)
+@available(iOS 18.0, *)
 private struct NativeApplePodcastTabView: View {
     @Binding var selectedTab: Int
     @Binding var showFullPlayer: Bool
@@ -121,7 +121,7 @@ private struct NativeApplePodcastTabView: View {
     }
 }
 
-@available(iOS 26.0, *)
+@available(iOS 18.0, *)
 private struct NativeMiniPlayerAccessory: View {
     @Binding var showFullPlayer: Bool
     @ObservedObject var player: DualTrackAudioPlayer

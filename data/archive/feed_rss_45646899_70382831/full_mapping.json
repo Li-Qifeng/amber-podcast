@@ -1,0 +1,3437 @@
+[
+  {
+    "index": 0,
+    "speaker": "SPEAKER_00",
+    "enText": "用声音 碰撞世界",
+    "zhDisplay": "用声音 碰撞世界",
+    "zhSpoken": "用声音 碰撞世界",
+    "enRange": {
+      "start": 0.18,
+      "end": 2.18
+    },
+    "zhRange": {
+      "start": 0.18,
+      "end": 2.18
+    }
+  },
+  {
+    "index": 1,
+    "speaker": "SPEAKER_00",
+    "enText": "生动活泼",
+    "zhDisplay": "生动活泼",
+    "zhSpoken": "生动活泼",
+    "enRange": {
+      "start": 2.18,
+      "end": 5.0
+    },
+    "zhRange": {
+      "start": 2.18,
+      "end": 5.0
+    }
+  },
+  {
+    "index": 2,
+    "speaker": "SPEAKER_00",
+    "enText": "生动早咖啡与你轻松同步日常生活与商业世界",
+    "zhDisplay": "生动早咖啡与你轻松同步日常生活与商业世界",
+    "zhSpoken": "生动早咖啡与你轻松同步日常生活与商业世界",
+    "enRange": {
+      "start": 5.0,
+      "end": 14.64
+    },
+    "zhRange": {
+      "start": 5.0,
+      "end": 14.64
+    }
+  },
+  {
+    "index": 3,
+    "speaker": "SPEAKER_00",
+    "enText": "嗨 早上好呀",
+    "zhDisplay": "嗨 早上好呀",
+    "zhSpoken": "嗨 早上好呀",
+    "enRange": {
+      "start": 14.64,
+      "end": 18.04
+    },
+    "zhRange": {
+      "start": 14.64,
+      "end": 18.04
+    }
+  },
+  {
+    "index": 4,
+    "speaker": "SPEAKER_00",
+    "enText": "今天是2023年的4月20号 星期四",
+    "zhDisplay": "今天是2023年的4月20号 星期四",
+    "zhSpoken": "今天是2023年的4月20号 星期四",
+    "enRange": {
+      "start": 18.04,
+      "end": 20.64
+    },
+    "zhRange": {
+      "start": 18.04,
+      "end": 20.64
+    }
+  },
+  {
+    "index": 5,
+    "speaker": "SPEAKER_00",
+    "enText": "这里是生动早咖啡",
+    "zhDisplay": "这里是生动早咖啡",
+    "zhSpoken": "这里是生动早咖啡",
+    "enRange": {
+      "start": 20.64,
+      "end": 22.26
+    },
+    "zhRange": {
+      "start": 20.64,
+      "end": 22.26
+    }
+  },
+  {
+    "index": 6,
+    "speaker": "SPEAKER_00",
+    "enText": "我是来自生动活泼的孟一",
+    "zhDisplay": "我是来自生动活泼的孟一",
+    "zhSpoken": "我是来自生动活泼的孟一",
+    "enRange": {
+      "start": 22.26,
+      "end": 23.82
+    },
+    "zhRange": {
+      "start": 22.26,
+      "end": 23.82
+    }
+  },
+  {
+    "index": 7,
+    "speaker": "SPEAKER_00",
+    "enText": "今天我们首先会来关注一下奈飞的最新动态",
+    "zhDisplay": "今天我们首先会来关注一下奈飞的最新动态",
+    "zhSpoken": "今天我们首先会来关注一下奈飞的最新动态",
+    "enRange": {
+      "start": 23.82,
+      "end": 26.8
+    },
+    "zhRange": {
+      "start": 23.82,
+      "end": 26.8
+    }
+  },
+  {
+    "index": 8,
+    "speaker": "SPEAKER_00",
+    "enText": "当然国内办公应用和AI结合的最新进展也不容错过",
+    "zhDisplay": "当然国内办公应用和AI结合的最新进展也不容错过",
+    "zhSpoken": "当然国内办公应用和AI结合的最新进展也不容错过",
+    "enRange": {
+      "start": 26.8,
+      "end": 30.94
+    },
+    "zhRange": {
+      "start": 26.8,
+      "end": 30.94
+    }
+  },
+  {
+    "index": 9,
+    "speaker": "SPEAKER_00",
+    "enText": "另外彭博社对于未来的职业建议也值得我们关注",
+    "zhDisplay": "另外彭博社对于未来的职业建议也值得我们关注",
+    "zhSpoken": "另外彭博社对于未来的职业建议也值得我们关注",
+    "enRange": {
+      "start": 30.94,
+      "end": 34.18
+    },
+    "zhRange": {
+      "start": 30.94,
+      "end": 34.18
+    }
+  },
+  {
+    "index": 10,
+    "speaker": "SPEAKER_00",
+    "enText": "那就让我们一起用几条商业科技清解读打开全新的一天",
+    "zhDisplay": "那就让我们一起用几条商业科技清解读打开全新的一天",
+    "zhSpoken": "那就让我们一起用几条商业科技清解读打开全新的一天",
+    "enRange": {
+      "start": 34.18,
+      "end": 37.5
+    },
+    "zhRange": {
+      "start": 34.18,
+      "end": 37.5
+    }
+  },
+  {
+    "index": 11,
+    "speaker": "SPEAKER_01",
+    "enText": "奈飞发布财报",
+    "zhDisplay": "奈飞发布财报",
+    "zhSpoken": "奈飞发布财报",
+    "enRange": {
+      "start": 45.2,
+      "end": 46.48
+    },
+    "zhRange": {
+      "start": 45.2,
+      "end": 46.48
+    }
+  },
+  {
+    "index": 12,
+    "speaker": "SPEAKER_01",
+    "enText": "结束创业初期的邮寄DVD业务",
+    "zhDisplay": "结束创业初期的邮寄DVD业务",
+    "zhSpoken": "结束创业初期的邮寄DVD业务",
+    "enRange": {
+      "start": 46.48,
+      "end": 49.22
+    },
+    "zhRange": {
+      "start": 46.48,
+      "end": 49.22
+    }
+  },
+  {
+    "index": 13,
+    "speaker": "SPEAKER_01",
+    "enText": "根据路透社4月18号的报道",
+    "zhDisplay": "根据路透社4月18号的报道",
+    "zhSpoken": "根据路透社4月18号的报道",
+    "enRange": {
+      "start": 49.22,
+      "end": 51.58
+    },
+    "zhRange": {
+      "start": 49.22,
+      "end": 51.58
+    }
+  },
+  {
+    "index": 14,
+    "speaker": "SPEAKER_01",
+    "enText": "奈飞发布了今年第一季度的财报",
+    "zhDisplay": "奈飞发布了今年第一季度的财报",
+    "zhSpoken": "奈飞发布了今年第一季度的财报",
+    "enRange": {
+      "start": 51.58,
+      "end": 53.78
+    },
+    "zhRange": {
+      "start": 51.58,
+      "end": 53.78
+    }
+  },
+  {
+    "index": 15,
+    "speaker": "SPEAKER_01",
+    "enText": "上个季度奈飞营收大约是82亿美元",
+    "zhDisplay": "上个季度奈飞营收大约是82亿美元",
+    "zhSpoken": "上个季度奈飞营收大约是82亿美元",
+    "enRange": {
+      "start": 53.78,
+      "end": 56.8
+    },
+    "zhRange": {
+      "start": 53.78,
+      "end": 56.8
+    }
+  },
+  {
+    "index": 16,
+    "speaker": "SPEAKER_01",
+    "enText": "增速只有3.7%",
+    "zhDisplay": "增速只有3.7%",
+    "zhSpoken": "增速只有3.7%",
+    "enRange": {
+      "start": 56.8,
+      "end": 59.0
+    },
+    "zhRange": {
+      "start": 56.8,
+      "end": 59.0
+    }
+  },
+  {
+    "index": 17,
+    "speaker": "SPEAKER_01",
+    "enText": "是历年来营收增速第二滴的季度",
+    "zhDisplay": "是历年来营收增速第二滴的季度",
+    "zhSpoken": "是历年来营收增速第二滴的季度",
+    "enRange": {
+      "start": 59.0,
+      "end": 61.92
+    },
+    "zhRange": {
+      "start": 59.0,
+      "end": 61.92
+    }
+  },
+  {
+    "index": 18,
+    "speaker": "SPEAKER_01",
+    "enText": "目前奈飞全球付费用户的数量达到了2.3亿",
+    "zhDisplay": "目前奈飞全球付费用户的数量达到了2.3亿",
+    "zhSpoken": "目前奈飞全球付费用户的数量达到了2.3亿",
+    "enRange": {
+      "start": 61.92,
+      "end": 65.66
+    },
+    "zhRange": {
+      "start": 61.92,
+      "end": 65.66
+    }
+  },
+  {
+    "index": 19,
+    "speaker": "SPEAKER_01",
+    "enText": "但是上个季度的新增用户只有180万",
+    "zhDisplay": "但是上个季度的新增用户只有180万",
+    "zhSpoken": "但是上个季度的新增用户只有180万",
+    "enRange": {
+      "start": 65.66,
+      "end": 68.38
+    },
+    "zhRange": {
+      "start": 65.66,
+      "end": 68.38
+    }
+  },
+  {
+    "index": 20,
+    "speaker": "SPEAKER_01",
+    "enText": "比华尔街分析师预计的还要少20万",
+    "zhDisplay": "比华尔街分析师预计的还要少20万",
+    "zhSpoken": "比华尔街分析师预计的还要少20万",
+    "enRange": {
+      "start": 68.38,
+      "end": 71.24
+    },
+    "zhRange": {
+      "start": 68.38,
+      "end": 71.24
+    }
+  },
+  {
+    "index": 21,
+    "speaker": "SPEAKER_01",
+    "enText": "不过新增用户当中有超过八成都是来自于亚洲地区",
+    "zhDisplay": "不过新增用户当中有超过八成都是来自于亚洲地区",
+    "zhSpoken": "不过新增用户当中有超过八成都是来自于亚洲地区",
+    "enRange": {
+      "start": 71.24,
+      "end": 75.06
+    },
+    "zhRange": {
+      "start": 71.24,
+      "end": 75.06
+    }
+  },
+  {
+    "index": 22,
+    "speaker": "SPEAKER_01",
+    "enText": "由于奈飞率先在拉美打击共享账号",
+    "zhDisplay": "由于奈飞率先在拉美打击共享账号",
+    "zhSpoken": "由于奈飞率先在拉美打击共享账号",
+    "enRange": {
+      "start": 75.06,
+      "end": 78.14
+    },
+    "zhRange": {
+      "start": 75.06,
+      "end": 78.14
+    }
+  },
+  {
+    "index": 23,
+    "speaker": "SPEAKER_01",
+    "enText": "这一地区的用户数量减少了45万",
+    "zhDisplay": "这一地区的用户数量减少了45万",
+    "zhSpoken": "这一地区的用户数量减少了45万",
+    "enRange": {
+      "start": 78.14,
+      "end": 80.6
+    },
+    "zhRange": {
+      "start": 78.14,
+      "end": 80.6
+    }
+  },
+  {
+    "index": 24,
+    "speaker": "SPEAKER_01",
+    "enText": "奈飞也表示下一个季度将会在更多的地区",
+    "zhDisplay": "奈飞也表示下一个季度将会在更多的地区",
+    "zhSpoken": "奈飞也表示下一个季度将会在更多的地区",
+    "enRange": {
+      "start": 80.6,
+      "end": 83.84
+    },
+    "zhRange": {
+      "start": 80.6,
+      "end": 83.84
+    }
+  },
+  {
+    "index": 25,
+    "speaker": "SPEAKER_01",
+    "enText": "推出防止共享密码的措施",
+    "zhDisplay": "推出防止共享密码的措施",
+    "zhSpoken": "推出防止共享密码的措施",
+    "enRange": {
+      "start": 83.84,
+      "end": 86.04
+    },
+    "zhRange": {
+      "start": 83.84,
+      "end": 86.04
+    }
+  },
+  {
+    "index": 26,
+    "speaker": "SPEAKER_01",
+    "enText": "在第一季度的财报当中",
+    "zhDisplay": "在第一季度的财报当中",
+    "zhSpoken": "在第一季度的财报当中",
+    "enRange": {
+      "start": 86.04,
+      "end": 88.06
+    },
+    "zhRange": {
+      "start": 86.04,
+      "end": 88.06
+    }
+  },
+  {
+    "index": 27,
+    "speaker": "SPEAKER_01",
+    "enText": "奈飞还宣布将在今年的9月",
+    "zhDisplay": "奈飞还宣布将在今年的9月",
+    "zhSpoken": "奈飞还宣布将在今年的9月",
+    "enRange": {
+      "start": 88.06,
+      "end": 89.92
+    },
+    "zhRange": {
+      "start": 88.06,
+      "end": 89.92
+    }
+  },
+  {
+    "index": 28,
+    "speaker": "SPEAKER_01",
+    "enText": "终止邮寄DVD的业务",
+    "zhDisplay": "终止邮寄DVD的业务",
+    "zhSpoken": "终止邮寄DVD的业务",
+    "enRange": {
+      "start": 89.92,
+      "end": 91.7
+    },
+    "zhRange": {
+      "start": 89.92,
+      "end": 91.7
+    }
+  },
+  {
+    "index": 29,
+    "speaker": "SPEAKER_01",
+    "enText": "这项业务是奈飞成立之初的最主要业务",
+    "zhDisplay": "这项业务是奈飞成立之初的最主要业务",
+    "zhSpoken": "这项业务是奈飞成立之初的最主要业务",
+    "enRange": {
+      "start": 91.7,
+      "end": 94.52
+    },
+    "zhRange": {
+      "start": 91.7,
+      "end": 94.52
+    }
+  },
+  {
+    "index": 30,
+    "speaker": "SPEAKER_01",
+    "enText": "25年来",
+    "zhDisplay": "25年来",
+    "zhSpoken": "25年来",
+    "enRange": {
+      "start": 94.52,
+      "end": 95.38
+    },
+    "zhRange": {
+      "start": 94.52,
+      "end": 95.38
+    }
+  },
+  {
+    "index": 31,
+    "speaker": "SPEAKER_01",
+    "enText": "奈飞的DVD服务",
+    "zhDisplay": "奈飞的DVD服务",
+    "zhSpoken": "奈飞的DVD服务",
+    "enRange": {
+      "start": 95.38,
+      "end": 96.58
+    },
+    "zhRange": {
+      "start": 95.38,
+      "end": 96.58
+    }
+  },
+  {
+    "index": 32,
+    "speaker": "SPEAKER_01",
+    "enText": "已经在美国各地运送了超过50亿张光盘",
+    "zhDisplay": "已经在美国各地运送了超过50亿张光盘",
+    "zhSpoken": "已经在美国各地运送了超过50亿张光盘",
+    "enRange": {
+      "start": 96.58,
+      "end": 100.14
+    },
+    "zhRange": {
+      "start": 96.58,
+      "end": 100.14
+    }
+  },
+  {
+    "index": 33,
+    "speaker": "SPEAKER_01",
+    "enText": "而在2010年",
+    "zhDisplay": "而在2010年",
+    "zhSpoken": "而在2010年",
+    "enRange": {
+      "start": 100.14,
+      "end": 101.52
+    },
+    "zhRange": {
+      "start": 100.14,
+      "end": 101.52
+    }
+  },
+  {
+    "index": 34,
+    "speaker": "SPEAKER_01",
+    "enText": "他们的高峰时期",
+    "zhDisplay": "他们的高峰时期",
+    "zhSpoken": "他们的高峰时期",
+    "enRange": {
+      "start": 101.52,
+      "end": 102.5
+    },
+    "zhRange": {
+      "start": 101.52,
+      "end": 102.5
+    }
+  },
+  {
+    "index": 35,
+    "speaker": "SPEAKER_01",
+    "enText": "大约有2000万人订阅了DVD服务",
+    "zhDisplay": "大约有2000万人订阅了DVD服务",
+    "zhSpoken": "大约有2000万人订阅了DVD服务",
+    "enRange": {
+      "start": 102.5,
+      "end": 105.1
+    },
+    "zhRange": {
+      "start": 102.5,
+      "end": 105.1
+    }
+  },
+  {
+    "index": 36,
+    "speaker": "SPEAKER_01",
+    "enText": "随着奈飞转向流媒体",
+    "zhDisplay": "随着奈飞转向流媒体",
+    "zhSpoken": "随着奈飞转向流媒体",
+    "enRange": {
+      "start": 105.1,
+      "end": 107.1
+    },
+    "zhRange": {
+      "start": 105.1,
+      "end": 107.1
+    }
+  },
+  {
+    "index": 37,
+    "speaker": "SPEAKER_01",
+    "enText": "邮寄DVD的业务重要性也是越来越低",
+    "zhDisplay": "邮寄DVD的业务重要性也是越来越低",
+    "zhSpoken": "邮寄DVD的业务重要性也是越来越低",
+    "enRange": {
+      "start": 107.1,
+      "end": 109.7
+    },
+    "zhRange": {
+      "start": 107.1,
+      "end": 109.7
+    }
+  },
+  {
+    "index": 38,
+    "speaker": "SPEAKER_01",
+    "enText": "他们关闭了数十个DVD分发中心",
+    "zhDisplay": "他们关闭了数十个DVD分发中心",
+    "zhSpoken": "他们关闭了数十个DVD分发中心",
+    "enRange": {
+      "start": 109.7,
+      "end": 112.3
+    },
+    "zhRange": {
+      "start": 109.7,
+      "end": 112.3
+    }
+  },
+  {
+    "index": 39,
+    "speaker": "SPEAKER_01",
+    "enText": "用户需要等待更久的时间",
+    "zhDisplay": "用户需要等待更久的时间",
+    "zhSpoken": "用户需要等待更久的时间",
+    "enRange": {
+      "start": 112.3,
+      "end": 114.24
+    },
+    "zhRange": {
+      "start": 112.3,
+      "end": 114.24
+    }
+  },
+  {
+    "index": 40,
+    "speaker": "SPEAKER_01",
+    "enText": "才能够拿到光盘",
+    "zhDisplay": "才能够拿到光盘",
+    "zhSpoken": "才能够拿到光盘",
+    "enRange": {
+      "start": 114.24,
+      "end": 115.38
+    },
+    "zhRange": {
+      "start": 114.24,
+      "end": 115.38
+    }
+  },
+  {
+    "index": 41,
+    "speaker": "SPEAKER_01",
+    "enText": "Lululemon寻求出售旗下业务",
+    "zhDisplay": "Lululemon寻求出售旗下业务",
+    "zhSpoken": "Lululemon寻求出售旗下业务",
+    "enRange": {
+      "start": 115.38,
+      "end": 119.0
+    },
+    "zhRange": {
+      "start": 115.38,
+      "end": 119.0
+    }
+  },
+  {
+    "index": 42,
+    "speaker": "SPEAKER_01",
+    "enText": "放弃家庭健身市场",
+    "zhDisplay": "放弃家庭健身市场",
+    "zhSpoken": "放弃家庭健身市场",
+    "enRange": {
+      "start": 119.0,
+      "end": 120.64
+    },
+    "zhRange": {
+      "start": 119.0,
+      "end": 120.64
+    }
+  },
+  {
+    "index": 43,
+    "speaker": "SPEAKER_01",
+    "enText": "根据CNBC的报道",
+    "zhDisplay": "根据CNBC的报道",
+    "zhSpoken": "根据CNBC的报道",
+    "enRange": {
+      "start": 120.64,
+      "end": 122.58
+    },
+    "zhRange": {
+      "start": 120.64,
+      "end": 122.58
+    }
+  },
+  {
+    "index": 44,
+    "speaker": "SPEAKER_01",
+    "enText": "Lululemon正在寻求出售旗下的",
+    "zhDisplay": "Lululemon正在寻求出售旗下的",
+    "zhSpoken": "Lululemon正在寻求出售旗下的",
+    "enRange": {
+      "start": 122.58,
+      "end": 124.84
+    },
+    "zhRange": {
+      "start": 122.58,
+      "end": 124.84
+    }
+  },
+  {
+    "index": 45,
+    "speaker": "SPEAKER_01",
+    "enText": "家庭健身业务Miro",
+    "zhDisplay": "家庭健身业务Miro",
+    "zhSpoken": "家庭健身业务Miro",
+    "enRange": {
+      "start": 124.84,
+      "end": 126.4
+    },
+    "zhRange": {
+      "start": 124.84,
+      "end": 126.4
+    }
+  },
+  {
+    "index": 46,
+    "speaker": "SPEAKER_01",
+    "enText": "目前他们也正在和智能划船机品牌",
+    "zhDisplay": "目前他们也正在和智能划船机品牌",
+    "zhSpoken": "目前他们也正在和智能划船机品牌",
+    "enRange": {
+      "start": 126.4,
+      "end": 129.34
+    },
+    "zhRange": {
+      "start": 126.4,
+      "end": 129.34
+    }
+  },
+  {
+    "index": 47,
+    "speaker": "SPEAKER_01",
+    "enText": "Hydro进行接触",
+    "zhDisplay": "Hydro进行接触",
+    "zhSpoken": "Hydro进行接触",
+    "enRange": {
+      "start": 129.34,
+      "end": 130.62
+    },
+    "zhRange": {
+      "start": 129.34,
+      "end": 130.62
+    }
+  },
+  {
+    "index": 48,
+    "speaker": "SPEAKER_01",
+    "enText": "在2020年6月的疫情初期",
+    "zhDisplay": "在2020年6月的疫情初期",
+    "zhSpoken": "在2020年6月的疫情初期",
+    "enRange": {
+      "start": 130.62,
+      "end": 133.22
+    },
+    "zhRange": {
+      "start": 130.62,
+      "end": 133.22
+    }
+  },
+  {
+    "index": 49,
+    "speaker": "SPEAKER_01",
+    "enText": "Lululemon以5亿美元的价格收购了Miro",
+    "zhDisplay": "Lululemon以5亿美元的价格收购了Miro",
+    "zhSpoken": "Lululemon以5亿美元的价格收购了Miro",
+    "enRange": {
+      "start": 133.22,
+      "end": 135.78
+    },
+    "zhRange": {
+      "start": 133.22,
+      "end": 135.78
+    }
+  },
+  {
+    "index": 50,
+    "speaker": "SPEAKER_01",
+    "enText": "Miro每周都会为用户提供",
+    "zhDisplay": "Miro每周都会为用户提供",
+    "zhSpoken": "Miro每周都会为用户提供",
+    "enRange": {
+      "start": 135.78,
+      "end": 138.2
+    },
+    "zhRange": {
+      "start": 135.78,
+      "end": 138.2
+    }
+  },
+  {
+    "index": 51,
+    "speaker": "SPEAKER_01",
+    "enText": "在线直播的健身课程用户可以通过Miro的健身镜来跟随视频一起锻炼被收购之后的Miro改名叫Lululemon Studio但是一直没有盈利去年随着疫情的缓和",
+    "zhDisplay": "在线直播的健身课程用户可以通过Miro的健身镜来跟随视频一起锻炼被收购之后的Miro改名叫Lululemon Studio但是一直没有盈利去年随着疫情的缓和",
+    "zhSpoken": "在线直播的健身课程用户可以通过Miro的健身镜来跟随视频一起锻炼被收购之后的Miro改名叫Lululemon Studio但是一直没有盈利去年随着疫情的缓和",
+    "enRange": {
+      "start": 138.2,
+      "end": 150.054
+    },
+    "zhRange": {
+      "start": 138.2,
+      "end": 150.054
+    }
+  },
+  {
+    "index": 52,
+    "speaker": "SPEAKER_01",
+    "enText": "被困在家中的消费者可以重返健身房",
+    "zhDisplay": "被困在家中的消费者可以重返健身房",
+    "zhSpoken": "被困在家中的消费者可以重返健身房",
+    "enRange": {
+      "start": 150.054,
+      "end": 152.874
+    },
+    "zhRange": {
+      "start": 150.054,
+      "end": 152.874
+    }
+  },
+  {
+    "index": 53,
+    "speaker": "SPEAKER_01",
+    "enText": "家庭健身的运动场景就受到了冲击",
+    "zhDisplay": "家庭健身的运动场景就受到了冲击",
+    "zhSpoken": "家庭健身的运动场景就受到了冲击",
+    "enRange": {
+      "start": 152.874,
+      "end": 155.494
+    },
+    "zhRange": {
+      "start": 152.874,
+      "end": 155.494
+    }
+  },
+  {
+    "index": 54,
+    "speaker": "SPEAKER_01",
+    "enText": "除了Lululemon旗下的Miro",
+    "zhDisplay": "除了Lululemon旗下的Miro",
+    "zhSpoken": "除了Lululemon旗下的Miro",
+    "enRange": {
+      "start": 155.494,
+      "end": 157.554
+    },
+    "zhRange": {
+      "start": 155.494,
+      "end": 157.554
+    }
+  },
+  {
+    "index": 55,
+    "speaker": "SPEAKER_01",
+    "enText": "疫情期间明星公司Paladin",
+    "zhDisplay": "疫情期间明星公司Paladin",
+    "zhSpoken": "疫情期间明星公司Paladin",
+    "enRange": {
+      "start": 157.554,
+      "end": 159.534
+    },
+    "zhRange": {
+      "start": 157.554,
+      "end": 159.534
+    }
+  },
+  {
+    "index": 56,
+    "speaker": "SPEAKER_01",
+    "enText": "他们的股价更是在12月里从接近500亿美元",
+    "zhDisplay": "他们的股价更是在12月里从接近500亿美元",
+    "zhSpoken": "他们的股价更是在12月里从接近500亿美元",
+    "enRange": {
+      "start": 159.534,
+      "end": 163.514
+    },
+    "zhRange": {
+      "start": 159.534,
+      "end": 163.514
+    }
+  },
+  {
+    "index": 57,
+    "speaker": "SPEAKER_01",
+    "enText": "缩水到不足80亿美元",
+    "zhDisplay": "缩水到不足80亿美元",
+    "zhSpoken": "缩水到不足80亿美元",
+    "enRange": {
+      "start": 163.514,
+      "end": 165.314
+    },
+    "zhRange": {
+      "start": 163.514,
+      "end": 165.314
+    }
+  },
+  {
+    "index": 58,
+    "speaker": "SPEAKER_01",
+    "enText": "除了创业公司硅谷的巨头们",
+    "zhDisplay": "除了创业公司硅谷的巨头们",
+    "zhSpoken": "除了创业公司硅谷的巨头们",
+    "enRange": {
+      "start": 165.314,
+      "end": 167.394
+    },
+    "zhRange": {
+      "start": 165.314,
+      "end": 167.394
+    }
+  },
+  {
+    "index": 59,
+    "speaker": "SPEAKER_01",
+    "enText": "也盯上了在家健身的赛道",
+    "zhDisplay": "也盯上了在家健身的赛道",
+    "zhSpoken": "也盯上了在家健身的赛道",
+    "enRange": {
+      "start": 167.394,
+      "end": 169.114
+    },
+    "zhRange": {
+      "start": 167.394,
+      "end": 169.114
+    }
+  },
+  {
+    "index": 60,
+    "speaker": "SPEAKER_01",
+    "enText": "亚马逊推出了一款名字叫Prime Bike的健身自行车",
+    "zhDisplay": "亚马逊推出了一款名字叫Prime Bike的健身自行车",
+    "zhSpoken": "亚马逊推出了一款名字叫Prime Bike的健身自行车",
+    "enRange": {
+      "start": 169.114,
+      "end": 172.674
+    },
+    "zhRange": {
+      "start": 169.114,
+      "end": 172.674
+    }
+  },
+  {
+    "index": 61,
+    "speaker": "SPEAKER_01",
+    "enText": "苹果也发布了和Apple Watch结合的Fitness Plus健身服务",
+    "zhDisplay": "苹果也发布了和Apple Watch结合的Fitness Plus健身服务",
+    "zhSpoken": "苹果也发布了和Apple Watch结合的Fitness Plus健身服务",
+    "enRange": {
+      "start": 172.674,
+      "end": 177.374
+    },
+    "zhRange": {
+      "start": 172.674,
+      "end": 177.374
+    }
+  },
+  {
+    "index": 62,
+    "speaker": "SPEAKER_01",
+    "enText": "金山办公推出AI助手",
+    "zhDisplay": "金山办公推出AI助手",
+    "zhSpoken": "金山办公推出AI助手",
+    "enRange": {
+      "start": 177.374,
+      "end": 180.694
+    },
+    "zhRange": {
+      "start": 177.374,
+      "end": 180.694
+    }
+  },
+  {
+    "index": 63,
+    "speaker": "SPEAKER_01",
+    "enText": "北大团队推出Chat Excel",
+    "zhDisplay": "北大团队推出Chat Excel",
+    "zhSpoken": "北大团队推出Chat Excel",
+    "enRange": {
+      "start": 180.694,
+      "end": 182.674
+    },
+    "zhRange": {
+      "start": 180.694,
+      "end": 182.674
+    }
+  },
+  {
+    "index": 64,
+    "speaker": "SPEAKER_01",
+    "enText": "4月18号金山办公在公众号表示将会推出WPS AI",
+    "zhDisplay": "4月18号金山办公在公众号表示将会推出WPS AI",
+    "zhSpoken": "4月18号金山办公在公众号表示将会推出WPS AI",
+    "enRange": {
+      "start": 182.674,
+      "end": 187.614
+    },
+    "zhRange": {
+      "start": 182.674,
+      "end": 187.614
+    }
+  },
+  {
+    "index": 65,
+    "speaker": "SPEAKER_01",
+    "enText": "在金山办公的在线协作文档当中",
+    "zhDisplay": "在金山办公的在线协作文档当中",
+    "zhSpoken": "在金山办公的在线协作文档当中",
+    "enRange": {
+      "start": 187.614,
+      "end": 190.474
+    },
+    "zhRange": {
+      "start": 187.614,
+      "end": 190.474
+    }
+  },
+  {
+    "index": 66,
+    "speaker": "SPEAKER_01",
+    "enText": "用户可以让AI来生成文档",
+    "zhDisplay": "用户可以让AI来生成文档",
+    "zhSpoken": "用户可以让AI来生成文档",
+    "enRange": {
+      "start": 190.474,
+      "end": 192.614
+    },
+    "zhRange": {
+      "start": 190.474,
+      "end": 192.614
+    }
+  },
+  {
+    "index": 67,
+    "speaker": "SPEAKER_01",
+    "enText": "也可以和AI对话不断地完善已经生成的内容",
+    "zhDisplay": "也可以和AI对话不断地完善已经生成的内容",
+    "zhSpoken": "也可以和AI对话不断地完善已经生成的内容",
+    "enRange": {
+      "start": 192.614,
+      "end": 196.354
+    },
+    "zhRange": {
+      "start": 192.614,
+      "end": 196.354
+    }
+  },
+  {
+    "index": 68,
+    "speaker": "SPEAKER_01",
+    "enText": "用户还能够对现有的文档进行加工",
+    "zhDisplay": "用户还能够对现有的文档进行加工",
+    "zhSpoken": "用户还能够对现有的文档进行加工",
+    "enRange": {
+      "start": 196.354,
+      "end": 199.014
+    },
+    "zhRange": {
+      "start": 196.354,
+      "end": 199.014
+    }
+  },
+  {
+    "index": 69,
+    "speaker": "SPEAKER_01",
+    "enText": "比如说扩充缩短或者是润色等等",
+    "zhDisplay": "比如说扩充缩短或者是润色等等",
+    "zhSpoken": "比如说扩充缩短或者是润色等等",
+    "enRange": {
+      "start": 199.014,
+      "end": 201.734
+    },
+    "zhRange": {
+      "start": 199.014,
+      "end": 201.734
+    }
+  },
+  {
+    "index": 70,
+    "speaker": "SPEAKER_01",
+    "enText": "金山办公表示会逐步开放测试",
+    "zhDisplay": "金山办公表示会逐步开放测试",
+    "zhSpoken": "金山办公表示会逐步开放测试",
+    "enRange": {
+      "start": 201.734,
+      "end": 204.294
+    },
+    "zhRange": {
+      "start": 201.734,
+      "end": 204.294
+    }
+  },
+  {
+    "index": 71,
+    "speaker": "SPEAKER_01",
+    "enText": "但是没有公布明确的上限时间",
+    "zhDisplay": "但是没有公布明确的上限时间",
+    "zhSpoken": "但是没有公布明确的上限时间",
+    "enRange": {
+      "start": 204.294,
+      "end": 206.634
+    },
+    "zhRange": {
+      "start": 204.294,
+      "end": 206.634
+    }
+  },
+  {
+    "index": 72,
+    "speaker": "SPEAKER_01",
+    "enText": "金山办公的CEO表示",
+    "zhDisplay": "金山办公的CEO表示",
+    "zhSpoken": "金山办公的CEO表示",
+    "enRange": {
+      "start": 206.634,
+      "end": 208.614
+    },
+    "zhRange": {
+      "start": 206.634,
+      "end": 208.614
+    }
+  },
+  {
+    "index": 73,
+    "speaker": "SPEAKER_01",
+    "enText": "金山办公的大模型由合作伙伴minimax来提供",
+    "zhDisplay": "金山办公的大模型由合作伙伴minimax来提供",
+    "zhSpoken": "金山办公的大模型由合作伙伴minimax来提供",
+    "enRange": {
+      "start": 208.614,
+      "end": 212.294
+    },
+    "zhRange": {
+      "start": 208.614,
+      "end": 212.294
+    }
+  },
+  {
+    "index": 74,
+    "speaker": "SPEAKER_01",
+    "enText": "根据36克的报道",
+    "zhDisplay": "根据36克的报道",
+    "zhSpoken": "根据36克的报道",
+    "enRange": {
+      "start": 212.294,
+      "end": 213.754
+    },
+    "zhRange": {
+      "start": 212.294,
+      "end": 213.754
+    }
+  },
+  {
+    "index": 75,
+    "speaker": "SPEAKER_01",
+    "enText": "minimax成立于2021年",
+    "zhDisplay": "minimax成立于2021年",
+    "zhSpoken": "minimax成立于2021年",
+    "enRange": {
+      "start": 213.754,
+      "end": 215.674
+    },
+    "zhRange": {
+      "start": 213.754,
+      "end": 215.674
+    }
+  },
+  {
+    "index": 76,
+    "speaker": "SPEAKER_01",
+    "enText": "是目前大模型创业潮当中",
+    "zhDisplay": "是目前大模型创业潮当中",
+    "zhSpoken": "是目前大模型创业潮当中",
+    "enRange": {
+      "start": 215.674,
+      "end": 217.394
+    },
+    "zhRange": {
+      "start": 215.674,
+      "end": 217.394
+    }
+  },
+  {
+    "index": 77,
+    "speaker": "SPEAKER_01",
+    "enText": "估值最高的创业公司之一",
+    "zhDisplay": "估值最高的创业公司之一",
+    "zhSpoken": "估值最高的创业公司之一",
+    "enRange": {
+      "start": 217.394,
+      "end": 219.474
+    },
+    "zhRange": {
+      "start": 217.394,
+      "end": 219.474
+    }
+  },
+  {
+    "index": 78,
+    "speaker": "SPEAKER_01",
+    "enText": "最近他们正在以超过10亿美元的价格",
+    "zhDisplay": "最近他们正在以超过10亿美元的价格",
+    "zhSpoken": "最近他们正在以超过10亿美元的价格",
+    "enRange": {
+      "start": 219.474,
+      "end": 222.334
+    },
+    "zhRange": {
+      "start": 219.474,
+      "end": 222.334
+    }
+  },
+  {
+    "index": 79,
+    "speaker": "SPEAKER_01",
+    "enText": "进行新一轮的融资",
+    "zhDisplay": "进行新一轮的融资",
+    "zhSpoken": "进行新一轮的融资",
+    "enRange": {
+      "start": 222.334,
+      "end": 223.554
+    },
+    "zhRange": {
+      "start": 222.334,
+      "end": 223.554
+    }
+  },
+  {
+    "index": 80,
+    "speaker": "SPEAKER_01",
+    "enText": "而他们之前的投资者包括米哈油",
+    "zhDisplay": "而他们之前的投资者包括米哈油",
+    "zhSpoken": "而他们之前的投资者包括米哈油",
+    "enRange": {
+      "start": 223.554,
+      "end": 226.294
+    },
+    "zhRange": {
+      "start": 223.554,
+      "end": 226.294
+    }
+  },
+  {
+    "index": 81,
+    "speaker": "SPEAKER_01",
+    "enText": "高龄创投和允起资本等等知名的机构",
+    "zhDisplay": "高龄创投和允起资本等等知名的机构",
+    "zhSpoken": "高龄创投和允起资本等等知名的机构",
+    "enRange": {
+      "start": 226.294,
+      "end": 229.074
+    },
+    "zhRange": {
+      "start": 226.294,
+      "end": 229.074
+    }
+  },
+  {
+    "index": 82,
+    "speaker": "SPEAKER_01",
+    "enText": "金山办公的WPS AI和微软Office当中的",
+    "zhDisplay": "金山办公的WPS AI和微软Office当中的",
+    "zhSpoken": "金山办公的WPS AI和微软Office当中的",
+    "enRange": {
+      "start": 229.074,
+      "end": 232.714
+    },
+    "zhRange": {
+      "start": 229.074,
+      "end": 232.714
+    }
+  },
+  {
+    "index": 83,
+    "speaker": "SPEAKER_01",
+    "enText": "AI助手Copilot都还没有正式上线",
+    "zhDisplay": "AI助手Copilot都还没有正式上线",
+    "zhSpoken": "AI助手Copilot都还没有正式上线",
+    "enRange": {
+      "start": 232.714,
+      "end": 235.254
+    },
+    "zhRange": {
+      "start": 232.714,
+      "end": 235.254
+    }
+  },
+  {
+    "index": 84,
+    "speaker": "SPEAKER_01",
+    "enText": "不过北大的一个团队",
+    "zhDisplay": "不过北大的一个团队",
+    "zhSpoken": "不过北大的一个团队",
+    "enRange": {
+      "start": 235.254,
+      "end": 236.634
+    },
+    "zhRange": {
+      "start": 235.254,
+      "end": 236.634
+    }
+  },
+  {
+    "index": 85,
+    "speaker": "SPEAKER_01",
+    "enText": "推出了名字叫做Chat Excel的",
+    "zhDisplay": "推出了名字叫做Chat Excel的",
+    "zhSpoken": "推出了名字叫做Chat Excel的",
+    "enRange": {
+      "start": 236.634,
+      "end": 238.714
+    },
+    "zhRange": {
+      "start": 236.634,
+      "end": 238.714
+    }
+  },
+  {
+    "index": 86,
+    "speaker": "SPEAKER_01",
+    "enText": "AI办公辅助工具",
+    "zhDisplay": "AI办公辅助工具",
+    "zhSpoken": "AI办公辅助工具",
+    "enRange": {
+      "start": 238.714,
+      "end": 240.014
+    },
+    "zhRange": {
+      "start": 238.714,
+      "end": 240.014
+    }
+  },
+  {
+    "index": 87,
+    "speaker": "SPEAKER_01",
+    "enText": "用户只要在表格下方的对话框内",
+    "zhDisplay": "用户只要在表格下方的对话框内",
+    "zhSpoken": "用户只要在表格下方的对话框内",
+    "enRange": {
+      "start": 240.014,
+      "end": 242.714
+    },
+    "zhRange": {
+      "start": 240.014,
+      "end": 242.714
+    }
+  },
+  {
+    "index": 88,
+    "speaker": "SPEAKER_01",
+    "enText": "以文字输入要求",
+    "zhDisplay": "以文字输入要求",
+    "zhSpoken": "以文字输入要求",
+    "enRange": {
+      "start": 242.714,
+      "end": 244.334
+    },
+    "zhRange": {
+      "start": 242.714,
+      "end": 244.334
+    }
+  },
+  {
+    "index": 89,
+    "speaker": "SPEAKER_01",
+    "enText": "Chat Excel就能够自动运行",
+    "zhDisplay": "Chat Excel就能够自动运行",
+    "zhSpoken": "Chat Excel就能够自动运行",
+    "enRange": {
+      "start": 244.334,
+      "end": 246.534
+    },
+    "zhRange": {
+      "start": 244.334,
+      "end": 246.534
+    }
+  },
+  {
+    "index": 90,
+    "speaker": "SPEAKER_01",
+    "enText": "根据品玩的报道",
+    "zhDisplay": "根据品玩的报道",
+    "zhSpoken": "根据品玩的报道",
+    "enRange": {
+      "start": 246.534,
+      "end": 247.934
+    },
+    "zhRange": {
+      "start": 246.534,
+      "end": 247.934
+    }
+  },
+  {
+    "index": 91,
+    "speaker": "SPEAKER_01",
+    "enText": "公测半个月的Chat Excel",
+    "zhDisplay": "公测半个月的Chat Excel",
+    "zhSpoken": "公测半个月的Chat Excel",
+    "enRange": {
+      "start": 247.934,
+      "end": 249.594
+    },
+    "zhRange": {
+      "start": 247.934,
+      "end": 249.594
+    }
+  },
+  {
+    "index": 92,
+    "speaker": "SPEAKER_01",
+    "enText": "日活跃用户的峰值可以达到11万",
+    "zhDisplay": "日活跃用户的峰值可以达到11万",
+    "zhSpoken": "日活跃用户的峰值可以达到11万",
+    "enRange": {
+      "start": 249.594,
+      "end": 252.174
+    },
+    "zhRange": {
+      "start": 249.594,
+      "end": 252.174
+    }
+  },
+  {
+    "index": 93,
+    "speaker": "SPEAKER_01",
+    "enText": "丁丁发布会展示AI效果",
+    "zhDisplay": "丁丁发布会展示AI效果",
+    "zhSpoken": "丁丁发布会展示AI效果",
+    "enRange": {
+      "start": 252.174,
+      "end": 255.734
+    },
+    "zhRange": {
+      "start": 252.174,
+      "end": 255.734
+    }
+  },
+  {
+    "index": 94,
+    "speaker": "SPEAKER_01",
+    "enText": "百度全员使用文心一言",
+    "zhDisplay": "百度全员使用文心一言",
+    "zhSpoken": "百度全员使用文心一言",
+    "enRange": {
+      "start": 255.734,
+      "end": 257.854
+    },
+    "zhRange": {
+      "start": 255.734,
+      "end": 257.854
+    }
+  },
+  {
+    "index": 95,
+    "speaker": "SPEAKER_01",
+    "enText": "4月18号",
+    "zhDisplay": "4月18号",
+    "zhSpoken": "4月18号",
+    "enRange": {
+      "start": 257.854,
+      "end": 259.134
+    },
+    "zhRange": {
+      "start": 257.854,
+      "end": 259.134
+    }
+  },
+  {
+    "index": 96,
+    "speaker": "SPEAKER_01",
+    "enText": "阿里巴巴旗下的办公应用",
+    "zhDisplay": "阿里巴巴旗下的办公应用",
+    "zhSpoken": "阿里巴巴旗下的办公应用",
+    "enRange": {
+      "start": 259.134,
+      "end": 260.634
+    },
+    "zhRange": {
+      "start": 259.134,
+      "end": 260.634
+    }
+  },
+  {
+    "index": 97,
+    "speaker": "SPEAKER_01",
+    "enText": "丁丁召开了发布会",
+    "zhDisplay": "丁丁召开了发布会",
+    "zhSpoken": "丁丁召开了发布会",
+    "enRange": {
+      "start": 260.634,
+      "end": 262.154
+    },
+    "zhRange": {
+      "start": 260.634,
+      "end": 262.154
+    }
+  },
+  {
+    "index": 98,
+    "speaker": "SPEAKER_01",
+    "enText": "展示了介入大模型",
+    "zhDisplay": "展示了介入大模型",
+    "zhSpoken": "展示了介入大模型",
+    "enRange": {
+      "start": 262.154,
+      "end": 263.774
+    },
+    "zhRange": {
+      "start": 262.154,
+      "end": 263.774
+    }
+  },
+  {
+    "index": 99,
+    "speaker": "SPEAKER_01",
+    "enText": "通意签问之后",
+    "zhDisplay": "通意签问之后",
+    "zhSpoken": "通意签问之后",
+    "enRange": {
+      "start": 263.774,
+      "end": 264.794
+    },
+    "zhRange": {
+      "start": 263.774,
+      "end": 264.794
+    }
+  },
+  {
+    "index": 100,
+    "speaker": "SPEAKER_01",
+    "enText": "丁丁能够实现的效果",
+    "zhDisplay": "丁丁能够实现的效果",
+    "zhSpoken": "丁丁能够实现的效果",
+    "enRange": {
+      "start": 264.794,
+      "end": 266.154
+    },
+    "zhRange": {
+      "start": 264.794,
+      "end": 266.154
+    }
+  },
+  {
+    "index": 101,
+    "speaker": "SPEAKER_01",
+    "enText": "在群聊里",
+    "zhDisplay": "在群聊里",
+    "zhSpoken": "在群聊里",
+    "enRange": {
+      "start": 266.154,
+      "end": 267.254
+    },
+    "zhRange": {
+      "start": 266.154,
+      "end": 267.254
+    }
+  },
+  {
+    "index": 102,
+    "speaker": "SPEAKER_01",
+    "enText": "AI可以自动整理",
+    "zhDisplay": "AI可以自动整理",
+    "zhSpoken": "AI可以自动整理",
+    "enRange": {
+      "start": 267.254,
+      "end": 268.694
+    },
+    "zhRange": {
+      "start": 267.254,
+      "end": 268.694
+    }
+  },
+  {
+    "index": 103,
+    "speaker": "SPEAKER_01",
+    "enText": "群聊聊天记录的要点",
+    "zhDisplay": "群聊聊天记录的要点",
+    "zhSpoken": "群聊聊天记录的要点",
+    "enRange": {
+      "start": 268.694,
+      "end": 270.154
+    },
+    "zhRange": {
+      "start": 268.694,
+      "end": 270.154
+    }
+  },
+  {
+    "index": 104,
+    "speaker": "SPEAKER_01",
+    "enText": "生成代办事项",
+    "zhDisplay": "生成代办事项",
+    "zhSpoken": "生成代办事项",
+    "enRange": {
+      "start": 270.154,
+      "end": 271.654
+    },
+    "zhRange": {
+      "start": 270.154,
+      "end": 271.654
+    }
+  },
+  {
+    "index": 105,
+    "speaker": "SPEAKER_01",
+    "enText": "预约群成员的日程",
+    "zhDisplay": "预约群成员的日程",
+    "zhSpoken": "预约群成员的日程",
+    "enRange": {
+      "start": 271.654,
+      "end": 273.054
+    },
+    "zhRange": {
+      "start": 271.654,
+      "end": 273.054
+    }
+  },
+  {
+    "index": 106,
+    "speaker": "SPEAKER_01",
+    "enText": "在丁丁文档当中",
+    "zhDisplay": "在丁丁文档当中",
+    "zhSpoken": "在丁丁文档当中",
+    "enRange": {
+      "start": 273.054,
+      "end": 274.374
+    },
+    "zhRange": {
+      "start": 273.054,
+      "end": 274.374
+    }
+  },
+  {
+    "index": 107,
+    "speaker": "SPEAKER_01",
+    "enText": "AI可以帮助用户写文档",
+    "zhDisplay": "AI可以帮助用户写文档",
+    "zhSpoken": "AI可以帮助用户写文档",
+    "enRange": {
+      "start": 274.374,
+      "end": 275.934
+    },
+    "zhRange": {
+      "start": 274.374,
+      "end": 275.934
+    }
+  },
+  {
+    "index": 108,
+    "speaker": "SPEAKER_01",
+    "enText": "而在视频会议当中",
+    "zhDisplay": "而在视频会议当中",
+    "zhSpoken": "而在视频会议当中",
+    "enRange": {
+      "start": 275.934,
+      "end": 277.474
+    },
+    "zhRange": {
+      "start": 275.934,
+      "end": 277.474
+    }
+  },
+  {
+    "index": 109,
+    "speaker": "SPEAKER_01",
+    "enText": "用户可以通过AI一键生成",
+    "zhDisplay": "用户可以通过AI一键生成",
+    "zhSpoken": "用户可以通过AI一键生成",
+    "enRange": {
+      "start": 277.474,
+      "end": 279.454
+    },
+    "zhRange": {
+      "start": 277.474,
+      "end": 279.454
+    }
+  },
+  {
+    "index": 110,
+    "speaker": "SPEAKER_01",
+    "enText": "讨论要点",
+    "zhDisplay": "讨论要点",
+    "zhSpoken": "讨论要点",
+    "enRange": {
+      "start": 279.454,
+      "end": 280.174
+    },
+    "zhRange": {
+      "start": 279.454,
+      "end": 280.174
+    }
+  },
+  {
+    "index": 111,
+    "speaker": "SPEAKER_01",
+    "enText": "不过丁丁还没有透露",
+    "zhDisplay": "不过丁丁还没有透露",
+    "zhSpoken": "不过丁丁还没有透露",
+    "enRange": {
+      "start": 280.174,
+      "end": 281.594
+    },
+    "zhRange": {
+      "start": 280.174,
+      "end": 281.594
+    }
+  },
+  {
+    "index": 112,
+    "speaker": "SPEAKER_01",
+    "enText": "发布会上展示的功能",
+    "zhDisplay": "发布会上展示的功能",
+    "zhSpoken": "发布会上展示的功能",
+    "enRange": {
+      "start": 281.594,
+      "end": 283.014
+    },
+    "zhRange": {
+      "start": 281.594,
+      "end": 283.014
+    }
+  },
+  {
+    "index": 113,
+    "speaker": "SPEAKER_01",
+    "enText": "什么时候可以上线丁丁总裁叶军表示大模型生成内容类似于黑核生成的内容不可控完成相关安全评估之后才会正式上线比阿里巴巴更早发布大模型的百度",
+    "zhDisplay": "什么时候可以上线丁丁总裁叶军表示大模型生成内容类似于黑核生成的内容不可控完成相关安全评估之后才会正式上线比阿里巴巴更早发布大模型的百度",
+    "zhSpoken": "什么时候可以上线丁丁总裁叶军表示大模型生成内容类似于黑核生成的内容不可控完成相关安全评估之后才会正式上线比阿里巴巴更早发布大模型的百度",
+    "enRange": {
+      "start": 283.014,
+      "end": 294.908
+    },
+    "zhRange": {
+      "start": 283.014,
+      "end": 294.908
+    }
+  },
+  {
+    "index": 114,
+    "speaker": "SPEAKER_01",
+    "enText": "最近在内部工作平台上用起了自己的文心一言",
+    "zhDisplay": "最近在内部工作平台上用起了自己的文心一言",
+    "zhSpoken": "最近在内部工作平台上用起了自己的文心一言",
+    "enRange": {
+      "start": 294.908,
+      "end": 298.008
+    },
+    "zhRange": {
+      "start": 294.908,
+      "end": 298.008
+    }
+  },
+  {
+    "index": 115,
+    "speaker": "SPEAKER_01",
+    "enText": "根据百度AI4月17号发布的文章",
+    "zhDisplay": "根据百度AI4月17号发布的文章",
+    "zhSpoken": "根据百度AI4月17号发布的文章",
+    "enRange": {
+      "start": 298.008,
+      "end": 300.908
+    },
+    "zhRange": {
+      "start": 298.008,
+      "end": 300.908
+    }
+  },
+  {
+    "index": 116,
+    "speaker": "SPEAKER_01",
+    "enText": "文心一言已经全面应用在了百度内部的智能工作平台如流",
+    "zhDisplay": "文心一言已经全面应用在了百度内部的智能工作平台如流",
+    "zhSpoken": "文心一言已经全面应用在了百度内部的智能工作平台如流",
+    "enRange": {
+      "start": 300.908,
+      "end": 305.108
+    },
+    "zhRange": {
+      "start": 300.908,
+      "end": 305.108
+    }
+  },
+  {
+    "index": 117,
+    "speaker": "SPEAKER_01",
+    "enText": "百度的HR可以输入提示词",
+    "zhDisplay": "百度的HR可以输入提示词",
+    "zhSpoken": "百度的HR可以输入提示词",
+    "enRange": {
+      "start": 305.108,
+      "end": 307.588
+    },
+    "zhRange": {
+      "start": 305.108,
+      "end": 307.588
+    }
+  },
+  {
+    "index": 118,
+    "speaker": "SPEAKER_01",
+    "enText": "直接让AI生成大纲",
+    "zhDisplay": "直接让AI生成大纲",
+    "zhSpoken": "直接让AI生成大纲",
+    "enRange": {
+      "start": 307.588,
+      "end": 309.308
+    },
+    "zhRange": {
+      "start": 307.588,
+      "end": 309.308
+    }
+  },
+  {
+    "index": 119,
+    "speaker": "SPEAKER_01",
+    "enText": "招聘JD 新闻稿和调研报告等等文案",
+    "zhDisplay": "招聘JD 新闻稿和调研报告等等文案",
+    "zhSpoken": "招聘JD 新闻稿和调研报告等等文案",
+    "enRange": {
+      "start": 309.308,
+      "end": 312.668
+    },
+    "zhRange": {
+      "start": 309.308,
+      "end": 312.668
+    }
+  },
+  {
+    "index": 120,
+    "speaker": "SPEAKER_00",
+    "enText": "微软研发AI芯片助力大语言模型",
+    "zhDisplay": "微软研发AI芯片助力大语言模型",
+    "zhSpoken": "微软研发AI芯片助力大语言模型",
+    "enRange": {
+      "start": 313.948,
+      "end": 317.128
+    },
+    "zhRange": {
+      "start": 313.948,
+      "end": 317.128
+    }
+  },
+  {
+    "index": 121,
+    "speaker": "SPEAKER_00",
+    "enText": "根据The Information 4月18号的报道",
+    "zhDisplay": "根据The Information 4月18号的报道",
+    "zhSpoken": "根据The Information 4月18号的报道",
+    "enRange": {
+      "start": 317.128,
+      "end": 319.728
+    },
+    "zhRange": {
+      "start": 317.128,
+      "end": 319.728
+    }
+  },
+  {
+    "index": 122,
+    "speaker": "SPEAKER_00",
+    "enText": "微软正在研究自己的AI芯片",
+    "zhDisplay": "微软正在研究自己的AI芯片",
+    "zhSpoken": "微软正在研究自己的AI芯片",
+    "enRange": {
+      "start": 319.728,
+      "end": 322.088
+    },
+    "zhRange": {
+      "start": 319.728,
+      "end": 322.088
+    }
+  },
+  {
+    "index": 123,
+    "speaker": "SPEAKER_00",
+    "enText": "内部代号是雅典娜",
+    "zhDisplay": "内部代号是雅典娜",
+    "zhSpoken": "内部代号是雅典娜",
+    "enRange": {
+      "start": 322.088,
+      "end": 324.068
+    },
+    "zhRange": {
+      "start": 322.088,
+      "end": 324.068
+    }
+  },
+  {
+    "index": 124,
+    "speaker": "SPEAKER_00",
+    "enText": "为大语言模型来提供动力",
+    "zhDisplay": "为大语言模型来提供动力",
+    "zhSpoken": "为大语言模型来提供动力",
+    "enRange": {
+      "start": 324.068,
+      "end": 326.288
+    },
+    "zhRange": {
+      "start": 324.068,
+      "end": 326.288
+    }
+  },
+  {
+    "index": 125,
+    "speaker": "SPEAKER_00",
+    "enText": "根据报道",
+    "zhDisplay": "根据报道",
+    "zhSpoken": "根据报道",
+    "enRange": {
+      "start": 326.288,
+      "end": 327.228
+    },
+    "zhRange": {
+      "start": 326.288,
+      "end": 327.228
+    }
+  },
+  {
+    "index": 126,
+    "speaker": "SPEAKER_00",
+    "enText": "这款芯片早在2019年就已经投入开发",
+    "zhDisplay": "这款芯片早在2019年就已经投入开发",
+    "zhSpoken": "这款芯片早在2019年就已经投入开发",
+    "enRange": {
+      "start": 327.228,
+      "end": 330.068
+    },
+    "zhRange": {
+      "start": 327.228,
+      "end": 330.068
+    }
+  },
+  {
+    "index": 127,
+    "speaker": "SPEAKER_00",
+    "enText": "目前有超过300人在为它工作",
+    "zhDisplay": "目前有超过300人在为它工作",
+    "zhSpoken": "目前有超过300人在为它工作",
+    "enRange": {
+      "start": 330.068,
+      "end": 332.228
+    },
+    "zhRange": {
+      "start": 330.068,
+      "end": 332.228
+    }
+  },
+  {
+    "index": 128,
+    "speaker": "SPEAKER_00",
+    "enText": "微软也已经提供小部分芯片",
+    "zhDisplay": "微软也已经提供小部分芯片",
+    "zhSpoken": "微软也已经提供小部分芯片",
+    "enRange": {
+      "start": 332.228,
+      "end": 334.688
+    },
+    "zhRange": {
+      "start": 332.228,
+      "end": 334.688
+    }
+  },
+  {
+    "index": 129,
+    "speaker": "SPEAKER_00",
+    "enText": "给正在测试相应技术的微软和OpenAI的员工",
+    "zhDisplay": "给正在测试相应技术的微软和OpenAI的员工",
+    "zhSpoken": "给正在测试相应技术的微软和OpenAI的员工",
+    "enRange": {
+      "start": 334.688,
+      "end": 338.268
+    },
+    "zhRange": {
+      "start": 334.688,
+      "end": 338.268
+    }
+  },
+  {
+    "index": 130,
+    "speaker": "SPEAKER_00",
+    "enText": "根据The Information的报道",
+    "zhDisplay": "根据The Information的报道",
+    "zhSpoken": "根据The Information的报道",
+    "enRange": {
+      "start": 338.268,
+      "end": 340.008
+    },
+    "zhRange": {
+      "start": 338.268,
+      "end": 340.008
+    }
+  },
+  {
+    "index": 131,
+    "speaker": "SPEAKER_00",
+    "enText": "雅典娜将会用于训练大型语言模型",
+    "zhDisplay": "雅典娜将会用于训练大型语言模型",
+    "zhSpoken": "雅典娜将会用于训练大型语言模型",
+    "enRange": {
+      "start": 340.008,
+      "end": 342.648
+    },
+    "zhRange": {
+      "start": 340.008,
+      "end": 342.648
+    }
+  },
+  {
+    "index": 132,
+    "speaker": "SPEAKER_00",
+    "enText": "为了发展ChatGPT",
+    "zhDisplay": "为了发展ChatGPT",
+    "zhSpoken": "为了发展ChatGPT",
+    "enRange": {
+      "start": 342.648,
+      "end": 344.228
+    },
+    "zhRange": {
+      "start": 342.648,
+      "end": 344.228
+    }
+  },
+  {
+    "index": 133,
+    "speaker": "SPEAKER_00",
+    "enText": "微软已经抢购了不少GPU",
+    "zhDisplay": "微软已经抢购了不少GPU",
+    "zhSpoken": "微软已经抢购了不少GPU",
+    "enRange": {
+      "start": 344.228,
+      "end": 346.288
+    },
+    "zhRange": {
+      "start": 344.228,
+      "end": 346.288
+    }
+  },
+  {
+    "index": 134,
+    "speaker": "SPEAKER_00",
+    "enText": "但是随着算力需求的飙升",
+    "zhDisplay": "但是随着算力需求的飙升",
+    "zhSpoken": "但是随着算力需求的飙升",
+    "enRange": {
+      "start": 346.288,
+      "end": 348.528
+    },
+    "zhRange": {
+      "start": 346.288,
+      "end": 348.528
+    }
+  },
+  {
+    "index": 135,
+    "speaker": "SPEAKER_00",
+    "enText": "微软还需要准备更多的芯片",
+    "zhDisplay": "微软还需要准备更多的芯片",
+    "zhSpoken": "微软还需要准备更多的芯片",
+    "enRange": {
+      "start": 348.528,
+      "end": 350.548
+    },
+    "zhRange": {
+      "start": 348.528,
+      "end": 350.548
+    }
+  },
+  {
+    "index": 136,
+    "speaker": "SPEAKER_00",
+    "enText": "微软自己的AI芯片",
+    "zhDisplay": "微软自己的AI芯片",
+    "zhSpoken": "微软自己的AI芯片",
+    "enRange": {
+      "start": 350.548,
+      "end": 352.188
+    },
+    "zhRange": {
+      "start": 350.548,
+      "end": 352.188
+    }
+  },
+  {
+    "index": 137,
+    "speaker": "SPEAKER_00",
+    "enText": "并不能直接替代英伟达的芯片",
+    "zhDisplay": "并不能直接替代英伟达的芯片",
+    "zhSpoken": "并不能直接替代英伟达的芯片",
+    "enRange": {
+      "start": 352.188,
+      "end": 354.228
+    },
+    "zhRange": {
+      "start": 352.188,
+      "end": 354.228
+    }
+  },
+  {
+    "index": 138,
+    "speaker": "SPEAKER_00",
+    "enText": "但是可以帮助微软降低成本",
+    "zhDisplay": "但是可以帮助微软降低成本",
+    "zhSpoken": "但是可以帮助微软降低成本",
+    "enRange": {
+      "start": 354.228,
+      "end": 356.308
+    },
+    "zhRange": {
+      "start": 354.228,
+      "end": 356.308
+    }
+  },
+  {
+    "index": 139,
+    "speaker": "SPEAKER_00",
+    "enText": "研究公司Semi Analysis表示",
+    "zhDisplay": "研究公司Semi Analysis表示",
+    "zhSpoken": "研究公司Semi Analysis表示",
+    "enRange": {
+      "start": 356.308,
+      "end": 358.708
+    },
+    "zhRange": {
+      "start": 356.308,
+      "end": 358.708
+    }
+  },
+  {
+    "index": 140,
+    "speaker": "SPEAKER_00",
+    "enText": "雅典娜可以帮助微软降低",
+    "zhDisplay": "雅典娜可以帮助微软降低",
+    "zhSpoken": "雅典娜可以帮助微软降低",
+    "enRange": {
+      "start": 358.708,
+      "end": 360.668
+    },
+    "zhRange": {
+      "start": 358.708,
+      "end": 360.668
+    }
+  },
+  {
+    "index": 141,
+    "speaker": "SPEAKER_00",
+    "enText": "三分之一的芯片使用成本",
+    "zhDisplay": "三分之一的芯片使用成本",
+    "zhSpoken": "三分之一的芯片使用成本",
+    "enRange": {
+      "start": 360.668,
+      "end": 362.428
+    },
+    "zhRange": {
+      "start": 360.668,
+      "end": 362.428
+    }
+  },
+  {
+    "index": 142,
+    "speaker": "SPEAKER_00",
+    "enText": "预计微软的这一颗AI芯片",
+    "zhDisplay": "预计微软的这一颗AI芯片",
+    "zhSpoken": "预计微软的这一颗AI芯片",
+    "enRange": {
+      "start": 362.428,
+      "end": 364.568
+    },
+    "zhRange": {
+      "start": 362.428,
+      "end": 364.568
+    }
+  },
+  {
+    "index": 143,
+    "speaker": "SPEAKER_00",
+    "enText": "将会在明年上线",
+    "zhDisplay": "将会在明年上线",
+    "zhSpoken": "将会在明年上线",
+    "enRange": {
+      "start": 364.568,
+      "end": 365.748
+    },
+    "zhRange": {
+      "start": 364.568,
+      "end": 365.748
+    }
+  },
+  {
+    "index": 144,
+    "speaker": "SPEAKER_00",
+    "enText": "但是目前还不清楚",
+    "zhDisplay": "但是目前还不清楚",
+    "zhSpoken": "但是目前还不清楚",
+    "enRange": {
+      "start": 365.748,
+      "end": 366.728
+    },
+    "zhRange": {
+      "start": 365.748,
+      "end": 366.728
+    }
+  },
+  {
+    "index": 145,
+    "speaker": "SPEAKER_00",
+    "enText": "是否会向微软云服务的客户",
+    "zhDisplay": "是否会向微软云服务的客户",
+    "zhSpoken": "是否会向微软云服务的客户",
+    "enRange": {
+      "start": 366.728,
+      "end": 368.988
+    },
+    "zhRange": {
+      "start": 366.728,
+      "end": 368.988
+    }
+  },
+  {
+    "index": 146,
+    "speaker": "SPEAKER_00",
+    "enText": "来开放使用",
+    "zhDisplay": "来开放使用",
+    "zhSpoken": "来开放使用",
+    "enRange": {
+      "start": 368.988,
+      "end": 369.928
+    },
+    "zhRange": {
+      "start": 368.988,
+      "end": 369.928
+    }
+  },
+  {
+    "index": 147,
+    "speaker": "SPEAKER_00",
+    "enText": "Google CEO提醒不要仓促推出AI技术需要合理监管",
+    "zhDisplay": "Google CEO提醒不要仓促推出AI技术需要合理监管",
+    "zhSpoken": "Google CEO提醒不要仓促推出AI技术需要合理监管",
+    "enRange": {
+      "start": 369.928,
+      "end": 375.688
+    },
+    "zhRange": {
+      "start": 369.928,
+      "end": 375.688
+    }
+  },
+  {
+    "index": 148,
+    "speaker": "SPEAKER_00",
+    "enText": "上周日 Google的首席执行官桑达PX1",
+    "zhDisplay": "上周日 Google的首席执行官桑达PX1",
+    "zhSpoken": "上周日 Google的首席执行官桑达PX1",
+    "enRange": {
+      "start": 375.688,
+      "end": 379.028
+    },
+    "zhRange": {
+      "start": 375.688,
+      "end": 379.028
+    }
+  },
+  {
+    "index": 149,
+    "speaker": "SPEAKER_00",
+    "enText": "接受了哥伦比亚广播公司著名节目60分钟的采访",
+    "zhDisplay": "接受了哥伦比亚广播公司著名节目60分钟的采访",
+    "zhSpoken": "接受了哥伦比亚广播公司著名节目60分钟的采访",
+    "enRange": {
+      "start": 379.028,
+      "end": 382.348
+    },
+    "zhRange": {
+      "start": 379.028,
+      "end": 382.348
+    }
+  },
+  {
+    "index": 150,
+    "speaker": "SPEAKER_00",
+    "enText": "PX1表示",
+    "zhDisplay": "PX1表示",
+    "zhSpoken": "PX1表示",
+    "enRange": {
+      "start": 382.348,
+      "end": 383.348
+    },
+    "zhRange": {
+      "start": 382.348,
+      "end": 383.348
+    }
+  },
+  {
+    "index": 151,
+    "speaker": "SPEAKER_00",
+    "enText": "人工智能技术的应用必须接受良好监管",
+    "zhDisplay": "人工智能技术的应用必须接受良好监管",
+    "zhSpoken": "人工智能技术的应用必须接受良好监管",
+    "enRange": {
+      "start": 383.348,
+      "end": 386.228
+    },
+    "zhRange": {
+      "start": 383.348,
+      "end": 386.228
+    }
+  },
+  {
+    "index": 152,
+    "speaker": "SPEAKER_00",
+    "enText": "以避免潜在的有害影响",
+    "zhDisplay": "以避免潜在的有害影响",
+    "zhSpoken": "以避免潜在的有害影响",
+    "enRange": {
+      "start": 386.228,
+      "end": 387.788
+    },
+    "zhRange": {
+      "start": 386.228,
+      "end": 387.788
+    }
+  },
+  {
+    "index": 153,
+    "speaker": "SPEAKER_00",
+    "enText": "保护人工智能进步的法律",
+    "zhDisplay": "保护人工智能进步的法律",
+    "zhSpoken": "保护人工智能进步的法律",
+    "enRange": {
+      "start": 387.788,
+      "end": 389.748
+    },
+    "zhRange": {
+      "start": 387.788,
+      "end": 389.748
+    }
+  },
+  {
+    "index": 154,
+    "speaker": "SPEAKER_00",
+    "enText": "不能由一家公司单独决定",
+    "zhDisplay": "不能由一家公司单独决定",
+    "zhSpoken": "不能由一家公司单独决定",
+    "enRange": {
+      "start": 389.748,
+      "end": 391.668
+    },
+    "zhRange": {
+      "start": 389.748,
+      "end": 391.668
+    }
+  },
+  {
+    "index": 155,
+    "speaker": "SPEAKER_00",
+    "enText": "除了了解技术的工程师",
+    "zhDisplay": "除了了解技术的工程师",
+    "zhSpoken": "除了了解技术的工程师",
+    "enRange": {
+      "start": 391.668,
+      "end": 393.508
+    },
+    "zhRange": {
+      "start": 391.668,
+      "end": 393.508
+    }
+  },
+  {
+    "index": 156,
+    "speaker": "SPEAKER_00",
+    "enText": "社会科学家 伦理学家和哲学家也需要参与其中",
+    "zhDisplay": "社会科学家 伦理学家和哲学家也需要参与其中",
+    "zhSpoken": "社会科学家 伦理学家和哲学家也需要参与其中",
+    "enRange": {
+      "start": 393.508,
+      "end": 397.208
+    },
+    "zhRange": {
+      "start": 393.508,
+      "end": 397.208
+    }
+  },
+  {
+    "index": 157,
+    "speaker": "SPEAKER_00",
+    "enText": "在警告人工智能的后果时",
+    "zhDisplay": "在警告人工智能的后果时",
+    "zhSpoken": "在警告人工智能的后果时",
+    "enRange": {
+      "start": 397.208,
+      "end": 399.248
+    },
+    "zhRange": {
+      "start": 397.208,
+      "end": 399.248
+    }
+  },
+  {
+    "index": 158,
+    "speaker": "SPEAKER_00",
+    "enText": "PXE表示",
+    "zhDisplay": "PXE表示",
+    "zhSpoken": "PXE表示",
+    "enRange": {
+      "start": 399.248,
+      "end": 400.028
+    },
+    "zhRange": {
+      "start": 399.248,
+      "end": 400.028
+    }
+  },
+  {
+    "index": 159,
+    "speaker": "SPEAKER_00",
+    "enText": "虚假信息",
+    "zhDisplay": "虚假信息",
+    "zhSpoken": "虚假信息",
+    "enRange": {
+      "start": 400.028,
+      "end": 401.068
+    },
+    "zhRange": {
+      "start": 400.028,
+      "end": 401.068
+    }
+  },
+  {
+    "index": 160,
+    "speaker": "SPEAKER_00",
+    "enText": "假新闻和图像问题的规模",
+    "zhDisplay": "假新闻和图像问题的规模",
+    "zhSpoken": "假新闻和图像问题的规模",
+    "enRange": {
+      "start": 401.068,
+      "end": 402.948
+    },
+    "zhRange": {
+      "start": 401.068,
+      "end": 402.948
+    }
+  },
+  {
+    "index": 161,
+    "speaker": "SPEAKER_00",
+    "enText": "将会大得多",
+    "zhDisplay": "将会大得多",
+    "zhSpoken": "将会大得多",
+    "enRange": {
+      "start": 402.948,
+      "end": 403.868
+    },
+    "zhRange": {
+      "start": 402.948,
+      "end": 403.868
+    }
+  },
+  {
+    "index": 162,
+    "speaker": "SPEAKER_00",
+    "enText": "他以DeepFake伪造的视频为例",
+    "zhDisplay": "他以DeepFake伪造的视频为例",
+    "zhSpoken": "他以DeepFake伪造的视频为例",
+    "enRange": {
+      "start": 403.868,
+      "end": 406.428
+    },
+    "zhRange": {
+      "start": 403.868,
+      "end": 406.428
+    }
+  },
+  {
+    "index": 163,
+    "speaker": "SPEAKER_00",
+    "enText": "表示类似的造假行为",
+    "zhDisplay": "表示类似的造假行为",
+    "zhSpoken": "表示类似的造假行为",
+    "enRange": {
+      "start": 406.428,
+      "end": 408.208
+    },
+    "zhRange": {
+      "start": 406.428,
+      "end": 408.208
+    }
+  },
+  {
+    "index": 164,
+    "speaker": "SPEAKER_00",
+    "enText": "体现了监管的必要性",
+    "zhDisplay": "体现了监管的必要性",
+    "zhSpoken": "体现了监管的必要性",
+    "enRange": {
+      "start": 408.208,
+      "end": 409.828
+    },
+    "zhRange": {
+      "start": 408.208,
+      "end": 409.828
+    }
+  },
+  {
+    "index": 165,
+    "speaker": "SPEAKER_00",
+    "enText": "Google之前发布的Bard",
+    "zhDisplay": "Google之前发布的Bard",
+    "zhSpoken": "Google之前发布的Bard",
+    "enRange": {
+      "start": 409.828,
+      "end": 411.648
+    },
+    "zhRange": {
+      "start": 409.828,
+      "end": 411.648
+    }
+  },
+  {
+    "index": 166,
+    "speaker": "SPEAKER_00",
+    "enText": "并没有获得和OpenAI的ChatGPT",
+    "zhDisplay": "并没有获得和OpenAI的ChatGPT",
+    "zhSpoken": "并没有获得和OpenAI的ChatGPT",
+    "enRange": {
+      "start": 411.648,
+      "end": 413.908
+    },
+    "zhRange": {
+      "start": 411.648,
+      "end": 413.908
+    }
+  },
+  {
+    "index": 167,
+    "speaker": "SPEAKER_00",
+    "enText": "一样的好评",
+    "zhDisplay": "一样的好评",
+    "zhSpoken": "一样的好评",
+    "enRange": {
+      "start": 413.908,
+      "end": 414.648
+    },
+    "zhRange": {
+      "start": 413.908,
+      "end": 414.648
+    }
+  },
+  {
+    "index": 168,
+    "speaker": "SPEAKER_00",
+    "enText": "Google内部也正在开展一个",
+    "zhDisplay": "Google内部也正在开展一个",
+    "zhSpoken": "Google内部也正在开展一个",
+    "enRange": {
+      "start": 414.648,
+      "end": 416.568
+    },
+    "zhRange": {
+      "start": 414.648,
+      "end": 416.568
+    }
+  },
+  {
+    "index": 169,
+    "speaker": "SPEAKER_00",
+    "enText": "名字叫做Magic的项目",
+    "zhDisplay": "名字叫做Magic的项目",
+    "zhSpoken": "名字叫做Magic的项目",
+    "enRange": {
+      "start": 416.568,
+      "end": 417.988
+    },
+    "zhRange": {
+      "start": 416.568,
+      "end": 417.988
+    }
+  },
+  {
+    "index": 170,
+    "speaker": "SPEAKER_00",
+    "enText": "致力于打造一个全新的AI搜索引擎",
+    "zhDisplay": "致力于打造一个全新的AI搜索引擎",
+    "zhSpoken": "致力于打造一个全新的AI搜索引擎",
+    "enRange": {
+      "start": 417.988,
+      "end": 420.948
+    },
+    "zhRange": {
+      "start": 417.988,
+      "end": 420.948
+    }
+  },
+  {
+    "index": 171,
+    "speaker": "SPEAKER_00",
+    "enText": "欧盟谈判代表",
+    "zhDisplay": "欧盟谈判代表",
+    "zhSpoken": "欧盟谈判代表",
+    "enRange": {
+      "start": 420.948,
+      "end": 423.268
+    },
+    "zhRange": {
+      "start": 420.948,
+      "end": 423.268
+    }
+  },
+  {
+    "index": 172,
+    "speaker": "SPEAKER_00",
+    "enText": "就欧洲芯片法案达成协议",
+    "zhDisplay": "就欧洲芯片法案达成协议",
+    "zhSpoken": "就欧洲芯片法案达成协议",
+    "enRange": {
+      "start": 423.268,
+      "end": 425.448
+    },
+    "zhRange": {
+      "start": 423.268,
+      "end": 425.448
+    }
+  },
+  {
+    "index": 173,
+    "speaker": "SPEAKER_00",
+    "enText": "总价值430亿欧元",
+    "zhDisplay": "总价值430亿欧元",
+    "zhSpoken": "总价值430亿欧元",
+    "enRange": {
+      "start": 425.448,
+      "end": 427.588
+    },
+    "zhRange": {
+      "start": 425.448,
+      "end": 427.588
+    }
+  },
+  {
+    "index": 174,
+    "speaker": "SPEAKER_00",
+    "enText": "4月19号根据路透社的报道欧盟已经同意一项总价值是430亿欧元的计划以提升欧盟的半导体产业竞争力试图追赶上美国和亚洲的水平",
+    "zhDisplay": "4月19号根据路透社的报道欧盟已经同意一项总价值是430亿欧元的计划以提升欧盟的半导体产业竞争力试图追赶上美国和亚洲的水平",
+    "zhSpoken": "4月19号根据路透社的报道欧盟已经同意一项总价值是430亿欧元的计划以提升欧盟的半导体产业竞争力试图追赶上美国和亚洲的水平",
+    "enRange": {
+      "start": 427.588,
+      "end": 438.822
+    },
+    "zhRange": {
+      "start": 427.588,
+      "end": 438.822
+    }
+  },
+  {
+    "index": 175,
+    "speaker": "SPEAKER_00",
+    "enText": "这项计划被称为欧洲芯片法案",
+    "zhDisplay": "这项计划被称为欧洲芯片法案",
+    "zhSpoken": "这项计划被称为欧洲芯片法案",
+    "enRange": {
+      "start": 438.822,
+      "end": 441.582
+    },
+    "zhRange": {
+      "start": 438.822,
+      "end": 441.582
+    }
+  },
+  {
+    "index": 176,
+    "speaker": "SPEAKER_00",
+    "enText": "欧盟计划动用超过430亿欧元的资金",
+    "zhDisplay": "欧盟计划动用超过430亿欧元的资金",
+    "zhSpoken": "欧盟计划动用超过430亿欧元的资金",
+    "enRange": {
+      "start": 441.582,
+      "end": 444.762
+    },
+    "zhRange": {
+      "start": 441.582,
+      "end": 444.762
+    }
+  },
+  {
+    "index": 177,
+    "speaker": "SPEAKER_00",
+    "enText": "支持芯片生产试点项目和初创企业",
+    "zhDisplay": "支持芯片生产试点项目和初创企业",
+    "zhSpoken": "支持芯片生产试点项目和初创企业",
+    "enRange": {
+      "start": 444.762,
+      "end": 447.902
+    },
+    "zhRange": {
+      "start": 444.762,
+      "end": 447.902
+    }
+  },
+  {
+    "index": 178,
+    "speaker": "SPEAKER_00",
+    "enText": "并且大力建设大型芯片制造业",
+    "zhDisplay": "并且大力建设大型芯片制造业",
+    "zhSpoken": "并且大力建设大型芯片制造业",
+    "enRange": {
+      "start": 447.902,
+      "end": 450.162
+    },
+    "zhRange": {
+      "start": 447.902,
+      "end": 450.162
+    }
+  },
+  {
+    "index": 179,
+    "speaker": "SPEAKER_00",
+    "enText": "到了2030年",
+    "zhDisplay": "到了2030年",
+    "zhSpoken": "到了2030年",
+    "enRange": {
+      "start": 450.162,
+      "end": 451.562
+    },
+    "zhRange": {
+      "start": 450.162,
+      "end": 451.562
+    }
+  },
+  {
+    "index": 180,
+    "speaker": "SPEAKER_00",
+    "enText": "欧盟计划将芯片产量从目前的占全球份额的10%",
+    "zhDisplay": "欧盟计划将芯片产量从目前的占全球份额的10%",
+    "zhSpoken": "欧盟计划将芯片产量从目前的占全球份额的10%",
+    "enRange": {
+      "start": 451.562,
+      "end": 455.142
+    },
+    "zhRange": {
+      "start": 451.562,
+      "end": 455.142
+    }
+  },
+  {
+    "index": 181,
+    "speaker": "SPEAKER_00",
+    "enText": "提高到20%",
+    "zhDisplay": "提高到20%",
+    "zhSpoken": "提高到20%",
+    "enRange": {
+      "start": 455.142,
+      "end": 456.462
+    },
+    "zhRange": {
+      "start": 455.142,
+      "end": 456.462
+    }
+  },
+  {
+    "index": 182,
+    "speaker": "SPEAKER_00",
+    "enText": "来满足自身和全球市场的需求",
+    "zhDisplay": "来满足自身和全球市场的需求",
+    "zhSpoken": "来满足自身和全球市场的需求",
+    "enRange": {
+      "start": 456.462,
+      "end": 458.842
+    },
+    "zhRange": {
+      "start": 456.462,
+      "end": 458.842
+    }
+  },
+  {
+    "index": 183,
+    "speaker": "SPEAKER_00",
+    "enText": "这项计划是在美国宣布了",
+    "zhDisplay": "这项计划是在美国宣布了",
+    "zhSpoken": "这项计划是在美国宣布了",
+    "enRange": {
+      "start": 458.842,
+      "end": 461.042
+    },
+    "zhRange": {
+      "start": 458.842,
+      "end": 461.042
+    }
+  },
+  {
+    "index": 184,
+    "speaker": "SPEAKER_00",
+    "enText": "美国芯片法案之后出台的",
+    "zhDisplay": "美国芯片法案之后出台的",
+    "zhSpoken": "美国芯片法案之后出台的",
+    "enRange": {
+      "start": 461.042,
+      "end": 462.922
+    },
+    "zhRange": {
+      "start": 461.042,
+      "end": 462.922
+    }
+  },
+  {
+    "index": 185,
+    "speaker": "SPEAKER_00",
+    "enText": "美国芯片制造商英特尔的欧洲高管表示",
+    "zhDisplay": "美国芯片制造商英特尔的欧洲高管表示",
+    "zhSpoken": "美国芯片制造商英特尔的欧洲高管表示",
+    "enRange": {
+      "start": 462.922,
+      "end": 466.262
+    },
+    "zhRange": {
+      "start": 462.922,
+      "end": 466.262
+    }
+  },
+  {
+    "index": 186,
+    "speaker": "SPEAKER_00",
+    "enText": "欧洲芯片法案将会把投资",
+    "zhDisplay": "欧洲芯片法案将会把投资",
+    "zhSpoken": "欧洲芯片法案将会把投资",
+    "enRange": {
+      "start": 466.262,
+      "end": 468.762
+    },
+    "zhRange": {
+      "start": 466.262,
+      "end": 468.762
+    }
+  },
+  {
+    "index": 187,
+    "speaker": "SPEAKER_00",
+    "enText": "引向最需要的地方",
+    "zhDisplay": "引向最需要的地方",
+    "zhSpoken": "引向最需要的地方",
+    "enRange": {
+      "start": 468.762,
+      "end": 470.122
+    },
+    "zhRange": {
+      "start": 468.762,
+      "end": 470.122
+    }
+  },
+  {
+    "index": 188,
+    "speaker": "SPEAKER_00",
+    "enText": "比如制造能力 技术和研发",
+    "zhDisplay": "比如制造能力 技术和研发",
+    "zhSpoken": "比如制造能力 技术和研发",
+    "enRange": {
+      "start": 470.122,
+      "end": 472.302
+    },
+    "zhRange": {
+      "start": 470.122,
+      "end": 472.302
+    }
+  },
+  {
+    "index": 189,
+    "speaker": "SPEAKER_00",
+    "enText": "英特尔十分欢迎欧盟的政策",
+    "zhDisplay": "英特尔十分欢迎欧盟的政策",
+    "zhSpoken": "英特尔十分欢迎欧盟的政策",
+    "enRange": {
+      "start": 472.302,
+      "end": 474.402
+    },
+    "zhRange": {
+      "start": 472.302,
+      "end": 474.402
+    }
+  },
+  {
+    "index": 190,
+    "speaker": "SPEAKER_00",
+    "enText": "根据相关报道",
+    "zhDisplay": "根据相关报道",
+    "zhSpoken": "根据相关报道",
+    "enRange": {
+      "start": 474.402,
+      "end": 475.302
+    },
+    "zhRange": {
+      "start": 474.402,
+      "end": 475.302
+    }
+  },
+  {
+    "index": 191,
+    "speaker": "SPEAKER_00",
+    "enText": "欧洲芯片法案可以帮助英特尔",
+    "zhDisplay": "欧洲芯片法案可以帮助英特尔",
+    "zhSpoken": "欧洲芯片法案可以帮助英特尔",
+    "enRange": {
+      "start": 475.302,
+      "end": 477.522
+    },
+    "zhRange": {
+      "start": 475.302,
+      "end": 477.522
+    }
+  },
+  {
+    "index": 192,
+    "speaker": "SPEAKER_00",
+    "enText": "在德国建厂的时候获得政府的补贴",
+    "zhDisplay": "在德国建厂的时候获得政府的补贴",
+    "zhSpoken": "在德国建厂的时候获得政府的补贴",
+    "enRange": {
+      "start": 477.522,
+      "end": 480.142
+    },
+    "zhRange": {
+      "start": 477.522,
+      "end": 480.142
+    }
+  },
+  {
+    "index": 193,
+    "speaker": "SPEAKER_00",
+    "enText": "AI影响就业形势",
+    "zhDisplay": "AI影响就业形势",
+    "zhSpoken": "AI影响就业形势",
+    "enRange": {
+      "start": 480.142,
+      "end": 483.142
+    },
+    "zhRange": {
+      "start": 480.142,
+      "end": 483.142
+    }
+  },
+  {
+    "index": 194,
+    "speaker": "SPEAKER_00",
+    "enText": "彭博发布未来职业建议",
+    "zhDisplay": "彭博发布未来职业建议",
+    "zhSpoken": "彭博发布未来职业建议",
+    "enRange": {
+      "start": 483.142,
+      "end": 485.102
+    },
+    "zhRange": {
+      "start": 483.142,
+      "end": 485.102
+    }
+  },
+  {
+    "index": 195,
+    "speaker": "SPEAKER_00",
+    "enText": "彭博最近采访了600多位投资人询问他们未来职业发展的建议",
+    "zhDisplay": "彭博最近采访了600多位投资人询问他们未来职业发展的建议",
+    "zhSpoken": "彭博最近采访了600多位投资人询问他们未来职业发展的建议",
+    "enRange": {
+      "start": 485.102,
+      "end": 489.962
+    },
+    "zhRange": {
+      "start": 485.102,
+      "end": 489.962
+    }
+  },
+  {
+    "index": 196,
+    "speaker": "SPEAKER_00",
+    "enText": "调查结果显示",
+    "zhDisplay": "调查结果显示",
+    "zhSpoken": "调查结果显示",
+    "enRange": {
+      "start": 489.962,
+      "end": 490.922
+    },
+    "zhRange": {
+      "start": 489.962,
+      "end": 490.922
+    }
+  },
+  {
+    "index": 197,
+    "speaker": "SPEAKER_00",
+    "enText": "未来最具潜力的是医疗和科技这两大领域",
+    "zhDisplay": "未来最具潜力的是医疗和科技这两大领域",
+    "zhSpoken": "未来最具潜力的是医疗和科技这两大领域",
+    "enRange": {
+      "start": 490.922,
+      "end": 494.502
+    },
+    "zhRange": {
+      "start": 490.922,
+      "end": 494.502
+    }
+  },
+  {
+    "index": 198,
+    "speaker": "SPEAKER_00",
+    "enText": "而并不是金融行业",
+    "zhDisplay": "而并不是金融行业",
+    "zhSpoken": "而并不是金融行业",
+    "enRange": {
+      "start": 494.502,
+      "end": 496.002
+    },
+    "zhRange": {
+      "start": 494.502,
+      "end": 496.002
+    }
+  },
+  {
+    "index": 199,
+    "speaker": "SPEAKER_00",
+    "enText": "有超过40%的受访者表示",
+    "zhDisplay": "有超过40%的受访者表示",
+    "zhSpoken": "有超过40%的受访者表示",
+    "enRange": {
+      "start": 496.002,
+      "end": 498.642
+    },
+    "zhRange": {
+      "start": 496.002,
+      "end": 498.642
+    }
+  },
+  {
+    "index": 200,
+    "speaker": "SPEAKER_00",
+    "enText": "医疗行业是更好的选择",
+    "zhDisplay": "医疗行业是更好的选择",
+    "zhSpoken": "医疗行业是更好的选择",
+    "enRange": {
+      "start": 498.642,
+      "end": 500.542
+    },
+    "zhRange": {
+      "start": 498.642,
+      "end": 500.542
+    }
+  },
+  {
+    "index": 201,
+    "speaker": "SPEAKER_00",
+    "enText": "医疗领域的工作需要人和人之间进行沟通和互动",
+    "zhDisplay": "医疗领域的工作需要人和人之间进行沟通和互动",
+    "zhSpoken": "医疗领域的工作需要人和人之间进行沟通和互动",
+    "enRange": {
+      "start": 500.542,
+      "end": 504.382
+    },
+    "zhRange": {
+      "start": 500.542,
+      "end": 504.382
+    }
+  },
+  {
+    "index": 202,
+    "speaker": "SPEAKER_00",
+    "enText": "从目前来看",
+    "zhDisplay": "从目前来看",
+    "zhSpoken": "从目前来看",
+    "enRange": {
+      "start": 504.382,
+      "end": 505.202
+    },
+    "zhRange": {
+      "start": 504.382,
+      "end": 505.202
+    }
+  },
+  {
+    "index": 203,
+    "speaker": "SPEAKER_00",
+    "enText": "也很难被像ChatGBT这样的生成AI所取代",
+    "zhDisplay": "也很难被像ChatGBT这样的生成AI所取代",
+    "zhSpoken": "也很难被像ChatGBT这样的生成AI所取代",
+    "enRange": {
+      "start": 505.202,
+      "end": 508.602
+    },
+    "zhRange": {
+      "start": 505.202,
+      "end": 508.602
+    }
+  },
+  {
+    "index": 204,
+    "speaker": "SPEAKER_00",
+    "enText": "有一半的投资人认为",
+    "zhDisplay": "有一半的投资人认为",
+    "zhSpoken": "有一半的投资人认为",
+    "enRange": {
+      "start": 508.602,
+      "end": 510.522
+    },
+    "zhRange": {
+      "start": 508.602,
+      "end": 510.522
+    }
+  },
+  {
+    "index": 205,
+    "speaker": "SPEAKER_00",
+    "enText": "科技行业仍然是未来年轻人最佳的从业选择",
+    "zhDisplay": "科技行业仍然是未来年轻人最佳的从业选择",
+    "zhSpoken": "科技行业仍然是未来年轻人最佳的从业选择",
+    "enRange": {
+      "start": 510.522,
+      "end": 513.522
+    },
+    "zhRange": {
+      "start": 510.522,
+      "end": 513.522
+    }
+  },
+  {
+    "index": 206,
+    "speaker": "SPEAKER_00",
+    "enText": "尽管近些年来",
+    "zhDisplay": "尽管近些年来",
+    "zhSpoken": "尽管近些年来",
+    "enRange": {
+      "start": 513.522,
+      "end": 514.642
+    },
+    "zhRange": {
+      "start": 513.522,
+      "end": 514.642
+    }
+  },
+  {
+    "index": 207,
+    "speaker": "SPEAKER_00",
+    "enText": "Meta 亚马逊和Google等等大型互联网公司纷纷裁员",
+    "zhDisplay": "Meta 亚马逊和Google等等大型互联网公司纷纷裁员",
+    "zhSpoken": "Meta 亚马逊和Google等等大型互联网公司纷纷裁员",
+    "enRange": {
+      "start": 514.642,
+      "end": 518.282
+    },
+    "zhRange": {
+      "start": 514.642,
+      "end": 518.282
+    }
+  },
+  {
+    "index": 208,
+    "speaker": "SPEAKER_00",
+    "enText": "但是在互联网公司和人工智能影响力越来越强的背景之下",
+    "zhDisplay": "但是在互联网公司和人工智能影响力越来越强的背景之下",
+    "zhSpoken": "但是在互联网公司和人工智能影响力越来越强的背景之下",
+    "enRange": {
+      "start": 518.282,
+      "end": 522.502
+    },
+    "zhRange": {
+      "start": 518.282,
+      "end": 522.502
+    }
+  },
+  {
+    "index": 209,
+    "speaker": "SPEAKER_00",
+    "enText": "具备科技领域的专业知识显得越来越重要",
+    "zhDisplay": "具备科技领域的专业知识显得越来越重要",
+    "zhSpoken": "具备科技领域的专业知识显得越来越重要",
+    "enRange": {
+      "start": 522.502,
+      "end": 525.242
+    },
+    "zhRange": {
+      "start": 522.502,
+      "end": 525.242
+    }
+  },
+  {
+    "index": 210,
+    "speaker": "SPEAKER_00",
+    "enText": "另外也有顾问公司表示",
+    "zhDisplay": "另外也有顾问公司表示",
+    "zhSpoken": "另外也有顾问公司表示",
+    "enRange": {
+      "start": 525.242,
+      "end": 527.002
+    },
+    "zhRange": {
+      "start": 525.242,
+      "end": 527.002
+    }
+  },
+  {
+    "index": 211,
+    "speaker": "SPEAKER_00",
+    "enText": "尽管金融业的薪资水准依然很高",
+    "zhDisplay": "尽管金融业的薪资水准依然很高",
+    "zhSpoken": "尽管金融业的薪资水准依然很高",
+    "enRange": {
+      "start": 527.002,
+      "end": 529.782
+    },
+    "zhRange": {
+      "start": 527.002,
+      "end": 529.782
+    }
+  },
+  {
+    "index": 212,
+    "speaker": "SPEAKER_00",
+    "enText": "但是科技业正在迎头赶上",
+    "zhDisplay": "但是科技业正在迎头赶上",
+    "zhSpoken": "但是科技业正在迎头赶上",
+    "enRange": {
+      "start": 529.782,
+      "end": 532.202
+    },
+    "zhRange": {
+      "start": 529.782,
+      "end": 532.202
+    }
+  },
+  {
+    "index": 213,
+    "speaker": "SPEAKER_00",
+    "enText": "薪资和金融业相比几乎不向上下了",
+    "zhDisplay": "薪资和金融业相比几乎不向上下了",
+    "zhSpoken": "薪资和金融业相比几乎不向上下了",
+    "enRange": {
+      "start": 532.202,
+      "end": 535.102
+    },
+    "zhRange": {
+      "start": 532.202,
+      "end": 535.102
+    }
+  },
+  {
+    "index": 214,
+    "speaker": "SPEAKER_00",
+    "enText": "所以在这儿我们也很想来问问你",
+    "zhDisplay": "所以在这儿我们也很想来问问你",
+    "zhSpoken": "所以在这儿我们也很想来问问你",
+    "enRange": {
+      "start": 535.102,
+      "end": 537.182
+    },
+    "zhRange": {
+      "start": 535.102,
+      "end": 537.182
+    }
+  },
+  {
+    "index": 215,
+    "speaker": "SPEAKER_00",
+    "enText": "你会想要加入科技或者是医疗行业吗",
+    "zhDisplay": "你会想要加入科技或者是医疗行业吗",
+    "zhSpoken": "你会想要加入科技或者是医疗行业吗",
+    "enRange": {
+      "start": 537.182,
+      "end": 540.122
+    },
+    "zhRange": {
+      "start": 537.182,
+      "end": 540.122
+    }
+  },
+  {
+    "index": 216,
+    "speaker": "SPEAKER_00",
+    "enText": "你认为AI对人们的工作帮助更大还是威胁更大呢",
+    "zhDisplay": "你认为AI对人们的工作帮助更大还是威胁更大呢",
+    "zhSpoken": "你认为AI对人们的工作帮助更大还是威胁更大呢",
+    "enRange": {
+      "start": 540.122,
+      "end": 544.302
+    },
+    "zhRange": {
+      "start": 540.122,
+      "end": 544.302
+    }
+  },
+  {
+    "index": 217,
+    "speaker": "SPEAKER_00",
+    "enText": "欢迎在我们的评论区",
+    "zhDisplay": "欢迎在我们的评论区",
+    "zhSpoken": "欢迎在我们的评论区",
+    "enRange": {
+      "start": 544.302,
+      "end": 545.602
+    },
+    "zhRange": {
+      "start": 544.302,
+      "end": 545.602
+    }
+  },
+  {
+    "index": 218,
+    "speaker": "SPEAKER_00",
+    "enText": "和我们一块来聊聊",
+    "zhDisplay": "和我们一块来聊聊",
+    "zhSpoken": "和我们一块来聊聊",
+    "enRange": {
+      "start": 545.602,
+      "end": 546.722
+    },
+    "zhRange": {
+      "start": 545.602,
+      "end": 546.722
+    }
+  },
+  {
+    "index": 219,
+    "speaker": "SPEAKER_00",
+    "enText": "这就是我们今天的节目了",
+    "zhDisplay": "这就是我们今天的节目了",
+    "zhSpoken": "这就是我们今天的节目了",
+    "enRange": {
+      "start": 546.722,
+      "end": 551.882
+    },
+    "zhRange": {
+      "start": 546.722,
+      "end": 551.882
+    }
+  },
+  {
+    "index": 220,
+    "speaker": "SPEAKER_00",
+    "enText": "我们其他的成员还有",
+    "zhDisplay": "我们其他的成员还有",
+    "zhSpoken": "我们其他的成员还有",
+    "enRange": {
+      "start": 551.882,
+      "end": 553.242
+    },
+    "zhRange": {
+      "start": 551.882,
+      "end": 553.242
+    }
+  },
+  {
+    "index": 221,
+    "speaker": "SPEAKER_00",
+    "enText": "监制泽林",
+    "zhDisplay": "监制泽林",
+    "zhSpoken": "监制泽林",
+    "enRange": {
+      "start": 553.242,
+      "end": 554.122
+    },
+    "zhRange": {
+      "start": 553.242,
+      "end": 554.122
+    }
+  },
+  {
+    "index": 222,
+    "speaker": "SPEAKER_00",
+    "enText": "监制一凡",
+    "zhDisplay": "监制一凡",
+    "zhSpoken": "监制一凡",
+    "enRange": {
+      "start": 554.122,
+      "end": 554.962
+    },
+    "zhRange": {
+      "start": 554.122,
+      "end": 554.962
+    }
+  },
+  {
+    "index": 223,
+    "speaker": "SPEAKER_00",
+    "enText": "声音设计Jack",
+    "zhDisplay": "声音设计Jack",
+    "zhSpoken": "声音设计Jack",
+    "enRange": {
+      "start": 554.962,
+      "end": 556.202
+    },
+    "zhRange": {
+      "start": 554.962,
+      "end": 556.202
+    }
+  },
+  {
+    "index": 224,
+    "speaker": "SPEAKER_00",
+    "enText": "实习生Aurora",
+    "zhDisplay": "实习生Aurora",
+    "zhSpoken": "实习生Aurora",
+    "enRange": {
+      "start": 556.202,
+      "end": 557.382
+    },
+    "zhRange": {
+      "start": 556.202,
+      "end": 557.382
+    }
+  },
+  {
+    "index": 225,
+    "speaker": "SPEAKER_00",
+    "enText": "感谢你收听今天的生动早咖啡",
+    "zhDisplay": "感谢你收听今天的生动早咖啡",
+    "zhSpoken": "感谢你收听今天的生动早咖啡",
+    "enRange": {
+      "start": 557.382,
+      "end": 559.682
+    },
+    "zhRange": {
+      "start": 557.382,
+      "end": 559.682
+    }
+  },
+  {
+    "index": 226,
+    "speaker": "SPEAKER_00",
+    "enText": "那我们就",
+    "zhDisplay": "那我们就",
+    "zhSpoken": "那我们就",
+    "enRange": {
+      "start": 559.682,
+      "end": 560.662
+    },
+    "zhRange": {
+      "start": 559.682,
+      "end": 560.662
+    }
+  },
+  {
+    "index": 227,
+    "speaker": "SPEAKER_00",
+    "enText": "下期再见",
+    "zhDisplay": "下期再见",
+    "zhSpoken": "下期再见",
+    "enRange": {
+      "start": 560.662,
+      "end": 562.202
+    },
+    "zhRange": {
+      "start": 560.662,
+      "end": 562.202
+    }
+  },
+  {
+    "index": 228,
+    "speaker": "SPEAKER_01",
+    "enText": "优优独播剧场——YoYo Television Series Exclusive",
+    "zhDisplay": "优优独播剧场——YoYo Television Series Exclusive",
+    "zhSpoken": "优优独播剧场——YoYo Television Series Exclusive",
+    "enRange": {
+      "start": 574.302,
+      "end": 577.822
+    },
+    "zhRange": {
+      "start": 574.302,
+      "end": 577.822
+    }
+  }
+]
