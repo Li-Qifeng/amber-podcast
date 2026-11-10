@@ -409,16 +409,29 @@ public final class DualTrackAudioPlayer: ObservableObject {
         guard !isSeekingOptimisticLock else { return }
         let sec = time.seconds
         guard !sec.isNaN else { return }
-        self.currentTime = sec
 
-        // Update duration
-        if let item = self.activePlayer?.currentItem, item.duration.seconds > 0, !item.duration.seconds.isNaN {
-            self.duration = item.duration.seconds
+        // Duration: stable value, only update on meaningful change to avoid
+        // re-publishing on every 100ms tick and re-rendering the whole UI.
+        if let item = self.activePlayer?.currentItem {
+            let d = item.duration.seconds
+            if d > 0, !d.isNaN, abs(d - self.duration) > 0.5 {
+                self.duration = d
+            }
         }
 
-        // Update current segment index
+        // Progress display throttle: only publish currentTime when it advances
+        // >= 0.5s. This is the root fix for the "entire page lags while playing"
+        // bug — a 100ms @Published currentTime forced MiniPlayer (attached to
+        // tabViewBottomAccessory) plus every player observer to re-render ~10x/sec.
+        if abs(sec - self.currentTime) >= 0.5 {
+            self.currentTime = sec
+        }
+
+        // Segment lookup & alternating sentence switching keep 0.1s precision
         if let idx = self.findSegmentIndex(forTime: sec, inMode: self.trackMode) {
-            self.currentSegmentIndex = idx
+            if idx != self.currentSegmentIndex {
+                self.currentSegmentIndex = idx
+            }
 
             // Alternating Playback Logic
             if self.trackMode == .alternating && idx < self.timingSegments.count {
