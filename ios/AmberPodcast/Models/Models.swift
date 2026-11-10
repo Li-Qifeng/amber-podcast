@@ -265,6 +265,22 @@ public struct Episode: Identifiable, Codable, Hashable {
             return String(format: "%02d:%02d", m, s)
         }
     }
+
+    public var durationFormatted: String {
+        formattedDuration
+    }
+
+    public var statusDescription: String {
+        switch status {
+        case "transcribing": return "语音识别转写中 (\(progress)%)"
+        case "translating": return "AI 双语精译中 (\(progress)%)"
+        case "synthesizing": return "TTS 语音克隆合成中 (\(progress)%)"
+        case "pending": return "已排队等待处理"
+        case "ready": return "已完成双轨归档"
+        case "failed": return errorMessage ?? "处理失败"
+        default: return "待转储"
+        }
+    }
 }
 
 // MARK: - Timing Sync (tens of KB, resident in player)
