@@ -2,7 +2,6 @@ import SwiftUI
 
 public struct MiniPlayerView: View {
     @ObservedObject var player = DualTrackAudioPlayer.shared
-    @ObservedObject private var scrollCoordinator = AmberScrollCoordinator.shared
     @Binding var showFullPlayer: Bool
     public var isCompact: Bool? = nil
     public var hasGlassBackground: Bool = true
@@ -12,10 +11,6 @@ public struct MiniPlayerView: View {
 
     private let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
 
-    private var effectiveIsCompact: Bool {
-        isCompact ?? scrollCoordinator.isDockCollapsed
-    }
-
     public init(showFullPlayer: Binding<Bool>, isCompact: Bool? = nil, hasGlassBackground: Bool = true) {
         self._showFullPlayer = showFullPlayer
         self.isCompact = isCompact
@@ -24,85 +19,64 @@ public struct MiniPlayerView: View {
 
     public var body: some View {
         if let episode = player.currentEpisode {
-            VStack(spacing: 0) {
-                // Main Mini Player Liquid Glass Capsule Island
-                HStack(spacing: 10) {
-                    // 1. Cover Artwork (Squircle)
-                    coverArtworkView
+            // Main Mini Player Liquid Glass Capsule
+            HStack(spacing: 10) {
+                // 1. Cover Artwork: Fixed 38x38 squircle (no resize jitter)
+                coverArtworkView
 
-                    // 2. Titles & Current Track Mode Pill
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(episode.title)
-                            .font(.system(size: 12.5, weight: .semibold, design: .rounded))
-                            .foregroundStyle(AmberTheme.labelPrimary)
+                // 2. Titles: Stable 2-line vertical stack (no height jumping)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(episode.title)
+                        .font(.system(size: 12.5, weight: .semibold, design: .rounded))
+                        .foregroundStyle(AmberTheme.labelPrimary)
+                        .lineLimit(1)
+
+                    HStack(spacing: 5) {
+                        trackModeBadge
+
+                        Text(player.currentFeed?.title ?? "Amber 播客")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(AmberTheme.labelTertiary)
                             .lineLimit(1)
-
-                        if !effectiveIsCompact {
-                            HStack(spacing: 6) {
-                                trackModeBadge
-
-                                Text(player.currentFeed?.title ?? "")
-                                    .font(.system(size: 11, weight: .medium))
-                                    .foregroundStyle(AmberTheme.labelTertiary)
-                                    .lineLimit(1)
-                            }
-                            .transition(.opacity)
-                        }
-                    }
-
-                    Spacer(minLength: 4)
-
-                    // 3. Play / Pause Button with Clean Touch Target
-                    Button {
-                        player.togglePlayPause()
-                        impactFeedback.impactOccurred()
-                    } label: {
-                        ZStack {
-                            Circle()
-                                .fill(Color.white)
-                                .frame(width: 32, height: 32)
-                                .shadow(color: Color.black.opacity(0.25), radius: 4, y: 2)
-
-                            if player.isBuffering {
-                                ProgressView()
-                                    .progressViewStyle(CircularProgressViewStyle(tint: .black))
-                                    .scaleEffect(0.7)
-                            } else {
-                                Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
-                                    .font(.system(size: 13, weight: .bold))
-                                    .foregroundStyle(Color.black)
-                                    .offset(x: player.isPlaying ? 0 : 1)
-                            }
-                        }
-                    }
-                    .buttonStyle(TactileButtonStyle(scale: 0.94))
-
-                    // 4. Skip forward 30s (hidden in compact/collapsed scroll mode)
-                    if !effectiveIsCompact {
-                        Button {
-                            player.skipForward(30)
-                            impactFeedback.impactOccurred()
-                        } label: {
-                            Image(systemName: "goforward.30")
-                                .font(.system(size: 16, weight: .regular))
-                                .foregroundStyle(AmberTheme.labelSecondary)
-                                .frame(width: 30, height: 30)
-                        }
-                        .buttonStyle(TactileButtonStyle(scale: 0.94))
-                        .transition(.scale.combined(with: .opacity))
                     }
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, effectiveIsCompact ? 6 : 8)
 
-                // 5. Hairline Micro Progress Bar (only visible in expanded mode)
-                if !effectiveIsCompact {
-                    progressBarView
-                        .transition(.opacity)
+                Spacer(minLength: 4)
+
+                // 3. Play / Pause Button: Anchored firmly at trailing edge (32x32)
+                Button {
+                    player.togglePlayPause()
+                    impactFeedback.impactOccurred()
+                } label: {
+                    ZStack {
+                        Circle()
+                            .fill(Color.white)
+                            .frame(width: 32, height: 32)
+                            .shadow(color: Color.black.opacity(0.25), radius: 4, y: 2)
+
+                        if player.isBuffering {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .black))
+                                .scaleEffect(0.7)
+                        } else {
+                            Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
+                                .font(.system(size: 13, weight: .bold))
+                                .foregroundStyle(Color.black)
+                                .offset(x: player.isPlaying ? 0 : 1)
+                        }
+                    }
                 }
+                .buttonStyle(TactileButtonStyle(scale: 0.94))
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 7)
+            .overlay(alignment: .bottom) {
+                // 4. Progress Bar: bottom overlay so it NEVER alters layout vertical center
+                progressBarView
+                    .padding(.horizontal, 12)
+                    .padding(.bottom, 2)
             }
             .modifier(ConditionalGlassModifier(applyGlass: hasGlassBackground))
-            .animation(ForwardMotion.fluidDockMorph, value: effectiveIsCompact)
             .offset(y: dragOffsetY)
             .scaleEffect(isDragging ? 1.02 : 1.0)
             .animation(isDragging ? .interactiveSpring() : ForwardMotion.snapSpring, value: dragOffsetY)
@@ -153,10 +127,7 @@ public struct MiniPlayerView: View {
                     image
                         .resizable()
                         .scaledToFill()
-                        .frame(
-                            width: effectiveIsCompact ? 36 : 40,
-                            height: effectiveIsCompact ? 36 : 40
-                        )
+                        .frame(width: 38, height: 38)
                         .amberMediaCard(radius: 8)
                 } placeholder: {
                     coverPlaceholder
@@ -165,18 +136,18 @@ public struct MiniPlayerView: View {
                 coverPlaceholder
             }
         }
+        .frame(width: 38, height: 38)
     }
 
     private var coverPlaceholder: some View {
-        ZStack {
-            Color(white: 0.15)
-            Image(systemName: "headphones").font(.caption).foregroundStyle(.white.opacity(0.6))
-        }
-        .frame(
-            width: effectiveIsCompact ? 36 : 40,
-            height: effectiveIsCompact ? 36 : 40
-        )
-        .amberMediaCard(radius: 8)
+        RoundedRectangle(cornerRadius: 8, style: .continuous)
+            .fill(Color(white: 0.15))
+            .frame(width: 38, height: 38)
+            .overlay(
+                Image(systemName: "headphones")
+                    .font(.system(size: 15))
+                    .foregroundStyle(AmberTheme.primaryAmber)
+            )
     }
 
     private var trackModeBadge: some View {

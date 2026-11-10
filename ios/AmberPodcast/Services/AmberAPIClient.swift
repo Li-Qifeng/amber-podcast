@@ -150,6 +150,52 @@ public final class AmberAPIClient: ObservableObject {
         return try JSONDecoder().decode(LibraryResponse.self, from: data)
     }
 
+    // MARK: - Pipeline Status (Dump & Transcription Telemetry)
+    public struct PipelineStatusSummary: Codable {
+        public let activeCount: Int
+        public let readyCount: Int
+        public let failedCount: Int
+        public let idleCount: Int
+        public let storageMb: Double
+        public let asrEngine: String
+        public let ttsEngine: String
+        public let serverStatus: String
+
+        enum CodingKeys: String, CodingKey {
+            case activeCount = "active_count"
+            case readyCount = "ready_count"
+            case failedCount = "failed_count"
+            case idleCount = "idle_count"
+            case storageMb = "storage_mb"
+            case asrEngine = "asr_engine"
+            case ttsEngine = "tts_engine"
+            case serverStatus = "server_status"
+        }
+    }
+
+    public struct PipelineStatusResponse: Codable {
+        public let summary: PipelineStatusSummary
+        public let activeTasks: [Episode]
+        public let recentCompleted: [Episode]
+        public let failedTasks: [Episode]
+
+        enum CodingKeys: String, CodingKey {
+            case summary
+            case activeTasks = "active_tasks"
+            case recentCompleted = "recent_completed"
+            case failedTasks = "failed_tasks"
+        }
+    }
+
+    public func fetchPipelineStatus() async throws -> PipelineStatusResponse {
+        let req = try makeRequest(endpoint: "/api/v1/pipeline/status")
+        let (data, resp) = try await session.data(for: req)
+        guard let httpResp = resp as? HTTPURLResponse, httpResp.statusCode == 200 else {
+            throw URLError(.badServerResponse)
+        }
+        return try JSONDecoder().decode(PipelineStatusResponse.self, from: data)
+    }
+
     // MARK: - Feeds
     public func subscribe(url: String, autoTranslate: Bool = false) async throws {
         struct SubBody: Codable {

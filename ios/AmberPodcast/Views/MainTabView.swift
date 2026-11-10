@@ -83,12 +83,12 @@ private struct NativeApplePodcastTabView: View {
                         NativeLibraryCatalogView()
                     }
 
-                    Tab("发现", systemImage: "magnifyingglass", value: 2) {
-                        SearchView()
+                    Tab("转储", systemImage: "arrow.triangle.2.circlepath.circle.fill", value: 2) {
+                        PipelineStatusView()
                     }
 
-                    Tab("设置", systemImage: "gearshape.fill", value: 3) {
-                        SettingsView()
+                    Tab("搜索", systemImage: "magnifyingglass", value: 3, role: .search) {
+                        SearchView()
                     }
                 }
                 .tint(AmberTheme.primaryAmber)
@@ -106,12 +106,12 @@ private struct NativeApplePodcastTabView: View {
                         NativeLibraryCatalogView()
                     }
 
-                    Tab("发现", systemImage: "magnifyingglass", value: 2) {
-                        SearchView()
+                    Tab("转储", systemImage: "arrow.triangle.2.circlepath.circle.fill", value: 2) {
+                        PipelineStatusView()
                     }
 
-                    Tab("设置", systemImage: "gearshape.fill", value: 3) {
-                        SettingsView()
+                    Tab("搜索", systemImage: "magnifyingglass", value: 3, role: .search) {
+                        SearchView()
                     }
                 }
                 .tint(AmberTheme.primaryAmber)
@@ -144,13 +144,14 @@ private struct FallbackTabView: View {
     @Binding var selectedTab: Int
     @Binding var showFullPlayer: Bool
     @ObservedObject var player: DualTrackAudioPlayer
+    @ObservedObject private var scrollCoordinator = AmberScrollCoordinator.shared
 
     private var dockItems: [AmberDockItem] {
         [
             AmberDockItem(icon: "house.fill", title: "首页"),
             AmberDockItem(icon: "square.stack.fill", title: "资料库"),
-            AmberDockItem(icon: "magnifyingglass", title: "发现"),
-            AmberDockItem(icon: "gearshape.fill", title: "设置"),
+            AmberDockItem(icon: "arrow.triangle.2.circlepath.circle.fill", title: "转储"),
+            AmberDockItem(icon: "magnifyingglass", title: "搜索"),
         ]
     }
 
@@ -166,29 +167,69 @@ private struct FallbackTabView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .ignoresSafeArea()
 
-                // Clean 8pt vertical stack: zero overlap guaranteed
-                VStack(spacing: 8) {
-                    if player.currentEpisode != nil {
+                if scrollCoordinator.isDockCollapsed && player.currentEpisode != nil {
+                    // Collapsed 3-piece layout: [Home Left] --- [MiniPlayer Middle] --- [Search Right]
+                    HStack(spacing: 10) {
+                        Button {
+                            selectedTab = 0
+                        } label: {
+                            Image(systemName: "house.fill")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundStyle(selectedTab == 0 ? AmberTheme.primaryAmber : AmberTheme.labelSecondary)
+                                .frame(width: 44, height: 44)
+                                .amberGlass(.circle, isInteractive: true)
+                        }
+
                         MiniPlayerView(
                             showFullPlayer: $showFullPlayer,
-                            isCompact: false,
+                            isCompact: true,
                             hasGlassBackground: true
                         )
-                        .frame(width: min(geo.size.width - 32, 560), height: 54)
+                        .frame(maxWidth: .infinity)
                         .onTapGesture {
                             showFullPlayer = true
                         }
-                    }
 
-                    AmberTabBarRendering.dock(
-                        items: dockItems,
-                        selection: $selectedTab,
-                        width: min(geo.size.width * AmberTheme.dockWidthRatio, 420),
-                        height: AmberTheme.dockHeight
-                    )
+                        Button {
+                            selectedTab = 3
+                        } label: {
+                            Image(systemName: "magnifyingglass")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundStyle(selectedTab == 3 ? AmberTheme.primaryAmber : AmberTheme.labelSecondary)
+                                .frame(width: 44, height: 44)
+                                .amberGlass(.circle, isInteractive: true)
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, max(geo.safeAreaInsets.bottom, 8) + 6)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                } else {
+                    // Expanded stack: 8pt vertical gap between floating MiniPlayer & Dock
+                    VStack(spacing: 8) {
+                        if player.currentEpisode != nil {
+                            MiniPlayerView(
+                                showFullPlayer: $showFullPlayer,
+                                isCompact: false,
+                                hasGlassBackground: true
+                            )
+                            .frame(width: min(geo.size.width - 32, 560), height: 54)
+                            .onTapGesture {
+                                showFullPlayer = true
+                            }
+                        }
+
+                        AmberTabBarRendering.dock(
+                            items: dockItems,
+                            selection: $selectedTab,
+                            width: min(geo.size.width * AmberTheme.dockWidthRatio, 420),
+                            height: AmberTheme.dockHeight
+                        )
+                    }
+                    .padding(.bottom, max(geo.safeAreaInsets.bottom, 8) + 6)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
-                .padding(.bottom, max(geo.safeAreaInsets.bottom, 8) + 6)
             }
+            .animation(ForwardMotion.fluidDockMorph, value: scrollCoordinator.isDockCollapsed)
             .ignoresSafeArea()
         }
         .ignoresSafeArea()
@@ -202,9 +243,9 @@ private struct FallbackTabView: View {
         case 1:
             NativeLibraryCatalogView()
         case 2:
-            SearchView()
+            PipelineStatusView()
         case 3:
-            SettingsView()
+            SearchView()
         default:
             HomeLibraryView()
         }

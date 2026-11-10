@@ -680,6 +680,34 @@ async def trigger_translation(
     bg_tasks.add_task(run_pipeline_task, episode_id)
     return {"status": "pending", "episode_id": episode_id, "message": "Translation task queued"}
 
+@app.get("/api/v1/pipeline/status")
+def get_pipeline_status(token: str = Depends(verify_token)):
+    """Return real-time status of audio dump, ASR transcription, translation, and archive tasks."""
+    all_episodes = db.list_episodes(limit=100)
+    active = [ep for ep in all_episodes if ep.get("status") in ["pending", "transcribing", "translating", "synthesizing"]]
+    ready = [ep for ep in all_episodes if ep.get("status") == "ready"]
+    failed = [ep for ep in all_episodes if ep.get("status") == "failed"]
+    idle = [ep for ep in all_episodes if ep.get("status") == "idle"]
+
+    archive_dir = DATA_DIR / "archive"
+    storage_bytes = sum(f.stat().st_size for f in archive_dir.rglob("*") if f.is_file()) if archive_dir.exists() else 0
+
+    return {
+        "summary": {
+            "active_count": len(active),
+            "ready_count": len(ready),
+            "failed_count": len(failed),
+            "idle_count": len(idle),
+            "storage_mb": round(storage_bytes / (1024 * 1024), 2),
+            "asr_engine": "SenseNova / Whisper Large-v3",
+            "tts_engine": "Edge Dual-Track Neutral",
+            "server_status": "healthy"
+        },
+        "active_tasks": active,
+        "recent_completed": ready[:20],
+        "failed_tasks": failed[:10]
+    }
+
 @app.get("/api/v1/episodes/{episode_id}/artifacts")
 def get_episode_artifacts(episode_id: str, token: str = Depends(verify_token)):
     """Fetch all alignment JSONs, chapters, notes, and audio streaming info."""
