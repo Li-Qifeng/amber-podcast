@@ -118,7 +118,6 @@ public struct SettingsView: View {
             } message: {
                 Text("本地临时网络与媒体缓存已全部释放，重新进入页面时将自动拉取最新数据。")
             }
-        }
     }
 
     // MARK: - Section 1: Server Gateway
