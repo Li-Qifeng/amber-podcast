@@ -696,10 +696,34 @@ async def trigger_translation(
 def get_pipeline_status(token: str = Depends(verify_token)):
     """Return real-time status of audio dump, ASR transcription, translation, and archive tasks."""
     all_episodes = db.list_episodes(limit=100)
-    active = [ep for ep in all_episodes if ep.get("status") in ["pending", "transcribing", "translating", "synthesizing"]]
-    ready = [ep for ep in all_episodes if ep.get("status") == "ready"]
-    failed = [ep for ep in all_episodes if ep.get("status") == "failed"]
+    feeds = db.list_feeds()
+    feed_map = {f["id"]: f for f in feeds}
+
+    def enrich(ep: Dict[str, Any]) -> Dict[str, Any]:
+        d = dict(ep)
+        d["feed_title"] = feed_map.get(ep.get("feed_id", ""), {}).get("title", "未知播客")
+        return d
+
+    active = [enrich(ep) for ep in all_episodes if ep.get("status") in ["pending", "transcribing", "translating", "synthesizing"]]
+    ready = [enrich(ep) for ep in all_episodes if ep.get("status") == "ready"]
+    failed = [enrich(ep) for ep in all_episodes if ep.get("status") == "failed"]
     idle = [ep for ep in all_episodes if ep.get("status") == "idle"]
+
+    # 按播客（feed）分组，供前端「按播客分类」展示
+    by_feed: Dict[str, Dict[str, Any]] = {}
+    for ep in all_episodes:
+        fid = ep.get("feed_id", "") or "unknown"
+        if fid not in by_feed:
+            meta = feed_map.get(fid, {})
+            by_feed[fid] = {
+                "feed_id": fid,
+                "feed_title": meta.get("title", "未知播客"),
+                "cover_url": meta.get("cover_url", ""),
+                "episodes": [],
+            }
+        by_feed[fid]["episodes"].append(enrich(ep))
+
+    feeds_grouped = sorted(by_feed.values(), key=lambda f: f["feed_title"])
 
     archive_dir = DATA_DIR / "archive"
     storage_bytes = sum(f.stat().st_size for f in archive_dir.rglob("*") if f.is_file()) if archive_dir.exists() else 0
@@ -715,6 +739,7 @@ def get_pipeline_status(token: str = Depends(verify_token)):
             "tts_engine": "Edge Dual-Track Neutral",
             "server_status": "healthy"
         },
+        "feeds": feeds_grouped,
         "active_tasks": active,
         "recent_completed": ready[:20],
         "failed_tasks": failed[:10]

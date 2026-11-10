@@ -173,14 +173,32 @@ public final class AmberAPIClient: ObservableObject {
         }
     }
 
+    public struct PipelineFeedGroup: Codable, Identifiable {
+        public let feedId: String
+        public let feedTitle: String
+        public let coverUrl: String
+        public let episodes: [Episode]
+
+        public var id: String { feedId }
+
+        enum CodingKeys: String, CodingKey {
+            case feedId = "feed_id"
+            case feedTitle = "feed_title"
+            case coverUrl = "cover_url"
+            case episodes
+        }
+    }
+
     public struct PipelineStatusResponse: Codable {
         public let summary: PipelineStatusSummary
+        public let feeds: [PipelineFeedGroup]
         public let activeTasks: [Episode]
         public let recentCompleted: [Episode]
         public let failedTasks: [Episode]
 
         enum CodingKeys: String, CodingKey {
             case summary
+            case feeds
             case activeTasks = "active_tasks"
             case recentCompleted = "recent_completed"
             case failedTasks = "failed_tasks"

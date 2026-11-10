@@ -189,6 +189,7 @@ public struct Episode: Identifiable, Codable, Hashable {
     public var progress: Int
     public var errorMessage: String?
     public var gdriveFolderId: String?
+    public var feedTitle: String        // 播客名称（由 pipeline/status 接口填充，其余接口为空）
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -200,6 +201,7 @@ public struct Episode: Identifiable, Codable, Hashable {
         case shownotes, status, progress
         case errorMessage = "error_message"
         case gdriveFolderId = "gdrive_folder_id"
+        case feedTitle = "feed_title"
     }
 
     public init(
@@ -214,7 +216,8 @@ public struct Episode: Identifiable, Codable, Hashable {
         status: String = "ready",
         progress: Int = 0,
         errorMessage: String? = nil,
-        gdriveFolderId: String? = nil
+        gdriveFolderId: String? = nil,
+        feedTitle: String = ""
     ) {
         self.id = id
         self.feedId = feedId
@@ -228,6 +231,7 @@ public struct Episode: Identifiable, Codable, Hashable {
         self.progress = progress
         self.errorMessage = errorMessage
         self.gdriveFolderId = gdriveFolderId
+        self.feedTitle = feedTitle
     }
 
     public init(from decoder: Decoder) throws {
@@ -244,6 +248,7 @@ public struct Episode: Identifiable, Codable, Hashable {
         self.progress = try container.decodeIfPresent(Int.self, forKey: .progress) ?? 0
         self.errorMessage = try container.decodeIfPresent(String.self, forKey: .errorMessage)
         self.gdriveFolderId = try container.decodeIfPresent(String.self, forKey: .gdriveFolderId)
+        self.feedTitle = try container.decodeIfPresent(String.self, forKey: .feedTitle) ?? ""
     }
 
     public var isReady: Bool {

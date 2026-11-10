@@ -21,13 +21,10 @@ public struct PipelineStatusView: View {
                         // 1. Status Telemetry Cards Grid
                         telemetryCardsSection
 
-                        // 2. Active Transcription / Dump Tasks Queue
-                        activeTasksSection
+                        // 2. 按播客分类的转储状态
+                        feedsGroupedSection
 
-                        // 3. Recently Completed Archives
-                        completedTasksSection
-
-                        // 4. Engine & Infrastructure Info
+                        // 3. Engine & Infrastructure Info
                         infrastructureSection
 
                         // Bottom clearance for floating Dock & MiniPlayer
@@ -167,24 +164,24 @@ public struct PipelineStatusView: View {
         }
     }
 
-    // MARK: - 2. Active Tasks Section
-    private var activeTasksSection: some View {
+    // MARK: - 2. 按播客分类的转储状态
+    private var feedsGroupedSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("正在转储与转写")
+                Text("按播客分类")
                     .font(.system(size: 15, weight: .semibold, design: .rounded))
                     .foregroundStyle(AmberTheme.labelPrimary)
                 Spacer()
-                if let tasks = statusData?.activeTasks, !tasks.isEmpty {
-                    Text("\(tasks.count) 个任务")
+                if let groups = statusData?.feeds, !groups.isEmpty {
+                    Text("\(groups.count) 个播客")
                         .font(.system(size: 11.5))
-                        .foregroundStyle(AmberTheme.primaryAmber)
+                        .foregroundStyle(AmberTheme.labelSecondary)
                 }
             }
 
-            if let tasks = statusData?.activeTasks, !tasks.isEmpty {
-                ForEach(tasks) { task in
-                    activeTaskCard(task)
+            if let groups = statusData?.feeds, !groups.isEmpty {
+                ForEach(groups) { group in
+                    feedGroupCard(group)
                 }
             } else {
                 HStack(spacing: 12) {
@@ -192,10 +189,10 @@ public struct PipelineStatusView: View {
                         .font(.system(size: 20))
                         .foregroundStyle(AmberTheme.labelTertiary)
                     VStack(alignment: .leading, spacing: 3) {
-                        Text("当前无后台转写任务")
+                        Text("暂无转储数据")
                             .font(.system(size: 13, weight: .medium, design: .rounded))
                             .foregroundStyle(AmberTheme.labelPrimary)
-                        Text("在单集详情中点击“AI 双语精译”或订阅新播客，即可排队处理。")
+                        Text("订阅播客并在单集详情中点击“AI 双语精译”，即可排队处理。")
                             .font(.system(size: 11))
                             .foregroundStyle(AmberTheme.labelTertiary)
                     }
@@ -207,87 +204,139 @@ public struct PipelineStatusView: View {
         }
     }
 
-    private func activeTaskCard(_ task: Episode) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .top) {
+    private func feedGroupCard(_ group: AmberAPIClient.PipelineFeedGroup) -> some View {
+        let activeEps = group.episodes.filter { $0.isProcessing }
+        let readyEps = group.episodes.filter { $0.status == "ready" }
+        let failedEps = group.episodes.filter { $0.status == "failed" }
+        let notable = group.episodes.filter { $0.status != "idle" }.sorted { statusRank($0) < statusRank($1) }
+
+        return VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 12) {
+                feedCover(group.coverUrl)
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(task.title)
-                        .font(.system(size: 13.5, weight: .semibold, design: .rounded))
+                    Text(group.feedTitle)
+                        .font(.system(size: 14, weight: .semibold, design: .rounded))
                         .foregroundStyle(AmberTheme.labelPrimary)
                         .lineLimit(1)
-                    Text(task.statusDescription)
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(AmberTheme.primaryAmber)
+                    HStack(spacing: 6) {
+                        statusBadge("\(readyEps.count) 就绪", color: AmberTheme.accentElectric)
+                        if !activeEps.isEmpty {
+                            statusBadge("\(activeEps.count) 进行中", color: AmberTheme.primaryAmber)
+                        }
+                        if !failedEps.isEmpty {
+                            statusBadge("\(failedEps.count) 失败", color: Color.red)
+                        }
+                    }
                 }
                 Spacer()
-                Text("\(task.progress)%")
-                    .font(.system(size: 14, weight: .bold, design: .rounded))
-                    .foregroundStyle(AmberTheme.primaryAmber)
             }
 
-            // Progress bar
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 3)
-                        .fill(Color.white.opacity(0.08))
-                        .frame(height: 6)
-                    RoundedRectangle(cornerRadius: 3)
-                        .fill(AmberTheme.primaryAmber)
-                        .frame(width: max(0, min(geo.size.width * CGFloat(task.progress) / 100.0, geo.size.width)), height: 6)
+            if notable.isEmpty {
+                Text("暂无转储单集")
+                    .font(.system(size: 11))
+                    .foregroundStyle(AmberTheme.labelTertiary)
+                    .padding(.vertical, 2)
+            } else {
+                VStack(spacing: 8) {
+                    ForEach(notable) { ep in
+                        episodeStatusRow(ep)
+                    }
                 }
             }
-            .frame(height: 6)
         }
         .padding(14)
         .amberPlate(radius: 12)
     }
 
-    // MARK: - 3. Completed Tasks Section
-    private var completedTasksSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("最近完成归档")
-                .font(.system(size: 15, weight: .semibold, design: .rounded))
-                .foregroundStyle(AmberTheme.labelPrimary)
-
-            if let recent = statusData?.recentCompleted, !recent.isEmpty {
-                ForEach(recent) { ep in
-                    HStack(spacing: 12) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 18))
-                            .foregroundStyle(AmberTheme.accentElectric)
-
-                        VStack(alignment: .leading, spacing: 3) {
-                            Text(ep.title)
-                                .font(.system(size: 13, weight: .medium, design: .rounded))
-                                .foregroundStyle(AmberTheme.labelPrimary)
-                                .lineLimit(1)
-                            Text(ep.durationFormatted)
-                                .font(.system(size: 11))
-                                .foregroundStyle(AmberTheme.labelTertiary)
-                        }
-
-                        Spacer()
-
-                        Text("双轨已生成")
-                            .font(.system(size: 10, weight: .semibold, design: .rounded))
-                            .foregroundStyle(AmberTheme.labelSecondary)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 3.5)
-                            .background(Color.white.opacity(0.06), in: Capsule())
-                    }
-                    .padding(12)
-                    .amberPlate(radius: 10)
+    private func feedCover(_ url: String) -> some View {
+        Group {
+            if let u = URL(string: url), !url.isEmpty {
+                CachedAsyncImage(url: u) { img in
+                    img.resizable().scaledToFill()
+                } placeholder: {
+                    coverPlaceholder
                 }
             } else {
-                Text("暂无归档记录")
-                    .font(.system(size: 12))
-                    .foregroundStyle(AmberTheme.labelTertiary)
-                    .padding(.vertical, 4)
+                coverPlaceholder
             }
         }
+        .frame(width: 40, height: 40)
+        .amberMediaCard(radius: 8)
     }
 
-    // MARK: - 4. Infrastructure Section
+    private var coverPlaceholder: some View {
+        RoundedRectangle(cornerRadius: 8, style: .continuous)
+            .fill(Color(white: 0.15))
+            .frame(width: 40, height: 40)
+            .overlay(
+                Image(systemName: "waveform")
+                    .font(.system(size: 16))
+                    .foregroundStyle(AmberTheme.labelTertiary)
+            )
+    }
+
+    private func statusBadge(_ text: String, color: Color) -> some View {
+        Text(text)
+            .font(.system(size: 9.5, weight: .semibold, design: .rounded))
+            .foregroundStyle(color)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .background(color.opacity(0.12), in: Capsule())
+    }
+
+    private func episodeStatusRow(_ ep: Episode) -> some View {
+        HStack(spacing: 10) {
+            statusIcon(ep)
+                .frame(width: 20)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(ep.title)
+                    .font(.system(size: 12.5, weight: .medium, design: .rounded))
+                    .foregroundStyle(AmberTheme.labelPrimary)
+                    .lineLimit(1)
+                Text(ep.statusDescription)
+                    .font(.system(size: 10.5))
+                    .foregroundStyle(statusColor(ep))
+                    .lineLimit(1)
+            }
+            Spacer()
+            if ep.isProcessing {
+                Text("\(ep.progress)%")
+                    .font(.system(size: 12, weight: .bold, design: .rounded))
+                    .foregroundStyle(AmberTheme.primaryAmber)
+            }
+        }
+        .padding(.vertical, 4)
+    }
+
+    private func statusIcon(_ ep: Episode) -> some View {
+        Group {
+            if ep.isProcessing {
+                Image(systemName: "arrow.triangle.2.circlepath.circle.fill")
+                    .foregroundStyle(AmberTheme.primaryAmber)
+            } else if ep.status == "failed" {
+                Image(systemName: "exclamationmark.circle.fill")
+                    .foregroundStyle(Color.red)
+            } else {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundStyle(AmberTheme.accentElectric)
+            }
+        }
+        .font(.system(size: 14))
+    }
+
+    private func statusColor(_ ep: Episode) -> Color {
+        if ep.isProcessing { return AmberTheme.primaryAmber }
+        if ep.status == "failed" { return Color.red.opacity(0.85) }
+        return AmberTheme.labelTertiary
+    }
+
+    private func statusRank(_ ep: Episode) -> Int {
+        if ep.isProcessing { return 0 }
+        if ep.status == "failed" { return 1 }
+        return 2
+    }
+
+    // MARK: - 3. Infrastructure Section
     private var infrastructureSection: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("流水线架构状态")
