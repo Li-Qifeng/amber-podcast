@@ -2,105 +2,40 @@ import SwiftUI
 
 public struct MainTabView: View {
     @ObservedObject var player = DualTrackAudioPlayer.shared
-    @ObservedObject private var scrollCoordinator = AmberScrollCoordinator.shared
     @State private var selectedTab: Int = 0
     @State private var showFullPlayer: Bool = false
-
-    private var isDockCollapsed: Bool {
-        scrollCoordinator.isDockCollapsed
-    }
-
 
     #if DEBUG
     /// Stretches the tab spring so headless frame capture can see mid-transition.
     private var demoTabsSlowMotion: Bool {
         ProcessInfo.processInfo.arguments.contains("-amberSlowMotion")
     }
-    #endif
 
     private var demoTabAnimation: Animation {
-        #if DEBUG
         if demoTabsSlowMotion {
             return .spring(response: 2.0, dampingFraction: 0.82)
         }
-        #endif
         return ForwardMotion.mercuryTab
     }
+    #endif
 
     public init() {}
 
     public var body: some View {
-        GeometryReader { geo in
-            ZStack(alignment: .bottom) {
-                // Background Layer: Dark Obsidian
-                AmberTheme.background
-                    .ignoresSafeArea()
-
-                // Main Content Switching Layer
-                contentView
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .ignoresSafeArea()
-
-                // Bottom Floating Island Stack: Continuous Apple Podcasts Style Sinking & Morphing
-                AmberGlassContainer(spacing: 8) {
-                    let fullWidth: CGFloat = min(geo.size.width - 32, 560)
-                    let compactWidth: CGFloat = max(180, fullWidth - 116) // 50pt left + 8pt + 50pt right + 8pt = 116pt
-                    let hasPlayer = player.currentEpisode != nil
-                    let isCollapsed = isDockCollapsed && hasPlayer
-
-                    ZStack(alignment: .bottom) {
-                        // 1. Bottom Dock Level (Full 4-tab dock morphing into bilateral wings)
-                        ZStack {
-                            // Full 4-tab Liquid Glass Dock
-                            floatingLiquidDock(geometry: geo)
-                                .opacity(isCollapsed ? 0 : 1)
-                                .scaleEffect(isCollapsed ? 0.96 : 1.0)
-                                .allowsHitTesting(!isCollapsed)
-
-                            // Bilateral Liquid Glass Wings (Active tab on left, Search tab on right)
-                            if hasPlayer {
-                                HStack(spacing: 0) {
-                                    minimizedTabWing(index: selectedTab)
-                                    Spacer()
-                                    minimizedTabWing(index: selectedTab == 2 ? 0 : 2)
-                                }
-                                .frame(width: fullWidth)
-                                .opacity(isCollapsed ? 1 : 0)
-                                .scaleEffect(isCollapsed ? 1.0 : 0.88)
-                                .allowsHitTesting(isCollapsed)
-                            }
-                        }
-                        .frame(width: fullWidth, height: 50)
-
-                        // 2. MiniPlayer Level (Gliding smoothly from Y = -58pt down to Y = 0, width shrinking)
-                        if hasPlayer {
-                            MiniPlayerView(showFullPlayer: $showFullPlayer)
-                                .frame(
-                                    width: isCollapsed ? compactWidth : fullWidth,
-                                    height: isCollapsed ? 50 : 54
-                                )
-                                .offset(y: isCollapsed ? 0 : -58)
-                                .onTapGesture {
-                                    showFullPlayer = true
-                                }
-                        }
-                    }
-                    .frame(
-                        width: fullWidth,
-                        height: (hasPlayer && !isDockCollapsed) ? 112 : 50,
-                        alignment: .bottom
-                    )
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.bottom, max(geo.safeAreaInsets.bottom, 8) + 6)
-                .animation(ForwardMotion.fluidDockMorph, value: isDockCollapsed)
-                .animation(ForwardMotion.fluidDockMorph, value: player.currentEpisode?.id)
+        Group {
+            if #available(iOS 26.0, *) {
+                NativeApplePodcastTabView(
+                    selectedTab: $selectedTab,
+                    showFullPlayer: $showFullPlayer,
+                    player: player
+                )
+            } else {
+                FallbackTabView(
+                    selectedTab: $selectedTab,
+                    showFullPlayer: $showFullPlayer,
+                    player: player
+                )
             }
-            .ignoresSafeArea()
-        }
-        .ignoresSafeArea()
-        .onChange(of: selectedTab) { newTab in
-            scrollCoordinator.setTab(newTab)
         }
         .fullScreenCover(isPresented: $showFullPlayer) {
             FullPlayerView(isPresented: $showFullPlayer)
@@ -127,8 +62,116 @@ public struct MainTabView: View {
             #endif
         }
     }
+}
 
-    // MARK: - Content View
+// MARK: - Native Apple Podcasts Liquid Glass Tab View (iOS 26+)
+@available(iOS 26.0, *)
+private struct NativeApplePodcastTabView: View {
+    @Binding var selectedTab: Int
+    @Binding var showFullPlayer: Bool
+    @ObservedObject var player: DualTrackAudioPlayer
+
+    var body: some View {
+        TabView(selection: $selectedTab) {
+            Tab("首页", systemImage: "house.fill", value: 0) {
+                HomeLibraryView()
+            }
+
+            Tab("资料库", systemImage: "square.stack.fill", value: 1) {
+                NativeLibraryCatalogView()
+            }
+
+            Tab("发现", systemImage: "magnifyingglass", value: 2, role: .search) {
+                SearchView()
+            }
+
+            Tab("设置", systemImage: "gearshape.fill", value: 3) {
+                SettingsView()
+            }
+        }
+        .tint(AmberTheme.primaryAmber)
+        .tabBarMinimizeBehavior(.onScrollDown)
+        .tabViewBottomAccessory {
+            if player.currentEpisode != nil {
+                NativeMiniPlayerAccessory(showFullPlayer: $showFullPlayer, player: player)
+            }
+        }
+    }
+}
+
+@available(iOS 26.0, *)
+private struct NativeMiniPlayerAccessory: View {
+    @Binding var showFullPlayer: Bool
+    @ObservedObject var player: DualTrackAudioPlayer
+    @Environment(\.tabViewBottomAccessoryPlacement) private var placement
+
+    var body: some View {
+        MiniPlayerView(
+            showFullPlayer: $showFullPlayer,
+            isCompact: placement == .inline,
+            hasGlassBackground: false
+        )
+        .onTapGesture {
+            showFullPlayer = true
+        }
+    }
+}
+
+// MARK: - Fallback Tab View (iOS 17+)
+private struct FallbackTabView: View {
+    @Binding var selectedTab: Int
+    @Binding var showFullPlayer: Bool
+    @ObservedObject var player: DualTrackAudioPlayer
+
+    private var dockItems: [AmberDockItem] {
+        [
+            AmberDockItem(icon: "house.fill", title: "首页"),
+            AmberDockItem(icon: "square.stack.fill", title: "资料库"),
+            AmberDockItem(icon: "magnifyingglass", title: "发现"),
+            AmberDockItem(icon: "gearshape.fill", title: "设置"),
+        ]
+    }
+
+    var body: some View {
+        GeometryReader { geo in
+            ZStack(alignment: .bottom) {
+                // Background Layer: Dark Obsidian
+                AmberTheme.background
+                    .ignoresSafeArea()
+
+                // Main Content Switching Layer
+                contentView
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .ignoresSafeArea()
+
+                // Clean 8pt vertical stack: zero overlap guaranteed
+                VStack(spacing: 8) {
+                    if player.currentEpisode != nil {
+                        MiniPlayerView(
+                            showFullPlayer: $showFullPlayer,
+                            isCompact: false,
+                            hasGlassBackground: true
+                        )
+                        .frame(width: min(geo.size.width - 32, 560), height: 54)
+                        .onTapGesture {
+                            showFullPlayer = true
+                        }
+                    }
+
+                    AmberTabBarRendering.dock(
+                        items: dockItems,
+                        selection: $selectedTab,
+                        width: min(geo.size.width * AmberTheme.dockWidthRatio, 420),
+                        height: AmberTheme.dockHeight
+                    )
+                }
+                .padding(.bottom, max(geo.safeAreaInsets.bottom, 8) + 6)
+            }
+            .ignoresSafeArea()
+        }
+        .ignoresSafeArea()
+    }
+
     @ViewBuilder
     private var contentView: some View {
         switch selectedTab {
@@ -143,71 +186,5 @@ public struct MainTabView: View {
         default:
             HomeLibraryView()
         }
-    }
-
-    // MARK: - Floating Dock (UIKit glass on iOS 26+, SwiftUI fallback below)
-    private func minimizedTabWing(index: Int) -> some View {
-        let item = dockItems[index]
-        let isSelected = selectedTab == index
-        return Button {
-            withAnimation(ForwardMotion.fluidDockMorph) {
-                scrollCoordinator.reset()
-                selectedTab = index
-            }
-        } label: {
-            Image(systemName: item.icon)
-                .font(.system(size: 19, weight: isSelected ? .bold : .medium))
-                .foregroundStyle(isSelected ? AmberTheme.primaryAmber : AmberTheme.labelPrimary)
-                .frame(width: 50, height: 50)
-                .contentShape(Circle())
-        }
-        .buttonStyle(.plain)
-        .amberGlass(.circle, isInteractive: true)
-        .shadow(color: Color.black.opacity(0.18), radius: 8, y: 4)
-    }
-
-    private func floatingLiquidDock(geometry: GeometryProxy) -> some View {
-        let dockWidth: CGFloat = min(geometry.size.width * AmberTheme.dockWidthRatio, 420)
-        let items = dockItems
-
-        return AmberTabBarRendering.dock(
-            items: items,
-            selection: Binding(
-                get: { selectedTab },
-                set: { newIndex in
-                    selectedTab = newIndex
-                }
-            ),
-            width: dockWidth,
-            height: AmberTheme.dockHeight
-        )
-        .onTapGesture {
-            if isDockCollapsed {
-                scrollCoordinator.reset()
-            }
-        }
-    }
-
-    private var dockItems: [AmberDockItem] {
-        [
-            AmberDockItem(icon: "house.fill", title: "首页"),
-            AmberDockItem(icon: "square.stack.fill", title: "资料库"),
-            AmberDockItem(icon: "magnifyingglass", title: "发现"),
-            AmberDockItem(icon: "gearshape.fill", title: "设置"),
-        ]
-    }
-
-    private var collapsedDockItems: [AmberDockItem] {
-        [
-            AmberDockItem(icon: "house.fill", title: "首页"),
-            AmberDockItem(icon: "magnifyingglass", title: "发现"),
-        ]
-    }
-
-    private func bottomClearance(for geo: GeometryProxy) -> CGFloat {
-        if geo.safeAreaInsets.bottom > 0 {
-            return max(10, geo.safeAreaInsets.bottom - 4)
-        }
-        return AmberTheme.dockBottomGap
     }
 }

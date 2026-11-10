@@ -4,14 +4,22 @@ public struct MiniPlayerView: View {
     @ObservedObject var player = DualTrackAudioPlayer.shared
     @ObservedObject private var scrollCoordinator = AmberScrollCoordinator.shared
     @Binding var showFullPlayer: Bool
+    public var isCompact: Bool? = nil
+    public var hasGlassBackground: Bool = true
 
     @State private var dragOffsetY: CGFloat = 0
     @State private var isDragging: Bool = false
 
     private let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
 
-    public init(showFullPlayer: Binding<Bool>) {
+    private var effectiveIsCompact: Bool {
+        isCompact ?? scrollCoordinator.isDockCollapsed
+    }
+
+    public init(showFullPlayer: Binding<Bool>, isCompact: Bool? = nil, hasGlassBackground: Bool = true) {
         self._showFullPlayer = showFullPlayer
+        self.isCompact = isCompact
+        self.hasGlassBackground = hasGlassBackground
     }
 
     public var body: some View {
@@ -29,7 +37,7 @@ public struct MiniPlayerView: View {
                             .foregroundStyle(AmberTheme.labelPrimary)
                             .lineLimit(1)
 
-                        if !scrollCoordinator.isDockCollapsed {
+                        if !effectiveIsCompact {
                             HStack(spacing: 6) {
                                 trackModeBadge
 
@@ -70,7 +78,7 @@ public struct MiniPlayerView: View {
                     .buttonStyle(TactileButtonStyle(scale: 0.94))
 
                     // 4. Skip forward 30s (hidden in compact/collapsed scroll mode)
-                    if !scrollCoordinator.isDockCollapsed {
+                    if !effectiveIsCompact {
                         Button {
                             player.skipForward(30)
                             impactFeedback.impactOccurred()
@@ -85,16 +93,16 @@ public struct MiniPlayerView: View {
                     }
                 }
                 .padding(.horizontal, 12)
-                .padding(.vertical, scrollCoordinator.isDockCollapsed ? 6 : 8)
+                .padding(.vertical, effectiveIsCompact ? 6 : 8)
 
                 // 5. Hairline Micro Progress Bar (only visible in expanded mode)
-                if !scrollCoordinator.isDockCollapsed {
+                if !effectiveIsCompact {
                     progressBarView
                         .transition(.opacity)
                 }
             }
-            .amberGlass(.capsule, isInteractive: true)
-            .animation(ForwardMotion.fluidDockMorph, value: scrollCoordinator.isDockCollapsed)
+            .modifier(ConditionalGlassModifier(applyGlass: hasGlassBackground))
+            .animation(ForwardMotion.fluidDockMorph, value: effectiveIsCompact)
             .offset(y: dragOffsetY)
             .scaleEffect(isDragging ? 1.02 : 1.0)
             .animation(isDragging ? .interactiveSpring() : ForwardMotion.snapSpring, value: dragOffsetY)
@@ -146,8 +154,8 @@ public struct MiniPlayerView: View {
                         .resizable()
                         .scaledToFill()
                         .frame(
-                            width: scrollCoordinator.isDockCollapsed ? 36 : 40,
-                            height: scrollCoordinator.isDockCollapsed ? 36 : 40
+                            width: effectiveIsCompact ? 36 : 40,
+                            height: effectiveIsCompact ? 36 : 40
                         )
                         .amberMediaCard(radius: 8)
                 } placeholder: {
@@ -165,8 +173,8 @@ public struct MiniPlayerView: View {
             Image(systemName: "headphones").font(.caption).foregroundStyle(.white.opacity(0.6))
         }
         .frame(
-            width: scrollCoordinator.isDockCollapsed ? 36 : 40,
-            height: scrollCoordinator.isDockCollapsed ? 36 : 40
+            width: effectiveIsCompact ? 36 : 40,
+            height: effectiveIsCompact ? 36 : 40
         )
         .amberMediaCard(radius: 8)
     }
@@ -203,5 +211,18 @@ public struct MiniPlayerView: View {
         }
         .frame(height: 2)
         .clipShape(Capsule())
+    }
+}
+
+private struct ConditionalGlassModifier: ViewModifier {
+    let applyGlass: Bool
+
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if applyGlass {
+            content.amberGlass(.capsule, isInteractive: true)
+        } else {
+            content
+        }
     }
 }
