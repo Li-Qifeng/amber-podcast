@@ -29,7 +29,7 @@ public final class AmberScrollCoordinator: ObservableObject {
         downwardDistance = 0
         upwardDistance = 0
         if isDockCollapsed {
-            withAnimation(ForwardMotion.mercuryTab) {
+            withAnimation(ForwardMotion.fluidDockMorph) {
                 isDockCollapsed = false
             }
         }
@@ -40,7 +40,7 @@ public final class AmberScrollCoordinator: ObservableObject {
         downwardDistance = 0
         upwardDistance = 0
         if isDockCollapsed {
-            withAnimation(ForwardMotion.mercuryTab) {
+            withAnimation(ForwardMotion.fluidDockMorph) {
                 isDockCollapsed = false
             }
         }
@@ -59,7 +59,7 @@ public final class AmberScrollCoordinator: ObservableObject {
             upwardDistance = 0
             tabLastOffsets[activeTab] = offset
             if isDockCollapsed {
-                withAnimation(ForwardMotion.mercuryTab) {
+                withAnimation(ForwardMotion.fluidDockMorph) {
                     isDockCollapsed = false
                 }
             }
@@ -83,7 +83,7 @@ public final class AmberScrollCoordinator: ObservableObject {
             upwardDistance = 0
 
             if downwardDistance >= collapseScrollDownThreshold && !isDockCollapsed {
-                withAnimation(ForwardMotion.mercuryTab) {
+                withAnimation(ForwardMotion.fluidDockMorph) {
                     isDockCollapsed = true
                 }
             }
@@ -95,7 +95,7 @@ public final class AmberScrollCoordinator: ObservableObject {
             // Requires intentional upward scroll distance (>= 30pt),
             // completely immune to deceleration micro-rebound or touch release jitter!
             if upwardDistance >= expandScrollUpThreshold && isDockCollapsed {
-                withAnimation(ForwardMotion.mercuryTab) {
+                withAnimation(ForwardMotion.fluidDockMorph) {
                     isDockCollapsed = false
                 }
             }

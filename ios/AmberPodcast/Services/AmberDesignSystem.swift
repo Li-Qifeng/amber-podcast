@@ -106,6 +106,8 @@ public enum ForwardMotion {
     public static let snapSpring = Animation.interactiveSpring(response: 0.28, dampingFraction: 0.86)
     public static let spring     = Animation.spring(response: 0.30, dampingFraction: 0.84)
     public static let mercuryTab = Animation.spring(response: 0.26, dampingFraction: 0.82)
+    /// Apple Podcasts & WWDC Liquid Glass Dock morphing spring: 0.40s response, 0.82 damping.
+    public static let fluidDockMorph = Animation.spring(response: 0.40, dampingFraction: 0.82)
 }
 
 // MARK: - ==========================================

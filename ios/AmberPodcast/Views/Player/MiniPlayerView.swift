@@ -38,6 +38,7 @@ public struct MiniPlayerView: View {
                                     .foregroundStyle(AmberTheme.labelTertiary)
                                     .lineLimit(1)
                             }
+                            .transition(.opacity)
                         }
                     }
 
@@ -89,9 +90,11 @@ public struct MiniPlayerView: View {
                 // 5. Hairline Micro Progress Bar (only visible in expanded mode)
                 if !scrollCoordinator.isDockCollapsed {
                     progressBarView
+                        .transition(.opacity)
                 }
             }
             .amberGlass(.capsule, isInteractive: true)
+            .animation(ForwardMotion.fluidDockMorph, value: scrollCoordinator.isDockCollapsed)
             .offset(y: dragOffsetY)
             .scaleEffect(isDragging ? 1.02 : 1.0)
             .animation(isDragging ? .interactiveSpring() : ForwardMotion.snapSpring, value: dragOffsetY)

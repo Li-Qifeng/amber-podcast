@@ -5,7 +5,6 @@ public struct MainTabView: View {
     @ObservedObject private var scrollCoordinator = AmberScrollCoordinator.shared
     @State private var selectedTab: Int = 0
     @State private var showFullPlayer: Bool = false
-    @Namespace private var dockNamespace
 
     private var isDockCollapsed: Bool {
         scrollCoordinator.isDockCollapsed
@@ -42,47 +41,60 @@ public struct MainTabView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .ignoresSafeArea()
 
-                // Bottom Floating Island Stack: Continuous Apple Podcasts Style Sinking & Expanding
+                // Bottom Floating Island Stack: Continuous Apple Podcasts Style Sinking & Morphing
                 AmberGlassContainer(spacing: 8) {
-                    if isDockCollapsed && player.currentEpisode != nil {
-                        // Bilateral Collapsed Mode: Left wing + Centered MiniPlayer + Right wing
-                        HStack(spacing: 8) {
-                            minimizedTabWing(index: selectedTab)
+                    let fullWidth: CGFloat = min(geo.size.width - 32, 560)
+                    let compactWidth: CGFloat = max(180, fullWidth - 116) // 50pt left + 8pt + 50pt right + 8pt = 116pt
+                    let hasPlayer = player.currentEpisode != nil
+                    let isCollapsed = isDockCollapsed && hasPlayer
 
+                    ZStack(alignment: .bottom) {
+                        // 1. Bottom Dock Level (Full 4-tab dock morphing into bilateral wings)
+                        ZStack {
+                            // Full 4-tab Liquid Glass Dock
+                            floatingLiquidDock(geometry: geo)
+                                .opacity(isCollapsed ? 0 : 1)
+                                .scaleEffect(isCollapsed ? 0.96 : 1.0)
+                                .allowsHitTesting(!isCollapsed)
+
+                            // Bilateral Liquid Glass Wings (Active tab on left, Search tab on right)
+                            if hasPlayer {
+                                HStack(spacing: 0) {
+                                    minimizedTabWing(index: selectedTab)
+                                    Spacer()
+                                    minimizedTabWing(index: selectedTab == 2 ? 0 : 2)
+                                }
+                                .frame(width: fullWidth)
+                                .opacity(isCollapsed ? 1 : 0)
+                                .scaleEffect(isCollapsed ? 1.0 : 0.88)
+                                .allowsHitTesting(isCollapsed)
+                            }
+                        }
+                        .frame(width: fullWidth, height: 50)
+
+                        // 2. MiniPlayer Level (Gliding smoothly from Y = -58pt down to Y = 0, width shrinking)
+                        if hasPlayer {
                             MiniPlayerView(showFullPlayer: $showFullPlayer)
-                                .frame(height: 50)
-                                .frame(maxWidth: .infinity)
-                                .matchedGeometryEffect(id: "miniPlayer", in: dockNamespace)
+                                .frame(
+                                    width: isCollapsed ? compactWidth : fullWidth,
+                                    height: isCollapsed ? 50 : 54
+                                )
+                                .offset(y: isCollapsed ? 0 : -58)
                                 .onTapGesture {
                                     showFullPlayer = true
                                 }
-
-                            minimizedTabWing(index: selectedTab == 2 ? 0 : 2)
                         }
-                        .frame(width: min(geo.size.width - 32, 560), height: 50)
-                        .transition(.scale(scale: 0.96).combined(with: .opacity))
-                    } else {
-                        // Expanded Vertical Stack Mode: Clean 8pt gap, zero overlap, perfectly centered
-                        VStack(spacing: 8) {
-                            if player.currentEpisode != nil {
-                                MiniPlayerView(showFullPlayer: $showFullPlayer)
-                                    .frame(width: min(geo.size.width - 32, 560), height: 54)
-                                    .matchedGeometryEffect(id: "miniPlayer", in: dockNamespace)
-                                    .onTapGesture {
-                                        showFullPlayer = true
-                                    }
-                            }
-
-                            floatingLiquidDock(geometry: geo)
-                        }
-                        .frame(width: min(geo.size.width - 32, 560))
-                        .transition(.scale(scale: 0.98).combined(with: .opacity))
                     }
+                    .frame(
+                        width: fullWidth,
+                        height: (hasPlayer && !isDockCollapsed) ? 112 : 50,
+                        alignment: .bottom
+                    )
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.bottom, max(geo.safeAreaInsets.bottom, 8) + 6)
-                .animation(ForwardMotion.mercuryTab, value: isDockCollapsed)
-                .animation(ForwardMotion.mercuryTab, value: player.currentEpisode?.id)
+                .animation(ForwardMotion.fluidDockMorph, value: isDockCollapsed)
+                .animation(ForwardMotion.fluidDockMorph, value: player.currentEpisode?.id)
             }
             .ignoresSafeArea()
         }
@@ -138,25 +150,19 @@ public struct MainTabView: View {
         let item = dockItems[index]
         let isSelected = selectedTab == index
         return Button {
-            withAnimation(ForwardMotion.mercuryTab) {
+            withAnimation(ForwardMotion.fluidDockMorph) {
                 scrollCoordinator.reset()
                 selectedTab = index
             }
         } label: {
             Image(systemName: item.icon)
-                .font(.system(size: 18, weight: isSelected ? .bold : .medium))
-                .foregroundStyle(isSelected ? AmberTheme.primaryAmber : AmberTheme.labelSecondary)
+                .font(.system(size: 19, weight: isSelected ? .bold : .medium))
+                .foregroundStyle(isSelected ? AmberTheme.primaryAmber : AmberTheme.labelPrimary)
                 .frame(width: 50, height: 50)
+                .contentShape(Circle())
         }
         .buttonStyle(.plain)
-        .background(
-            Circle()
-                .fill(.ultraThinMaterial)
-                .overlay(
-                    Circle()
-                        .strokeBorder(Color.white.opacity(0.18), lineWidth: 0.5)
-                )
-        )
+        .amberGlass(.circle, isInteractive: true)
         .shadow(color: Color.black.opacity(0.18), radius: 8, y: 4)
     }
 
