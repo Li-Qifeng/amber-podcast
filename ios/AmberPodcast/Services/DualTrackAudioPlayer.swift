@@ -48,6 +48,42 @@ public final class DualTrackAudioPlayer: ObservableObject {
     private init() {
         configureAudioSession()
         setupRemoteCommands()
+        restorePlaybackState()
+    }
+
+    // MARK: - Playback State Persistence
+    private let lastEpisodeKey = "amber_last_episode_v2"
+    private let lastFeedKey = "amber_last_feed_v2"
+    private let lastTimeKey = "amber_last_time_v2"
+    private let lastDurationKey = "amber_last_duration_v2"
+
+    public func savePlaybackState() {
+        guard let episode = currentEpisode, let feed = currentFeed else { return }
+        if let episodeData = try? JSONEncoder().encode(episode) {
+            UserDefaults.standard.set(episodeData, forKey: lastEpisodeKey)
+        }
+        if let feedData = try? JSONEncoder().encode(feed) {
+            UserDefaults.standard.set(feedData, forKey: lastFeedKey)
+        }
+        UserDefaults.standard.set(currentTime, forKey: lastTimeKey)
+        UserDefaults.standard.set(duration, forKey: lastDurationKey)
+    }
+
+    private func restorePlaybackState() {
+        guard currentEpisode == nil else { return }
+        guard let episodeData = UserDefaults.standard.data(forKey: lastEpisodeKey),
+              let feedData = UserDefaults.standard.data(forKey: lastFeedKey),
+              let savedEpisode = try? JSONDecoder().decode(Episode.self, from: episodeData),
+              let savedFeed = try? JSONDecoder().decode(PodcastFeed.self, from: feedData) else {
+            return
+        }
+        self.currentEpisode = savedEpisode
+        self.currentFeed = savedFeed
+        let savedTime = UserDefaults.standard.double(forKey: lastTimeKey)
+        let savedDuration = UserDefaults.standard.double(forKey: lastDurationKey)
+        self.currentTime = savedTime > 0 ? savedTime : 0
+        self.duration = savedDuration > 0 ? savedDuration : 1800
+        self.isPlaying = false
     }
 
     // MARK: - Audio Session Setup
@@ -85,6 +121,7 @@ public final class DualTrackAudioPlayer: ObservableObject {
 
         self.currentEpisode = episode
         self.currentFeed = feed
+        savePlaybackState()
         self.timingSegments = artifacts?.timingSync ?? []
         self.fullMapping = artifacts?.fullMapping ?? []
         self.chapters = artifacts?.chapters ?? []
@@ -150,6 +187,14 @@ public final class DualTrackAudioPlayer: ObservableObject {
     // MARK: - Playback Control
     public func play() {
         try? AVAudioSession.sharedInstance().setActive(true)
+        if activePlayer == nil, let episode = currentEpisode, let feed = currentFeed {
+            let resumeTime = currentTime
+            loadEpisode(episode: episode, feed: feed, autoPlay: true)
+            if resumeTime > 0 {
+                seek(to: resumeTime)
+            }
+            return
+        }
         guard let player = activePlayer else { return }
         if player.timeControlStatus != .playing {
             isBuffering = true
@@ -207,6 +252,7 @@ public final class DualTrackAudioPlayer: ObservableObject {
 
     public func flushProgress(finished: Bool = false) {
         guard let episode = currentEpisode else { return }
+        savePlaybackState()
         let position = Int((currentTime * 1000).rounded())
         let total = Int((max(duration, currentTime) * 1000).rounded())
         guard total > 0 else { return }

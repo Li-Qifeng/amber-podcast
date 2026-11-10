@@ -26,7 +26,9 @@ public final class AmberAPIClient: ObservableObject {
     }
 
     private func makeRequest(endpoint: String, method: String = "GET", body: Data? = nil) throws -> URLRequest {
-        guard let url = URL(string: "\(serverBaseUrl)\(endpoint)") else {
+        let base = serverBaseUrl.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        let cleanEndpoint = endpoint.hasPrefix("/") ? endpoint : "/\(endpoint)"
+        guard let url = URL(string: "\(base)\(cleanEndpoint)") else {
             throw URLError(.badURL)
         }
         var req = URLRequest(url: url)
@@ -70,10 +72,22 @@ public final class AmberAPIClient: ObservableObject {
 
     // MARK: - Search
     public func searchPodcasts(query: String) async throws -> [PodcastFeed] {
-        guard let encoded = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else { return [] }
-        let req = try makeRequest(endpoint: "/api/v1/search?q=\(encoded)")
+        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return [] }
+
+        guard var components = URLComponents(string: "\(serverBaseUrl)/api/v1/search") else {
+            throw URLError(.badURL)
+        }
+        components.queryItems = [URLQueryItem(name: "q", value: trimmed)]
+        guard let url = components.url else { throw URLError(.badURL) }
+
+        var req = URLRequest(url: url)
+        req.httpMethod = "GET"
+        req.setValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
         let (data, resp) = try await session.data(for: req)
-        guard (resp as? HTTPURLResponse)?.statusCode == 200 else {
+        guard let httpResp = resp as? HTTPURLResponse, httpResp.statusCode == 200 else {
             throw URLError(.badServerResponse)
         }
         struct SearchResponse: Codable {

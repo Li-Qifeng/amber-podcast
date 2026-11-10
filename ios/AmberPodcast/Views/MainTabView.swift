@@ -72,28 +72,50 @@ private struct NativeApplePodcastTabView: View {
     @ObservedObject var player: DualTrackAudioPlayer
 
     var body: some View {
-        TabView(selection: $selectedTab) {
-            Tab("首页", systemImage: "house.fill", value: 0) {
-                HomeLibraryView()
-            }
-
-            Tab("资料库", systemImage: "square.stack.fill", value: 1) {
-                NativeLibraryCatalogView()
-            }
-
-            Tab("发现", systemImage: "magnifyingglass", value: 2, role: .search) {
-                SearchView()
-            }
-
-            Tab("设置", systemImage: "gearshape.fill", value: 3) {
-                SettingsView()
-            }
-        }
-        .tint(AmberTheme.primaryAmber)
-        .tabBarMinimizeBehavior(.onScrollDown)
-        .tabViewBottomAccessory {
+        Group {
             if player.currentEpisode != nil {
-                NativeMiniPlayerAccessory(showFullPlayer: $showFullPlayer, player: player)
+                TabView(selection: $selectedTab) {
+                    Tab("首页", systemImage: "house.fill", value: 0) {
+                        HomeLibraryView()
+                    }
+
+                    Tab("资料库", systemImage: "square.stack.fill", value: 1) {
+                        NativeLibraryCatalogView()
+                    }
+
+                    Tab("发现", systemImage: "magnifyingglass", value: 2) {
+                        SearchView()
+                    }
+
+                    Tab("设置", systemImage: "gearshape.fill", value: 3) {
+                        SettingsView()
+                    }
+                }
+                .tint(AmberTheme.primaryAmber)
+                .tabBarMinimizeBehavior(.onScrollDown)
+                .tabViewBottomAccessory {
+                    NativeMiniPlayerAccessory(showFullPlayer: $showFullPlayer, player: player)
+                }
+            } else {
+                TabView(selection: $selectedTab) {
+                    Tab("首页", systemImage: "house.fill", value: 0) {
+                        HomeLibraryView()
+                    }
+
+                    Tab("资料库", systemImage: "square.stack.fill", value: 1) {
+                        NativeLibraryCatalogView()
+                    }
+
+                    Tab("发现", systemImage: "magnifyingglass", value: 2) {
+                        SearchView()
+                    }
+
+                    Tab("设置", systemImage: "gearshape.fill", value: 3) {
+                        SettingsView()
+                    }
+                }
+                .tint(AmberTheme.primaryAmber)
+                .tabBarMinimizeBehavior(.onScrollDown)
             }
         }
     }

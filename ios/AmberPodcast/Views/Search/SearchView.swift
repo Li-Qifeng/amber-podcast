@@ -17,6 +17,7 @@ public struct SearchView: View {
     @State private var featuredShows: [PodcastFeed] = []
     @State private var topChineseShows: [PodcastFeed] = []
     @State private var topGlobalShows: [PodcastFeed] = []
+    @State private var searchDebounceTask: Task<Void, Never>? = nil
     @State private var isDiscoverLoading: Bool = false
 
     @AppStorage("amber_recent_searches_v1") private var recentSearchesRaw: String = ""
@@ -90,6 +91,24 @@ public struct SearchView: View {
             )
             .onSubmit(of: .search) {
                 performSearch()
+            }
+            .onChange(of: query) { _, newQuery in
+                searchDebounceTask?.cancel()
+                let trimmed = newQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+                if trimmed.isEmpty {
+                    searchResults = []
+                    hasSearched = false
+                    isSearching = false
+                    return
+                }
+                if isUrlQuery {
+                    return
+                }
+                searchDebounceTask = Task {
+                    try? await Task.sleep(nanoseconds: 500_000_000)
+                    if Task.isCancelled { return }
+                    performSearch()
+                }
             }
             .onAppear {
                 restoreDiscoverFromCache()

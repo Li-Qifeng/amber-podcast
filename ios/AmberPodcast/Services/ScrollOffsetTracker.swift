@@ -126,14 +126,8 @@ public struct AmberScrollTopProbe: View {
         self.tab = tab
     }
     public var body: some View {
-        GeometryReader { proxy in
-            Color.clear
-                .preference(
-                    key: AmberScrollProbePreferenceKey.self,
-                    value: proxy.frame(in: .global).minY
-                )
-        }
-        .frame(height: 0)
+        // Zero-overhead EmptyView to avoid running GeometryReader & Preference passes on every scroll frame
+        EmptyView()
     }
 }
 
@@ -145,19 +139,20 @@ public struct AmberScrollProbePreferenceKey: PreferenceKey {
 }
 
 public extension View {
-    /// Native scroll observer: iOS 18+ uses onScrollGeometryChange with normalized visibleRect.minY; iOS 17 uses top probe preference key.
+    /// Native scroll observer: iOS 26+ native TabView manages minimization on UIKit render thread at 120Hz.
+    /// Manual GeometryReader and onScrollGeometryChange listeners are bypassed to eliminate scroll stutter.
     @ViewBuilder
     func amberScrollObservable(tab: Int? = nil) -> some View {
-        if #available(iOS 18.0, *) {
+        if #available(iOS 26.0, *) {
+            self
+        } else if #available(iOS 18.0, *) {
             self.onScrollGeometryChange(for: CGFloat.self, of: { geometry in
                 geometry.visibleRect.minY
             }) { oldValue, newValue in
                 AmberScrollCoordinator.shared.handleOffset(newValue, forTab: tab)
             }
         } else {
-            self.onPreferenceChange(AmberScrollProbePreferenceKey.self) { probeGlobalY in
-                AmberScrollCoordinator.shared.handleProbeGlobalY(probeGlobalY, forTab: tab)
-            }
+            self
         }
     }
 
