@@ -515,6 +515,8 @@ async def run_pipeline_task(episode_id: str):
     if not ep:
         return
 
+    db.mark_dump_started(episode_id)
+
     work_dir = SCRATCH_DIR / episode_id
     work_dir.mkdir(parents=True, exist_ok=True)
     audio_path = str(work_dir / "original.mp3")
@@ -746,6 +748,169 @@ def get_pipeline_status(token: str = Depends(verify_token)):
         "recent_completed": ready[:20],
         "failed_tasks": failed[:10]
     }
+
+# ---------------- Pipeline Console (转储主页增强) ----------------
+
+_QUEUE_STATUSES = ["pending", "transcribing", "translating", "synthesizing"]
+
+
+def _pipeline_card(ep: Dict[str, Any], feed_map: Dict[str, Any], now: int) -> Dict[str, Any]:
+    meta = feed_map.get(ep.get("feed_id", ""), {})
+    updated = ep.get("updated_at") or now
+    started = ep.get("dump_started_at") or 0
+    # Historical rows carry no real dump start; report 0 rather than a fake duration.
+    elapsed = (updated - started) if started > 0 and updated >= started else 0
+    return {
+        "episode_id": ep.get("id"),
+        "title": ep.get("title", ""),
+        "feed_id": ep.get("feed_id", ""),
+        "feed_title": meta.get("title", "未知播客"),
+        "cover_url": meta.get("cover_url", ""),
+        "status": ep.get("status", "idle"),
+        "progress": ep.get("progress", 0),
+        "error_message": ep.get("error_message") or "",
+        "elapsed_sec": elapsed,
+        "updated_at": updated,
+    }
+
+
+@app.get("/api/v1/pipeline/queue")
+def get_pipeline_queue(token: str = Depends(verify_token)):
+    """Structured task queue for the dump console: running / queued / failed / completed."""
+    feed_map = {f["id"]: f for f in db.list_feeds()}
+    eps = db.list_episodes(limit=300)
+    now = int(time.time())
+    cards = [_pipeline_card(e, feed_map, now) for e in eps]
+
+    running = [c for c in cards if c["status"] in _QUEUE_STATUSES and c["status"] != "pending"]
+    queued = [c for c in cards if c["status"] == "pending"]
+    failed = [c for c in cards if c["status"] == "failed"]
+    completed = sorted(
+        [c for c in cards if c["status"] == "ready"],
+        key=lambda c: c["updated_at"],
+        reverse=True,
+    )
+
+    return {
+        "running": running[:50],
+        "queued": queued[:50],
+        "failed": failed[:50],
+        "completed": completed[:50],
+        "counts": {
+            "running": len(running),
+            "queued": len(queued),
+            "failed": len(failed),
+            "completed": len(completed),
+        },
+    }
+
+
+@app.get("/api/v1/pipeline/stats")
+def get_pipeline_stats(token: str = Depends(verify_token)):
+    """Aggregate metrics: today's dumps, average duration, success rate, 7-day trend."""
+    eps = db.list_episodes(limit=2000)
+    now = int(time.time())
+    today_start = int(time.mktime(time.strptime(time.strftime("%Y-%m-%d"), "%Y-%m-%d")))
+
+    ready = [e for e in eps if e.get("status") == "ready"]
+    failed = [e for e in eps if e.get("status") == "failed"]
+
+    durations = [
+        (e.get("updated_at") or 0) - (e.get("dump_started_at") or 0)
+        for e in ready
+        if (e.get("updated_at") or 0) > (e.get("dump_started_at") or 0) > 0
+    ]
+    avg_duration = int(sum(durations) / len(durations)) if durations else 0
+
+    today_dumped = sum(1 for e in ready if (e.get("updated_at") or 0) >= today_start)
+    finished = len(ready) + len(failed)
+    success_rate = round(len(ready) / finished, 3) if finished else 1.0
+
+    trend = []
+    for i in range(6, -1, -1):
+        day_key = time.strftime("%Y-%m-%d", time.localtime(now - i * 86400))
+        start = int(time.mktime(time.strptime(day_key, "%Y-%m-%d")))
+        end = start + 86400
+        trend.append({
+            "date": day_key,
+            "count": sum(1 for e in ready if start <= (e.get("updated_at") or 0) < end),
+        })
+
+    return {
+        "today_dumped": today_dumped,
+        "avg_duration_sec": avg_duration,
+        "success_rate": success_rate,
+        "total_ready": len(ready),
+        "total_failed": len(failed),
+        "trend": trend,
+    }
+
+
+@app.post("/api/v1/pipeline/batch-translate")
+async def batch_translate(
+    bg_tasks: BackgroundTasks,
+    payload: Dict[str, Any],
+    token: str = Depends(verify_token),
+):
+    """Queue many episodes at once. Pass episode_ids, or feed_id to sweep a podcast."""
+    episode_ids = payload.get("episode_ids") or []
+    feed_id = payload.get("feed_id")
+    only_idle = bool(payload.get("only_idle", True))
+
+    if feed_id:
+        eps = db.list_episodes(feed_id=feed_id, limit=1000)
+        wanted = ("idle",) if only_idle else ("idle", "failed")
+        targets = [e["id"] for e in eps if e.get("status") in wanted]
+    else:
+        targets = list(episode_ids)
+
+    queued, skipped = 0, 0
+    for eid in targets:
+        ep = db.get_episode(eid)
+        if not ep or ep.get("status") in _QUEUE_STATUSES or ep.get("status") == "ready":
+            skipped += 1
+            continue
+        db.update_episode_status(eid, status="pending", progress=0)
+        bg_tasks.add_task(run_pipeline_task, eid)
+        queued += 1
+
+    return {
+        "queued": queued,
+        "skipped": skipped,
+        "total_requested": len(targets),
+    }
+
+
+@app.post("/api/v1/episodes/{episode_id}/cancel")
+def cancel_episode_translation(episode_id: str, token: str = Depends(verify_token)):
+    """Cancel an in-flight pipeline task (resets DB state)."""
+    ep = db.get_episode(episode_id)
+    if not ep:
+        raise HTTPException(status_code=404, detail="Episode not found")
+    if ep["status"] not in _QUEUE_STATUSES:
+        return {"status": ep["status"], "episode_id": episode_id, "message": "Task is not running"}
+    db.update_episode_status(episode_id, status="idle", progress=0)
+    return {"status": "idle", "episode_id": episode_id, "message": "Task cancelled"}
+
+
+@app.delete("/api/v1/episodes/{episode_id}/artifacts")
+def delete_episode_artifacts(episode_id: str, token: str = Depends(verify_token)):
+    """Delete archived artifacts for an episode and reset it to idle."""
+    ep = db.get_episode(episode_id)
+    if not ep:
+        raise HTTPException(status_code=404, detail="Episode not found")
+
+    import shutil
+    removed = False
+    for base in (DATA_DIR / "archive", GDRIVE_DIR / "episodes"):
+        target = base / episode_id
+        if target.exists():
+            shutil.rmtree(target, ignore_errors=True)
+            removed = True
+
+    db.update_episode_status(episode_id, status="idle", progress=0)
+    return {"status": "idle", "episode_id": episode_id, "artifacts_removed": removed}
+
 
 @app.get("/api/v1/episodes/{episode_id}/artifacts")
 def get_episode_artifacts(episode_id: str, token: str = Depends(verify_token)):

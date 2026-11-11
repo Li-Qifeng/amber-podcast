@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS episodes (
     progress INTEGER DEFAULT 0,         -- 0 to 100
     error_message TEXT DEFAULT '',
     gdrive_folder_id TEXT DEFAULT '',
+    dump_started_at INTEGER DEFAULT 0,   -- epoch seconds when the dump pipeline started
     created_at INTEGER NOT NULL,
     updated_at INTEGER NOT NULL,
     FOREIGN KEY(feed_id) REFERENCES feeds(id) ON DELETE CASCADE
@@ -70,6 +71,10 @@ class Database:
     def init_db(self):
         with self.get_conn() as conn:
             conn.executescript(SCHEMA)
+            # Lightweight migrations for pre-existing databases
+            cols = {row[1] for row in conn.execute("PRAGMA table_info(episodes)").fetchall()}
+            if "dump_started_at" not in cols:
+                conn.execute("ALTER TABLE episodes ADD COLUMN dump_started_at INTEGER DEFAULT 0")
 
     # --- Feed operations ---
     def upsert_feed(self, feed_id: str, source_type: str, title: str, author: str,
@@ -156,6 +161,15 @@ class Database:
                 SET status = ?, progress = ?, error_message = ?, gdrive_folder_id = CASE WHEN ? != '' THEN ? ELSE gdrive_folder_id END, updated_at = ?
                 WHERE id = ?
             """, (status, progress, error_message, gdrive_folder_id, gdrive_folder_id, now, episode_id))
+
+    def mark_dump_started(self, episode_id: str) -> None:
+        """Stamp the moment the dump pipeline actually began for this episode."""
+        now = int(time.time())
+        with self.get_conn() as conn:
+            conn.execute(
+                "UPDATE episodes SET dump_started_at = ? WHERE id = ?",
+                (now, episode_id),
+            )
 
     # --- Playback progress ---
     def update_playback_progress(self, episode_id: str, position_ms: int, duration_ms: int,
