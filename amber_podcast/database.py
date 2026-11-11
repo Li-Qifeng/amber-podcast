@@ -152,6 +152,24 @@ class Database:
                 ).fetchall()
             return [dict(r) for r in rows]
 
+    def list_episodes_by_statuses(self, statuses: List[str], limit: int = 500) -> List[Dict[str, Any]]:
+        """Query episodes directly by status.
+
+        `list_episodes` orders by pub_date and is paginated, so a stale failed
+        task can fall outside the window and silently vanish from the queue.
+        Status queries must never depend on that ordering.
+        """
+        if not statuses:
+            return []
+        placeholders = ",".join("?" for _ in statuses)
+        with self.get_conn() as conn:
+            rows = conn.execute(
+                f"SELECT * FROM episodes WHERE status IN ({placeholders}) "
+                "ORDER BY updated_at DESC LIMIT ?",
+                (*statuses, limit),
+            ).fetchall()
+            return [dict(r) for r in rows]
+
     def update_episode_status(self, episode_id: str, status: str, progress: int = 0,
                               error_message: str = "", gdrive_folder_id: str = "") -> None:
         now = int(time.time())

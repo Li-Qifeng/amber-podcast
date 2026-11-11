@@ -699,7 +699,9 @@ async def trigger_translation(
 @app.get("/api/v1/pipeline/status")
 def get_pipeline_status(token: str = Depends(verify_token)):
     """Return real-time status of audio dump, ASR transcription, translation, and archive tasks."""
-    all_episodes = db.list_episodes(limit=100)
+    # Full window: the library can exceed 1k episodes, and a limit here would
+    # silently drop older failed/ready rows from the per-podcast groups.
+    all_episodes = db.list_episodes(limit=5000)
     feeds = db.list_feeds()
     feed_map = {f["id"]: f for f in feeds}
 
@@ -778,24 +780,25 @@ def _pipeline_card(ep: Dict[str, Any], feed_map: Dict[str, Any], now: int) -> Di
 def get_pipeline_queue(token: str = Depends(verify_token)):
     """Structured task queue for the dump console: running / queued / failed / completed."""
     feed_map = {f["id"]: f for f in db.list_feeds()}
-    eps = db.list_episodes(limit=300)
     now = int(time.time())
-    cards = [_pipeline_card(e, feed_map, now) for e in eps]
 
-    running = [c for c in cards if c["status"] in _QUEUE_STATUSES and c["status"] != "pending"]
-    queued = [c for c in cards if c["status"] == "pending"]
-    failed = [c for c in cards if c["status"] == "failed"]
-    completed = sorted(
-        [c for c in cards if c["status"] == "ready"],
-        key=lambda c: c["updated_at"],
-        reverse=True,
-    )
+    # Query by status directly — pagination-ordered list_episodes can hide
+    # failed tasks that sit outside the newest-N window.
+    running_eps = db.list_episodes_by_statuses(["transcribing", "translating", "synthesizing"], 200)
+    queued_eps = db.list_episodes_by_statuses(["pending"], 200)
+    failed_eps = db.list_episodes_by_statuses(["failed"], 200)
+    completed_eps = db.list_episodes_by_statuses(["ready"], 200)
+
+    running = [_pipeline_card(e, feed_map, now) for e in running_eps]
+    queued = [_pipeline_card(e, feed_map, now) for e in queued_eps]
+    failed = [_pipeline_card(e, feed_map, now) for e in failed_eps]
+    completed = [_pipeline_card(e, feed_map, now) for e in completed_eps]
 
     return {
-        "running": running[:50],
-        "queued": queued[:50],
-        "failed": failed[:50],
-        "completed": completed[:50],
+        "running": running,
+        "queued": queued,
+        "failed": failed,
+        "completed": completed,
         "counts": {
             "running": len(running),
             "queued": len(queued),
