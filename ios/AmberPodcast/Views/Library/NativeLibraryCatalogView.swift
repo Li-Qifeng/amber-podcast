@@ -280,7 +280,7 @@ public struct LatestEpisodesListView: View {
         let podcastTitle = f?.title ?? "未知"
         Button {
             if let f = f {
-                player.loadEpisode(episode: ep, feed: f, autoPlay: true)
+                Task { await player.playNewEpisode(episode: ep, feed: f) }
             }
         } label: {
             HStack(spacing: 12) {

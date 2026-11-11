@@ -663,26 +663,16 @@ public struct HomeLibraryView: View {
 
     private func playEpisode(_ episode: Episode, feed: PodcastFeed) {
         impactFeedback.impactOccurred()
-        Task {
-            var artifacts: EpisodeArtifacts? = nil
-            if episode.status == "ready" {
-                artifacts = try? await AmberAPIClient.shared.fetchArtifacts(episodeId: episode.id)
+        if player.currentEpisode?.id == episode.id {
+            if player.isPlaying {
+                player.pause()
+            } else if player.fullMapping.isEmpty {
+                Task { await player.playNewEpisode(episode: episode, feed: feed) }
+            } else {
+                player.play()
             }
-            await MainActor.run {
-                if player.currentEpisode?.id == episode.id {
-                    if !player.isPlaying {
-                        if player.fullMapping.isEmpty && episode.status == "ready" {
-                            player.loadEpisode(episode: episode, feed: feed, artifacts: artifacts, autoPlay: true)
-                        } else {
-                            player.play()
-                        }
-                    } else {
-                        player.pause()
-                    }
-                } else {
-                    player.loadEpisode(episode: episode, feed: feed, artifacts: artifacts, autoPlay: true)
-                }
-            }
+        } else {
+            Task { await player.playNewEpisode(episode: episode, feed: feed) }
         }
     }
 

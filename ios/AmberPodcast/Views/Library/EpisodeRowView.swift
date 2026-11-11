@@ -195,26 +195,16 @@ public struct EpisodeRowView: View {
     // MARK: - Actions
     private func playEpisode() {
         impactFeedback.impactOccurred()
-        Task {
-            var artifacts: EpisodeArtifacts? = nil
-            if currentStatus == "ready" {
-                artifacts = try? await AmberAPIClient.shared.fetchArtifacts(episodeId: episode.id)
+        if isCurrentPlaying {
+            if player.isPlaying {
+                player.pause()
+            } else if player.fullMapping.isEmpty {
+                Task { await player.playNewEpisode(episode: episode, feed: feed) }
+            } else {
+                player.play()
             }
-            await MainActor.run {
-                if isCurrentPlaying {
-                    if !player.isPlaying {
-                        if player.fullMapping.isEmpty && currentStatus == "ready" {
-                            player.loadEpisode(episode: episode, feed: feed, artifacts: artifacts, autoPlay: true)
-                        } else {
-                            player.play()
-                        }
-                    } else {
-                        player.pause()
-                    }
-                } else {
-                    player.loadEpisode(episode: episode, feed: feed, artifacts: artifacts, autoPlay: true)
-                }
-            }
+        } else {
+            Task { await player.playNewEpisode(episode: episode, feed: feed) }
         }
     }
 

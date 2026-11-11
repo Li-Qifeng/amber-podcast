@@ -172,6 +172,20 @@ public final class DualTrackAudioPlayer: ObservableObject {
         updateNowPlayingInfo()
     }
 
+    // MARK: - Unified Play Entry
+    /// 统一播放入口：无条件尝试拉取双轨字幕映射，避免依赖过时的 status 缓存。
+    /// fetchArtifacts 返回空 full_mapping 时自然降级为原声播放。
+    public func playNewEpisode(episode: Episode, feed: PodcastFeed) async {
+        var artifacts: EpisodeArtifacts? = nil
+        if let a = try? await AmberAPIClient.shared.fetchArtifacts(episodeId: episode.id),
+           !a.fullMapping.isEmpty {
+            artifacts = a
+        }
+        await MainActor.run {
+            self.loadEpisode(episode: episode, feed: feed, artifacts: artifacts, autoPlay: true)
+        }
+    }
+
     // MARK: - Active Player Helper
     private var activePlayer: AVPlayer? {
         switch trackMode {

@@ -401,20 +401,22 @@ public struct SearchView: View {
                 Text("中文热门精选")
                     .font(.system(size: 15, weight: .bold, design: .rounded))
                     .foregroundStyle(AmberTheme.labelPrimary)
+                Spacer()
+                Text("TOP \(min(topChineseShows.count, 8))")
+                    .font(.system(size: 10, weight: .bold, design: .rounded))
+                    .foregroundStyle(AmberTheme.labelTertiary)
             }
             .padding(.horizontal, 20)
 
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 12) {
-                    ForEach(topChineseShows) { item in
-                        NavigationLink(destination: FeedDetailView(feed: item)) {
-                            posterCard(item: item, badge: nil)
-                        }
-                        .buttonStyle(.plain)
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 16) {
+                ForEach(Array(topChineseShows.prefix(8))) { item in
+                    NavigationLink(destination: FeedDetailView(feed: item)) {
+                        gridCard(item: item, badge: nil)
                     }
+                    .buttonStyle(.plain)
                 }
-                .padding(.horizontal, 20)
             }
+            .padding(.horizontal, 20)
         }
     }
 
@@ -435,41 +437,52 @@ public struct SearchView: View {
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
                     .background(AmberTheme.accentElectric.opacity(0.12), in: Capsule())
+
+                Spacer()
+                Text("TOP \(min(topGlobalShows.count, 8))")
+                    .font(.system(size: 10, weight: .bold, design: .rounded))
+                    .foregroundStyle(AmberTheme.labelTertiary)
             }
             .padding(.horizontal, 20)
 
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 12) {
-                    ForEach(topGlobalShows) { item in
-                        NavigationLink(destination: FeedDetailView(feed: item)) {
-                            posterCard(item: item, badge: "双轨配音")
-                        }
-                        .buttonStyle(.plain)
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 16) {
+                ForEach(Array(topGlobalShows.prefix(8))) { item in
+                    NavigationLink(destination: FeedDetailView(feed: item)) {
+                        gridCard(item: item, badge: "双轨配音")
                     }
+                    .buttonStyle(.plain)
                 }
-                .padding(.horizontal, 20)
             }
+            .padding(.horizontal, 20)
         }
     }
 
-    private func posterCard(item: PodcastFeed, badge: String?) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
+    private func gridCard(item: PodcastFeed, badge: String?) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
             ZStack(alignment: .topTrailing) {
-                if let url = URL(string: item.proxiedCoverUrl), !item.proxiedCoverUrl.isEmpty {
-                    CachedAsyncImage(url: url) { img in
-                        img.resizable().scaledToFill()
-                            .frame(width: 120, height: 120)
-                            .amberMediaCard(radius: 12)
-                    } placeholder: {
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .fill(Color(white: 0.14))
-                            .frame(width: 120, height: 120)
-                    }
-                } else {
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(Color(white: 0.14))
-                        .frame(width: 120, height: 120)
-                }
+                Color.clear
+                    .aspectRatio(1.0, contentMode: .fit)
+                    .overlay(
+                        Group {
+                            if let url = URL(string: item.proxiedCoverUrl), !item.proxiedCoverUrl.isEmpty {
+                                CachedAsyncImage(url: url) { img in
+                                    img.resizable().scaledToFill()
+                                } placeholder: {
+                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                        .fill(Color(white: 0.14))
+                                }
+                            } else {
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .fill(Color(white: 0.14))
+                                    .overlay(
+                                        Image(systemName: "mic.fill")
+                                            .font(.system(size: 24))
+                                            .foregroundStyle(AmberTheme.labelTertiary)
+                                    )
+                            }
+                        }
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
 
                 if let b = badge {
                     Text(b)
@@ -483,55 +496,62 @@ public struct SearchView: View {
             }
 
             Text(item.title)
-                .font(.system(size: 12.5, weight: .semibold, design: .rounded))
+                .font(.system(size: 13.5, weight: .semibold, design: .rounded))
                 .foregroundStyle(AmberTheme.labelPrimary)
                 .lineLimit(1)
 
             Text(item.author)
-                .font(.system(size: 11, weight: .regular))
+                .font(.system(size: 11.5, weight: .regular))
                 .foregroundStyle(AmberTheme.labelTertiary)
                 .lineLimit(1)
         }
-        .frame(width: 120)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .contentShape(Rectangle())
     }
-
-    // MARK: - Section 5: Category Topic Chips
+    // MARK: - Section 5: Category Topic Cards
     private var categoryChipsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("热门分类专题")
-                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                .font(.system(size: 15, weight: .bold, design: .rounded))
                 .foregroundStyle(AmberTheme.labelPrimary)
                 .padding(.horizontal, 20)
 
-            FlowLayout(spacing: 8) {
-                topicPill("深度对谈", queryText: "声东击西")
-                topicPill("科技前沿", queryText: "机核")
-                topicPill("商业商业", queryText: "Acquired")
-                topicPill("文学艺术", queryText: "跳岛 FM")
-                topicPill("健康科学", queryText: "Huberman Lab")
-                topicPill("人工智能", queryText: "Lex Fridman")
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
+                categoryCard(icon: "bubble.left.and.bubble.right.fill", title: "深度对谈", color: Color.orange, queryText: "声东击西")
+                categoryCard(icon: "cpu.fill", title: "科技前沿", color: Color.cyan, queryText: "机核")
+                categoryCard(icon: "chart.line.uptrend.xyaxis", title: "商业财经", color: Color.green, queryText: "Acquired")
+                categoryCard(icon: "book.fill", title: "文学艺术", color: Color.purple, queryText: "跳岛 FM")
+                categoryCard(icon: "heart.fill", title: "健康科学", color: Color.pink, queryText: "Huberman Lab")
+                categoryCard(icon: "brain.head.profile", title: "人工智能", color: Color.blue, queryText: "Lex Fridman")
             }
             .padding(.horizontal, 20)
         }
     }
 
-    private func topicPill(_ title: String, queryText: String) -> some View {
+    private func categoryCard(icon: String, title: String, color: Color, queryText: String) -> some View {
         Button {
             query = queryText
             performSearch()
         } label: {
-            HStack(spacing: 4) {
+            HStack(spacing: 10) {
+                Image(systemName: icon)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(color)
+                    .frame(width: 32, height: 32)
+                    .background(color.opacity(0.12), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+
                 Text(title)
-                    .font(.system(size: 12, weight: .medium, design: .rounded))
-                    .foregroundStyle(AmberTheme.labelSecondary)
+                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .foregroundStyle(AmberTheme.labelPrimary)
+
+                Spacer()
+
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 9))
+                    .font(.system(size: 10, weight: .semibold))
                     .foregroundStyle(AmberTheme.labelTertiary)
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6.5)
-            .amberPlate(radius: 8)
+            .padding(12)
+            .amberPlate(radius: 12)
         }
         .buttonStyle(TactileButtonStyle(scale: 0.96))
     }

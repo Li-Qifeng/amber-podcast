@@ -239,7 +239,7 @@ public struct PipelineStatusView: View {
             } else {
                 VStack(spacing: 8) {
                     ForEach(notable) { ep in
-                        episodeStatusRow(ep)
+                        episodeStatusRow(ep, group: group)
                     }
                 }
             }
@@ -284,7 +284,7 @@ public struct PipelineStatusView: View {
             .background(color.opacity(0.12), in: Capsule())
     }
 
-    private func episodeStatusRow(_ ep: Episode) -> some View {
+    private func episodeStatusRow(_ ep: Episode, group: AmberAPIClient.PipelineFeedGroup) -> some View {
         HStack(spacing: 10) {
             statusIcon(ep)
                 .frame(width: 20)
@@ -303,9 +303,24 @@ public struct PipelineStatusView: View {
                 Text("\(ep.progress)%")
                     .font(.system(size: 12, weight: .bold, design: .rounded))
                     .foregroundStyle(AmberTheme.primaryAmber)
+            } else if ep.status == "ready" {
+                Button {
+                    playEpisode(ep, group: group)
+                } label: {
+                    Image(systemName: "play.circle.fill")
+                        .font(.system(size: 22))
+                        .foregroundStyle(AmberTheme.accentElectric)
+                }
+                .buttonStyle(TactileButtonStyle(scale: 0.92))
             }
         }
         .padding(.vertical, 4)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            if ep.status == "ready" {
+                playEpisode(ep, group: group)
+            }
+        }
     }
 
     private func statusIcon(_ ep: Episode) -> some View {
@@ -391,6 +406,25 @@ public struct PipelineStatusView: View {
                 self.errorMessage = error.localizedDescription
                 self.isLoading = false
             }
+        }
+    }
+
+    private func playEpisode(_ ep: Episode, group: AmberAPIClient.PipelineFeedGroup) {
+        impactFeedback.impactOccurred()
+        Task {
+            // 优先从已订阅 feeds 找完整 feed 对象，找不到则用分组信息构造最小 feed
+            let feeds = (try? await apiClient.listFeeds()) ?? []
+            let feed = feeds.first(where: { $0.id == ep.feedId })
+                ?? PodcastFeed(
+                    id: group.feedId,
+                    sourceType: "apple_rss",
+                    title: group.feedTitle,
+                    author: "",
+                    feedUrl: "",
+                    coverUrl: group.coverUrl,
+                    description: ""
+                )
+            await DualTrackAudioPlayer.shared.playNewEpisode(episode: ep, feed: feed)
         }
     }
 }
