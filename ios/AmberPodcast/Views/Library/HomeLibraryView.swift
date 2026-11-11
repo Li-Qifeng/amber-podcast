@@ -31,13 +31,6 @@ public struct HomeLibraryView: View {
         return max(1, screenHeight - insets.top - insets.bottom)
     }
 
-    /// Status-bar inset, used to seat the in-content page title below the clock.
-    private var safeTop: CGFloat {
-        UIApplication.shared.connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .first?.windows.first?.safeAreaInsets.top ?? 47
-    }
-
     @ObservedObject var player = DualTrackAudioPlayer.shared
     private let impactFeedback = UIImpactFeedbackGenerator(style: .light)
 
@@ -95,12 +88,16 @@ public struct HomeLibraryView: View {
                     .ignoresSafeArea(edges: .top)
                 }
             }
-            // Immersive top: no system navigation bar at all. Title and the add
-            // button live inside the scroll content, so they leave the screen
-            // with the content (Apple Newsroom's #globalnav is position:absolute
-            // for the same reason). The status-bar blur is left to iOS 26's
-            // native scroll edge effect — no manual offset tracking, no stutter.
-            .toolbar(.hidden, for: .navigationBar)
+            .navigationTitle("首页")
+            .navigationBarTitleDisplayMode(.large)
+            .amberImmersiveTopEdge()
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    CircularLiquidGlassAddButton {
+                        showSubscribeSheet = true
+                    }
+                }
+            }
             .sheet(isPresented: $showSubscribeSheet) {
                 subscribeSheet
             }
@@ -247,25 +244,6 @@ public struct HomeLibraryView: View {
             .padding(.bottom, 16)
         }
         .frame(width: screenWidth, height: heroHeight)
-        .overlay(alignment: .top) {
-            // In-content page header: scrolls away with the hero, exactly like
-            // Newsroom's absolute globalnav. Sits inside the 110pt top scrim so
-            // white type stays legible over any artwork.
-            HStack(alignment: .center) {
-                Text("首页")
-                    .font(.system(size: 34, weight: .bold, design: .rounded))
-                    .foregroundStyle(.white)
-                    .shadow(color: .black.opacity(0.45), radius: 8, y: 2)
-
-                Spacer()
-
-                CircularLiquidGlassAddButton {
-                    showSubscribeSheet = true
-                }
-            }
-            .padding(.horizontal, AmberTheme.pageMargin)
-            .padding(.top, safeTop + 4)
-        }
         .contentShape(Rectangle())
         .onTapGesture {
             if let ep = heroEpisode, let f = heroFeed {

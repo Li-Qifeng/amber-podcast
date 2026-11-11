@@ -62,13 +62,15 @@ public extension View {
         modifier(AmberMediaCardModifier(radius: radius))
     }
 
-    /// 去掉顶部的高斯模糊遮罩：iOS 26 滚动边缘自动模糊 + 导航栏毛玻璃背景。
-    /// 标题文字与 toolbar 按钮保留（SearchView 的 searchable 依赖导航栏本身）。
+    /// 去掉导航栏那条厚重的毛玻璃，但把 iOS 26 原生的 scrollEdgeEffect 留下来。
+    /// 滚动时状态栏区域会自然浮现一层轻模糊（时间/电量始终可读），大标题按系统
+    /// 标准节奏收缩 —— 这是 Apple HIG 的默认行为，也是"不生硬"的来源。
+    /// 上一版把 scrollEdgeEffect 一起关掉，导致标题收缩后完全悬空，观感很硬。
     @ViewBuilder
     func amberImmersiveTopEdge() -> some View {
         if #available(iOS 26.0, *) {
             self
-                .scrollEdgeEffectHidden(true, for: .top)
+                .scrollEdgeEffectStyle(.soft, for: .top)
                 .toolbarBackground(.hidden, for: .navigationBar)
         } else {
             self.toolbarBackground(.hidden, for: .navigationBar)
