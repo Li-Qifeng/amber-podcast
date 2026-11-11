@@ -32,18 +32,18 @@ public struct AmberPlateModifier: ViewModifier {
     }
 }
 
-/// Media surface: clips the artwork to a squircle, adds the hairline and a
-/// neutral (never coloured) shadow for depth.
+/// Media surface: clips the artwork to a squircle and adds a neutral (never
+/// coloured) shadow for depth.
+///
+/// No strokeBorder: on artwork the 0.5pt hairline reads as a hard "box" around
+/// every cover. Apple's own artwork tiles are borderless — the clip shape plus
+/// shadow already separates them from the canvas.
 public struct AmberMediaCardModifier: ViewModifier {
     public var radius: CGFloat
 
     public func body(content: Content) -> some View {
         content
             .clipShape(RoundedRectangle(cornerRadius: radius, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: radius, style: .continuous)
-                    .strokeBorder(AmberTheme.borderHairline, lineWidth: 0.5)
-            )
             .shadow(color: Color.black.opacity(0.30), radius: 6, y: 3)
     }
 }

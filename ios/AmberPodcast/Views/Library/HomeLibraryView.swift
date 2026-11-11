@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import UIKit
 
 public struct HomeLibraryView: View {
     @State private var feeds: [PodcastFeed] = []
@@ -15,12 +16,20 @@ public struct HomeLibraryView: View {
 
     @AppStorage("amber_cached_library_json_v2") private var cachedLibraryJson: String = ""
 
-    /// Stable height basis for hero sizing. iOS 26's tabViewBottomAccessory
-    /// resizes page content every frame while expanding/collapsing; deriving
-    /// the hero from live geo.size.height made the whole page re-layout on each
-    /// frame (visible stutter when restoring the Dock at the top). We snapshot
-    /// the height once and only re-baseline on real window changes.
-    @State private var layoutHeightBasis: CGFloat = 0
+    /// Fixed screen geometry. Read from UIScreen (not a live GeometryReader) so
+    /// content never re-lays out when NavigationStack's large title collapses or
+    /// the bottom accessory resizes.
+    private var screenWidth: CGFloat { UIScreen.main.bounds.width }
+    private var screenHeight: CGFloat { UIScreen.main.bounds.height }
+
+    /// Content height = screen minus status bar and home indicator, so the hero
+    /// keeps its original proportion now that it no longer reads a live proxy.
+    private var usableHeight: CGFloat {
+        let insets = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .first?.windows.first?.safeAreaInsets ?? .zero
+        return max(1, screenHeight - insets.top - insets.bottom)
+    }
 
     @ObservedObject var player = DualTrackAudioPlayer.shared
     private let impactFeedback = UIImpactFeedbackGenerator(style: .light)
@@ -40,50 +49,43 @@ public struct HomeLibraryView: View {
 
     public var body: some View {
         NavigationStack {
-            GeometryReader { geo in
-                ZStack {
-                    // Deep Graphite Canvas
-                    AmberTheme.background
-                        .ignoresSafeArea()
+            ZStack {
+                // Deep Graphite Canvas
+                AmberTheme.background
+                    .ignoresSafeArea()
 
-                    if isLoading && feeds.isEmpty {
-                        loadingStateView
-                    } else if feeds.isEmpty {
-                        emptyStateView
-                    } else {
-                        ScrollView(.vertical, showsIndicators: false) {
-                            VStack(alignment: .leading, spacing: 0) {
-                                AmberScrollTopProbe()
+                if isLoading && feeds.isEmpty {
+                    loadingStateView
+                } else if feeds.isEmpty {
+                    emptyStateView
+                } else {
+                    // NOTE: no GeometryReader wrapping this ScrollView. Wrapping it
+                    // detaches the scroll view from NavigationStack's large-title
+                    // collapse tracking, so the nav bar + blur stuttered on the
+                    // first upward scroll. Geometry now comes from a fixed screen
+                    // size instead of a live proxy.
+                    ScrollView(.vertical, showsIndicators: false) {
+                        VStack(alignment: .leading, spacing: 0) {
+                            AmberScrollTopProbe()
 
-                                // 1. Quiet Acoustic Hero Banner (58% Balanced Proportion)
-                                heroBannerSection(geometry: geo)
+                            // 1. Quiet Acoustic Hero Banner (58% Balanced Proportion)
+                            heroBannerSection()
 
-                                // 2. Shelf: "继续收听" (16:9 Precision Carousel)
-                                continueListeningShelf(geometry: geo)
-                                    .padding(.top, 20)
+                            // 2. Shelf: "继续收听" (16:9 Precision Carousel)
+                            continueListeningShelf()
+                                .padding(.top, 20)
 
-                                // 3. Shelf: "订阅频道" (2:3 Portrait Carousel)
-                                subscribedChannelsShelf(geometry: geo)
-                                    .padding(.top, 28)
+                            // 3. Shelf: "订阅频道" (2:3 Portrait Carousel)
+                            subscribedChannelsShelf()
+                                .padding(.top, 28)
 
-                                // Bottom Clearance for floating Dock & MiniPlayer
-                                Color.clear.frame(height: 168)
-                            }
+                            // Bottom Clearance for floating Dock & MiniPlayer
+                            Color.clear.frame(height: 168)
                         }
-                        .scrollBounceBehavior(.always, axes: .vertical)
-                        .amberScrollObservable(tab: 0)
-                        .ignoresSafeArea(edges: .top)
                     }
-                }
-                .onAppear {
-                    if layoutHeightBasis < 1 { layoutHeightBasis = geo.size.height }
-                }
-                .onChange(of: geo.size.height) { _, newHeight in
-                    // >80pt means a real window change (rotation / split view),
-                    // not the ~30-60pt accessory expansion churn.
-                    if layoutHeightBasis > 0 && abs(newHeight - layoutHeightBasis) > 80 {
-                        layoutHeightBasis = newHeight
-                    }
+                    .scrollBounceBehavior(.always, axes: .vertical)
+                    .amberScrollObservable(tab: 0)
+                    .ignoresSafeArea(edges: .top)
                 }
             }
             .navigationTitle("首页")
@@ -121,11 +123,8 @@ public struct HomeLibraryView: View {
 
     // MARK: - 1. Acoustic Hero Banner
     @ViewBuilder
-    private func heroBannerSection(geometry: GeometryProxy) -> some View {
-        // Use the stable basis, not live geo height — the latter changes every
-        // frame while the iOS 26 bottom accessory expands/collapses.
-        let basis = layoutHeightBasis > 0 ? layoutHeightBasis : geometry.size.height
-        let heroHeight = basis * AmberTheme.heroBannerRatio
+    private func heroBannerSection() -> some View {
+        let heroHeight = usableHeight * AmberTheme.heroBannerRatio
 
         ZStack(alignment: .bottomLeading) {
             // Layer 1: High-Resolution Artwork Layer
@@ -134,13 +133,13 @@ public struct HomeLibraryView: View {
                     img
                         .resizable()
                         .scaledToFill()
-                        .frame(width: geometry.size.width, height: heroHeight)
+                        .frame(width: screenWidth, height: heroHeight)
                         .clipped()
                 } placeholder: {
-                    ambientHeroArtworkPlaceholder(width: geometry.size.width, height: heroHeight)
+                    ambientHeroArtworkPlaceholder(width: screenWidth, height: heroHeight)
                 }
             } else {
-                ambientHeroArtworkPlaceholder(width: geometry.size.width, height: heroHeight)
+                ambientHeroArtworkPlaceholder(width: screenWidth, height: heroHeight)
             }
 
             // Layer 2: Transition Scrim (Smooth gradient falloff isolating artwork from text, fading into background)
@@ -172,7 +171,7 @@ public struct HomeLibraryView: View {
                 )
                 .frame(height: heroHeight * 0.70)
             }
-            .frame(width: geometry.size.width, height: heroHeight)
+            .frame(width: screenWidth, height: heroHeight)
 
             // Layer 3: Independent Crystal-Clear Typography & CTA Layer (Always on top of scrim, never blurred)
             VStack(alignment: .leading, spacing: 8) {
@@ -243,7 +242,7 @@ public struct HomeLibraryView: View {
             .padding(.horizontal, AmberTheme.pageMargin)
             .padding(.bottom, 16)
         }
-        .frame(width: geometry.size.width, height: heroHeight)
+        .frame(width: screenWidth, height: heroHeight)
         .contentShape(Rectangle())
         .onTapGesture {
             if let ep = heroEpisode, let f = heroFeed {
@@ -309,8 +308,8 @@ public struct HomeLibraryView: View {
 
     // MARK: - 2. "继续收听" (16:9 Landscape Carousel)
     @ViewBuilder
-    private func continueListeningShelf(geometry: GeometryProxy) -> some View {
-        let cardWidth = geometry.size.width * AmberTheme.cardShelfWidthRatio
+    private func continueListeningShelf() -> some View {
+        let cardWidth = screenWidth * AmberTheme.cardShelfWidthRatio
         let cardHeight = cardWidth / AmberTheme.cardShelfAspectRatio
 
         VStack(alignment: .leading, spacing: 12) {
@@ -341,6 +340,7 @@ public struct HomeLibraryView: View {
                 .scrollTargetLayout()
             }
             .scrollTargetBehavior(.viewAligned)
+            .scrollClipDisabled()
         }
     }
 
@@ -421,7 +421,7 @@ public struct HomeLibraryView: View {
 
     // MARK: - 3. "订阅频道" (2:3 Portrait Carousel)
     @ViewBuilder
-    private func subscribedChannelsShelf(geometry: GeometryProxy) -> some View {
+    private func subscribedChannelsShelf() -> some View {
         let posterWidth: CGFloat = 110.0
         let posterHeight = posterWidth * 1.45
 
@@ -504,6 +504,7 @@ public struct HomeLibraryView: View {
                 .scrollTargetLayout()
             }
             .scrollTargetBehavior(.viewAligned)
+            .scrollClipDisabled()
         }
     }
 
