@@ -57,6 +57,7 @@ public struct PipelineStatusView: View {
             }
             .navigationTitle("后台转储")
             .navigationBarTitleDisplayMode(.large)
+            .amberImmersiveTopEdge()
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
@@ -678,11 +679,11 @@ public struct PipelineStatusView: View {
                 .foregroundStyle(AmberTheme.labelPrimary)
 
             VStack(spacing: 0) {
-                infraRow(title: "语音识别 (ASR)", value: statusData?.summary.asrEngine ?? "SenseNova / Whisper", icon: "waveform")
+                infraRow(title: "语音识别 (ASR)", value: statusData?.summary.asrEngine ?? "Groq Whisper Large-v3 Turbo", icon: "waveform")
                 Divider().background(Color.white.opacity(0.06))
-                infraRow(title: "双语精译模型", value: "SenseNova / OpenAI GPT-4o", icon: "character.book.closed.fill")
+                infraRow(title: "双语精译模型", value: statusData?.summary.llmEngine ?? "Groq Qwen 3.8 27B", icon: "character.book.closed.fill")
                 Divider().background(Color.white.opacity(0.06))
-                infraRow(title: "语音克隆 (TTS)", value: statusData?.summary.ttsEngine ?? "Edge Dual-Track", icon: "speaker.wave.2.fill")
+                infraRow(title: "语音合成 (TTS)", value: statusData?.summary.ttsEngine ?? "Edge TTS · 4 音色", icon: "speaker.wave.2.fill")
                 Divider().background(Color.white.opacity(0.06))
                 infraRow(title: "网关健康度", value: statusData?.summary.serverStatus == "healthy" ? "正常运行 (200 OK)" : "连接检查中", icon: "network")
             }

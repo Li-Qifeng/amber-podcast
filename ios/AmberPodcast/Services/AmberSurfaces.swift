@@ -61,4 +61,17 @@ public extension View {
     ) -> some View {
         modifier(AmberMediaCardModifier(radius: radius))
     }
+
+    /// 去掉顶部的高斯模糊遮罩：iOS 26 滚动边缘自动模糊 + 导航栏毛玻璃背景。
+    /// 标题文字与 toolbar 按钮保留（SearchView 的 searchable 依赖导航栏本身）。
+    @ViewBuilder
+    func amberImmersiveTopEdge() -> some View {
+        if #available(iOS 26.0, *) {
+            self
+                .scrollEdgeEffectHidden(true, for: .top)
+                .toolbarBackground(.hidden, for: .navigationBar)
+        } else {
+            self.toolbarBackground(.hidden, for: .navigationBar)
+        }
+    }
 }

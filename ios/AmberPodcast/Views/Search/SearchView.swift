@@ -84,6 +84,7 @@ public struct SearchView: View {
             }
             .navigationTitle("发现")
             .navigationBarTitleDisplayMode(.large)
+            .amberImmersiveTopEdge()
             .searchable(
                 text: $query,
                 placement: .navigationBarDrawer(displayMode: .always),

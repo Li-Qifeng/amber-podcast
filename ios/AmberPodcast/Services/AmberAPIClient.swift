@@ -160,6 +160,7 @@ public final class AmberAPIClient: ObservableObject {
         public let asrEngine: String
         public let ttsEngine: String
         public let serverStatus: String
+        public let llmEngine: String?
 
         enum CodingKeys: String, CodingKey {
             case activeCount = "active_count"
@@ -170,6 +171,7 @@ public final class AmberAPIClient: ObservableObject {
             case asrEngine = "asr_engine"
             case ttsEngine = "tts_engine"
             case serverStatus = "server_status"
+            case llmEngine = "llm_engine"
         }
     }
 

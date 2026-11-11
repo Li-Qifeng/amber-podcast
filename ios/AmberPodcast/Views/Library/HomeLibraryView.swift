@@ -90,6 +90,7 @@ public struct HomeLibraryView: View {
             }
             .navigationTitle("首页")
             .navigationBarTitleDisplayMode(.large)
+            .amberImmersiveTopEdge()
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     CircularLiquidGlassAddButton {
