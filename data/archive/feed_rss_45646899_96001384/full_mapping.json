@@ -1,0 +1,4022 @@
+[
+  {
+    "index": 0,
+    "speaker": "SPEAKER_00",
+    "enText": "用声音 碰撞世界",
+    "zhDisplay": "用声音 碰撞世界",
+    "zhSpoken": "用声音 碰撞世界",
+    "enRange": {
+      "start": 0.14,
+      "end": 2.18
+    },
+    "zhRange": {
+      "start": 0.14,
+      "end": 2.18
+    }
+  },
+  {
+    "index": 1,
+    "speaker": "SPEAKER_00",
+    "enText": "生动活泼",
+    "zhDisplay": "生动活泼",
+    "zhSpoken": "生动活泼",
+    "enRange": {
+      "start": 2.18,
+      "end": 5.0
+    },
+    "zhRange": {
+      "start": 2.18,
+      "end": 5.0
+    }
+  },
+  {
+    "index": 2,
+    "speaker": "SPEAKER_00",
+    "enText": "生动早咖啡与你轻松同步",
+    "zhDisplay": "生动早咖啡与你轻松同步",
+    "zhSpoken": "生动早咖啡与你轻松同步",
+    "enRange": {
+      "start": 5.0,
+      "end": 12.74
+    },
+    "zhRange": {
+      "start": 5.0,
+      "end": 12.74
+    }
+  },
+  {
+    "index": 3,
+    "speaker": "SPEAKER_00",
+    "enText": "日常生活与商业世界",
+    "zhDisplay": "日常生活与商业世界",
+    "zhSpoken": "日常生活与商业世界",
+    "enRange": {
+      "start": 12.74,
+      "end": 14.62
+    },
+    "zhRange": {
+      "start": 12.74,
+      "end": 14.62
+    }
+  },
+  {
+    "index": 4,
+    "speaker": "SPEAKER_00",
+    "enText": "嗨 早上好呀",
+    "zhDisplay": "嗨 早上好呀",
+    "zhSpoken": "嗨 早上好呀",
+    "enRange": {
+      "start": 14.62,
+      "end": 17.96
+    },
+    "zhRange": {
+      "start": 14.62,
+      "end": 17.96
+    }
+  },
+  {
+    "index": 5,
+    "speaker": "SPEAKER_00",
+    "enText": "今天是2023年的6月1号星期四",
+    "zhDisplay": "今天是2023年的6月1号星期四",
+    "zhSpoken": "今天是2023年的6月1号星期四",
+    "enRange": {
+      "start": 17.96,
+      "end": 20.88
+    },
+    "zhRange": {
+      "start": 17.96,
+      "end": 20.88
+    }
+  },
+  {
+    "index": 6,
+    "speaker": "SPEAKER_00",
+    "enText": "这里是生动早咖啡",
+    "zhDisplay": "这里是生动早咖啡",
+    "zhSpoken": "这里是生动早咖啡",
+    "enRange": {
+      "start": 20.88,
+      "end": 22.58
+    },
+    "zhRange": {
+      "start": 20.88,
+      "end": 22.58
+    }
+  },
+  {
+    "index": 7,
+    "speaker": "SPEAKER_00",
+    "enText": "我是来自生动活泼的孟一",
+    "zhDisplay": "我是来自生动活泼的孟一",
+    "zhSpoken": "我是来自生动活泼的孟一",
+    "enRange": {
+      "start": 22.58,
+      "end": 24.3
+    },
+    "zhRange": {
+      "start": 22.58,
+      "end": 24.3
+    }
+  },
+  {
+    "index": 8,
+    "speaker": "SPEAKER_00",
+    "enText": "今天我们不仅会来关注一下",
+    "zhDisplay": "今天我们不仅会来关注一下",
+    "zhSpoken": "今天我们不仅会来关注一下",
+    "enRange": {
+      "start": 24.3,
+      "end": 26.18
+    },
+    "zhRange": {
+      "start": 24.3,
+      "end": 26.18
+    }
+  },
+  {
+    "index": 9,
+    "speaker": "SPEAKER_00",
+    "enText": "英伟达飙升的市值",
+    "zhDisplay": "英伟达飙升的市值",
+    "zhSpoken": "英伟达飙升的市值",
+    "enRange": {
+      "start": 26.18,
+      "end": 27.8
+    },
+    "zhRange": {
+      "start": 26.18,
+      "end": 27.8
+    }
+  },
+  {
+    "index": 10,
+    "speaker": "SPEAKER_00",
+    "enText": "也想和你一块来看看",
+    "zhDisplay": "也想和你一块来看看",
+    "zhSpoken": "也想和你一块来看看",
+    "enRange": {
+      "start": 27.8,
+      "end": 29.32
+    },
+    "zhRange": {
+      "start": 27.8,
+      "end": 29.32
+    }
+  },
+  {
+    "index": 11,
+    "speaker": "SPEAKER_00",
+    "enText": "AI领域又一封联名的公开信",
+    "zhDisplay": "AI领域又一封联名的公开信",
+    "zhSpoken": "AI领域又一封联名的公开信",
+    "enRange": {
+      "start": 29.32,
+      "end": 31.82
+    },
+    "zhRange": {
+      "start": 29.32,
+      "end": 31.82
+    }
+  },
+  {
+    "index": 12,
+    "speaker": "SPEAKER_00",
+    "enText": "当然茅台冰淇淋过去一年的表现也不容错过",
+    "zhDisplay": "当然茅台冰淇淋过去一年的表现也不容错过",
+    "zhSpoken": "当然茅台冰淇淋过去一年的表现也不容错过",
+    "enRange": {
+      "start": 31.82,
+      "end": 35.26
+    },
+    "zhRange": {
+      "start": 31.82,
+      "end": 35.26
+    }
+  },
+  {
+    "index": 13,
+    "speaker": "SPEAKER_00",
+    "enText": "那就让我们一起用几条商业科技清解读",
+    "zhDisplay": "那就让我们一起用几条商业科技清解读",
+    "zhSpoken": "那就让我们一起用几条商业科技清解读",
+    "enRange": {
+      "start": 35.26,
+      "end": 37.68
+    },
+    "zhRange": {
+      "start": 35.26,
+      "end": 37.68
+    }
+  },
+  {
+    "index": 14,
+    "speaker": "SPEAKER_00",
+    "enText": "打开全新的一天",
+    "zhDisplay": "打开全新的一天",
+    "zhSpoken": "打开全新的一天",
+    "enRange": {
+      "start": 37.68,
+      "end": 38.86
+    },
+    "zhRange": {
+      "start": 37.68,
+      "end": 38.86
+    }
+  },
+  {
+    "index": 15,
+    "speaker": "SPEAKER_00",
+    "enText": "英伟达市值突破万亿大关",
+    "zhDisplay": "英伟达市值突破万亿大关",
+    "zhSpoken": "英伟达市值突破万亿大关",
+    "enRange": {
+      "start": 38.86,
+      "end": 46.46
+    },
+    "zhRange": {
+      "start": 38.86,
+      "end": 46.46
+    }
+  },
+  {
+    "index": 16,
+    "speaker": "SPEAKER_00",
+    "enText": "成为全球市值最高的芯片公司",
+    "zhDisplay": "成为全球市值最高的芯片公司",
+    "zhSpoken": "成为全球市值最高的芯片公司",
+    "enRange": {
+      "start": 46.46,
+      "end": 48.7
+    },
+    "zhRange": {
+      "start": 46.46,
+      "end": 48.7
+    }
+  },
+  {
+    "index": 17,
+    "speaker": "SPEAKER_00",
+    "enText": "5月30号英伟达的股价上涨超过了4%",
+    "zhDisplay": "5月30号英伟达的股价上涨超过了4%",
+    "zhSpoken": "5月30号英伟达的股价上涨超过了4%",
+    "enRange": {
+      "start": 48.7,
+      "end": 51.98
+    },
+    "zhRange": {
+      "start": 48.7,
+      "end": 51.98
+    }
+  },
+  {
+    "index": 18,
+    "speaker": "SPEAKER_00",
+    "enText": "总市值冲破1万亿美元",
+    "zhDisplay": "总市值冲破1万亿美元",
+    "zhSpoken": "总市值冲破1万亿美元",
+    "enRange": {
+      "start": 51.98,
+      "end": 54.36
+    },
+    "zhRange": {
+      "start": 51.98,
+      "end": 54.36
+    }
+  },
+  {
+    "index": 19,
+    "speaker": "SPEAKER_00",
+    "enText": "接近于两个台积电",
+    "zhDisplay": "接近于两个台积电",
+    "zhSpoken": "接近于两个台积电",
+    "enRange": {
+      "start": 54.36,
+      "end": 56.04
+    },
+    "zhRange": {
+      "start": 54.36,
+      "end": 56.04
+    }
+  },
+  {
+    "index": 20,
+    "speaker": "SPEAKER_00",
+    "enText": "成为美股有史以来",
+    "zhDisplay": "成为美股有史以来",
+    "zhSpoken": "成为美股有史以来",
+    "enRange": {
+      "start": 56.04,
+      "end": 57.48
+    },
+    "zhRange": {
+      "start": 56.04,
+      "end": 57.48
+    }
+  },
+  {
+    "index": 21,
+    "speaker": "SPEAKER_00",
+    "enText": "第一个市值达到万亿美元的芯片制造商",
+    "zhDisplay": "第一个市值达到万亿美元的芯片制造商",
+    "zhSpoken": "第一个市值达到万亿美元的芯片制造商",
+    "enRange": {
+      "start": 57.48,
+      "end": 60.5
+    },
+    "zhRange": {
+      "start": 57.48,
+      "end": 60.5
+    }
+  },
+  {
+    "index": 22,
+    "speaker": "SPEAKER_00",
+    "enText": "也是美国历史上第七家市值过万亿美元的公司",
+    "zhDisplay": "也是美国历史上第七家市值过万亿美元的公司",
+    "zhSpoken": "也是美国历史上第七家市值过万亿美元的公司",
+    "enRange": {
+      "start": 60.5,
+      "end": 64.22
+    },
+    "zhRange": {
+      "start": 60.5,
+      "end": 64.22
+    }
+  },
+  {
+    "index": 23,
+    "speaker": "SPEAKER_00",
+    "enText": "目前英伟达是美股市值第五的公司",
+    "zhDisplay": "目前英伟达是美股市值第五的公司",
+    "zhSpoken": "目前英伟达是美股市值第五的公司",
+    "enRange": {
+      "start": 64.22,
+      "end": 67.1
+    },
+    "zhRange": {
+      "start": 64.22,
+      "end": 67.1
+    }
+  },
+  {
+    "index": 24,
+    "speaker": "SPEAKER_00",
+    "enText": "排名仅次于苹果 微软 Alphabet",
+    "zhDisplay": "排名仅次于苹果 微软 Alphabet",
+    "zhSpoken": "排名仅次于苹果 微软 Alphabet",
+    "enRange": {
+      "start": 67.1,
+      "end": 69.66
+    },
+    "zhRange": {
+      "start": 67.1,
+      "end": 69.66
+    }
+  },
+  {
+    "index": 25,
+    "speaker": "SPEAKER_00",
+    "enText": "也就是Google 还有亚马逊",
+    "zhDisplay": "也就是Google 还有亚马逊",
+    "zhSpoken": "也就是Google 还有亚马逊",
+    "enRange": {
+      "start": 69.66,
+      "end": 71.18
+    },
+    "zhRange": {
+      "start": 69.66,
+      "end": 71.18
+    }
+  },
+  {
+    "index": 26,
+    "speaker": "SPEAKER_00",
+    "enText": "今年以来英伟达的股价涨幅大约是180%",
+    "zhDisplay": "今年以来英伟达的股价涨幅大约是180%",
+    "zhSpoken": "今年以来英伟达的股价涨幅大约是180%",
+    "enRange": {
+      "start": 71.18,
+      "end": 74.96
+    },
+    "zhRange": {
+      "start": 71.18,
+      "end": 74.96
+    }
+  },
+  {
+    "index": 27,
+    "speaker": "SPEAKER_00",
+    "enText": "是表现最好的大型科技企业",
+    "zhDisplay": "是表现最好的大型科技企业",
+    "zhSpoken": "是表现最好的大型科技企业",
+    "enRange": {
+      "start": 74.96,
+      "end": 77.4
+    },
+    "zhRange": {
+      "start": 74.96,
+      "end": 77.4
+    }
+  },
+  {
+    "index": 28,
+    "speaker": "SPEAKER_00",
+    "enText": "而排名靠前的其他四家科技巨头",
+    "zhDisplay": "而排名靠前的其他四家科技巨头",
+    "zhSpoken": "而排名靠前的其他四家科技巨头",
+    "enRange": {
+      "start": 77.4,
+      "end": 79.84
+    },
+    "zhRange": {
+      "start": 77.4,
+      "end": 79.84
+    }
+  },
+  {
+    "index": 29,
+    "speaker": "SPEAKER_00",
+    "enText": "股价涨幅都在40%左右",
+    "zhDisplay": "股价涨幅都在40%左右",
+    "zhSpoken": "股价涨幅都在40%左右",
+    "enRange": {
+      "start": 79.84,
+      "end": 81.76
+    },
+    "zhRange": {
+      "start": 79.84,
+      "end": 81.76
+    }
+  },
+  {
+    "index": 30,
+    "speaker": "SPEAKER_00",
+    "enText": "身为英伟达的创始人兼CEO黄仁勋",
+    "zhDisplay": "身为英伟达的创始人兼CEO黄仁勋",
+    "zhSpoken": "身为英伟达的创始人兼CEO黄仁勋",
+    "enRange": {
+      "start": 81.76,
+      "end": 84.76
+    },
+    "zhRange": {
+      "start": 81.76,
+      "end": 84.76
+    }
+  },
+  {
+    "index": 31,
+    "speaker": "SPEAKER_00",
+    "enText": "他持有3.5%的股份",
+    "zhDisplay": "他持有3.5%的股份",
+    "zhSpoken": "他持有3.5%的股份",
+    "enRange": {
+      "start": 84.76,
+      "end": 86.7
+    },
+    "zhRange": {
+      "start": 84.76,
+      "end": 86.7
+    }
+  },
+  {
+    "index": 32,
+    "speaker": "SPEAKER_00",
+    "enText": "他的身家也达到了360亿美元",
+    "zhDisplay": "他的身家也达到了360亿美元",
+    "zhSpoken": "他的身家也达到了360亿美元",
+    "enRange": {
+      "start": 86.7,
+      "end": 89.52
+    },
+    "zhRange": {
+      "start": 86.7,
+      "end": 89.52
+    }
+  },
+  {
+    "index": 33,
+    "speaker": "SPEAKER_00",
+    "enText": "在彭博亿万富翁指数上排到了第34位",
+    "zhDisplay": "在彭博亿万富翁指数上排到了第34位",
+    "zhSpoken": "在彭博亿万富翁指数上排到了第34位",
+    "enRange": {
+      "start": 89.52,
+      "end": 93.0
+    },
+    "zhRange": {
+      "start": 89.52,
+      "end": 93.0
+    }
+  },
+  {
+    "index": 34,
+    "speaker": "SPEAKER_00",
+    "enText": "略微低于字节跳动的创始人张一鸣",
+    "zhDisplay": "略微低于字节跳动的创始人张一鸣",
+    "zhSpoken": "略微低于字节跳动的创始人张一鸣",
+    "enRange": {
+      "start": 93.0,
+      "end": 95.92
+    },
+    "zhRange": {
+      "start": 93.0,
+      "end": 95.92
+    }
+  },
+  {
+    "index": 35,
+    "speaker": "SPEAKER_00",
+    "enText": "但是他还是比马云和马化腾的排名更靠前",
+    "zhDisplay": "但是他还是比马云和马化腾的排名更靠前",
+    "zhSpoken": "但是他还是比马云和马化腾的排名更靠前",
+    "enRange": {
+      "start": 95.92,
+      "end": 99.12
+    },
+    "zhRange": {
+      "start": 95.92,
+      "end": 99.12
+    }
+  },
+  {
+    "index": 36,
+    "speaker": "SPEAKER_00",
+    "enText": "目前英伟达是GPU市场的主导者",
+    "zhDisplay": "目前英伟达是GPU市场的主导者",
+    "zhSpoken": "目前英伟达是GPU市场的主导者",
+    "enRange": {
+      "start": 99.12,
+      "end": 101.9
+    },
+    "zhRange": {
+      "start": 99.12,
+      "end": 101.9
+    }
+  },
+  {
+    "index": 37,
+    "speaker": "SPEAKER_00",
+    "enText": "市场占有率高达80%",
+    "zhDisplay": "市场占有率高达80%",
+    "zhSpoken": "市场占有率高达80%",
+    "enRange": {
+      "start": 101.9,
+      "end": 103.78
+    },
+    "zhRange": {
+      "start": 101.9,
+      "end": 103.78
+    }
+  },
+  {
+    "index": 38,
+    "speaker": "SPEAKER_00",
+    "enText": "高端GPU更是占据了AI算法训练的绝大部分市场份额",
+    "zhDisplay": "高端GPU更是占据了AI算法训练的绝大部分市场份额",
+    "zhSpoken": "高端GPU更是占据了AI算法训练的绝大部分市场份额",
+    "enRange": {
+      "start": 103.78,
+      "end": 108.06
+    },
+    "zhRange": {
+      "start": 103.78,
+      "end": 108.06
+    }
+  },
+  {
+    "index": 39,
+    "speaker": "SPEAKER_00",
+    "enText": "最近人工智能的火热也带来了芯片需求的大爆发",
+    "zhDisplay": "最近人工智能的火热也带来了芯片需求的大爆发",
+    "zhSpoken": "最近人工智能的火热也带来了芯片需求的大爆发",
+    "enRange": {
+      "start": 108.06,
+      "end": 111.56
+    },
+    "zhRange": {
+      "start": 108.06,
+      "end": 111.56
+    }
+  },
+  {
+    "index": 40,
+    "speaker": "SPEAKER_00",
+    "enText": "上周我们的早咖啡也报道过",
+    "zhDisplay": "上周我们的早咖啡也报道过",
+    "zhSpoken": "上周我们的早咖啡也报道过",
+    "enRange": {
+      "start": 111.56,
+      "end": 113.46
+    },
+    "zhRange": {
+      "start": 111.56,
+      "end": 113.46
+    }
+  },
+  {
+    "index": 41,
+    "speaker": "SPEAKER_00",
+    "enText": "英伟达预测二季度的销售额",
+    "zhDisplay": "英伟达预测二季度的销售额",
+    "zhSpoken": "英伟达预测二季度的销售额",
+    "enRange": {
+      "start": 113.46,
+      "end": 115.5
+    },
+    "zhRange": {
+      "start": 113.46,
+      "end": 115.5
+    }
+  },
+  {
+    "index": 42,
+    "speaker": "SPEAKER_00",
+    "enText": "将达到110亿美元",
+    "zhDisplay": "将达到110亿美元",
+    "zhSpoken": "将达到110亿美元",
+    "enRange": {
+      "start": 115.5,
+      "end": 117.18
+    },
+    "zhRange": {
+      "start": 115.5,
+      "end": 117.18
+    }
+  },
+  {
+    "index": 43,
+    "speaker": "SPEAKER_00",
+    "enText": "英伟达的股价在盘后交易当中",
+    "zhDisplay": "英伟达的股价在盘后交易当中",
+    "zhSpoken": "英伟达的股价在盘后交易当中",
+    "enRange": {
+      "start": 117.18,
+      "end": 119.44
+    },
+    "zhRange": {
+      "start": 117.18,
+      "end": 119.44
+    }
+  },
+  {
+    "index": 44,
+    "speaker": "SPEAKER_00",
+    "enText": "飙升了25%",
+    "zhDisplay": "飙升了25%",
+    "zhSpoken": "飙升了25%",
+    "enRange": {
+      "start": 119.44,
+      "end": 120.7
+    },
+    "zhRange": {
+      "start": 119.44,
+      "end": 120.7
+    }
+  },
+  {
+    "index": 45,
+    "speaker": "SPEAKER_00",
+    "enText": "增加了接近2000亿美元的市值",
+    "zhDisplay": "增加了接近2000亿美元的市值",
+    "zhSpoken": "增加了接近2000亿美元的市值",
+    "enRange": {
+      "start": 120.7,
+      "end": 123.2
+    },
+    "zhRange": {
+      "start": 120.7,
+      "end": 123.2
+    }
+  },
+  {
+    "index": 46,
+    "speaker": "SPEAKER_00",
+    "enText": "反超丰田卡罗拉",
+    "zhDisplay": "反超丰田卡罗拉",
+    "zhSpoken": "反超丰田卡罗拉",
+    "enRange": {
+      "start": 123.2,
+      "end": 126.06
+    },
+    "zhRange": {
+      "start": 123.2,
+      "end": 126.06
+    }
+  },
+  {
+    "index": 47,
+    "speaker": "SPEAKER_00",
+    "enText": "特斯拉Model Y成为全球最畅销车型",
+    "zhDisplay": "特斯拉Model Y成为全球最畅销车型",
+    "zhSpoken": "特斯拉Model Y成为全球最畅销车型",
+    "enRange": {
+      "start": 126.06,
+      "end": 128.9
+    },
+    "zhRange": {
+      "start": 126.06,
+      "end": 128.9
+    }
+  },
+  {
+    "index": 48,
+    "speaker": "SPEAKER_00",
+    "enText": "特斯拉5月26号发布消息表示",
+    "zhDisplay": "特斯拉5月26号发布消息表示",
+    "zhSpoken": "特斯拉5月26号发布消息表示",
+    "enRange": {
+      "start": 128.9,
+      "end": 131.46
+    },
+    "zhRange": {
+      "start": 128.9,
+      "end": 131.46
+    }
+  },
+  {
+    "index": 49,
+    "speaker": "SPEAKER_00",
+    "enText": "Model Y成为今年第一季度",
+    "zhDisplay": "Model Y成为今年第一季度",
+    "zhSpoken": "Model Y成为今年第一季度",
+    "enRange": {
+      "start": 131.46,
+      "end": 133.56
+    },
+    "zhRange": {
+      "start": 131.46,
+      "end": 133.56
+    }
+  },
+  {
+    "index": 50,
+    "speaker": "SPEAKER_00",
+    "enText": "全球最畅销的车型",
+    "zhDisplay": "全球最畅销的车型",
+    "zhSpoken": "全球最畅销的车型",
+    "enRange": {
+      "start": 133.56,
+      "end": 135.14
+    },
+    "zhRange": {
+      "start": 133.56,
+      "end": 135.14
+    }
+  },
+  {
+    "index": 51,
+    "speaker": "SPEAKER_00",
+    "enText": "这也是纯电动汽车",
+    "zhDisplay": "这也是纯电动汽车",
+    "zhSpoken": "这也是纯电动汽车",
+    "enRange": {
+      "start": 135.14,
+      "end": 136.68
+    },
+    "zhRange": {
+      "start": 135.14,
+      "end": 136.68
+    }
+  },
+  {
+    "index": 52,
+    "speaker": "SPEAKER_00",
+    "enText": "首次登上全球汽车销量榜首",
+    "zhDisplay": "首次登上全球汽车销量榜首",
+    "zhSpoken": "首次登上全球汽车销量榜首",
+    "enRange": {
+      "start": 136.68,
+      "end": 139.16
+    },
+    "zhRange": {
+      "start": 136.68,
+      "end": 139.16
+    }
+  },
+  {
+    "index": 53,
+    "speaker": "SPEAKER_00",
+    "enText": "Model Y在去年是全球第三大畅销车型",
+    "zhDisplay": "Model Y在去年是全球第三大畅销车型",
+    "zhSpoken": "Model Y在去年是全球第三大畅销车型",
+    "enRange": {
+      "start": 139.16,
+      "end": 142.9
+    },
+    "zhRange": {
+      "start": 139.16,
+      "end": 142.9
+    }
+  },
+  {
+    "index": 54,
+    "speaker": "SPEAKER_00",
+    "enText": "他们当时的全球销量达到了74.7万辆",
+    "zhDisplay": "他们当时的全球销量达到了74.7万辆",
+    "zhSpoken": "他们当时的全球销量达到了74.7万辆",
+    "enRange": {
+      "start": 142.9,
+      "end": 145.94
+    },
+    "zhRange": {
+      "start": 142.9,
+      "end": 145.94
+    }
+  },
+  {
+    "index": 55,
+    "speaker": "SPEAKER_00",
+    "enText": "仅次于丰田荣放和卡罗拉",
+    "zhDisplay": "仅次于丰田荣放和卡罗拉",
+    "zhSpoken": "仅次于丰田荣放和卡罗拉",
+    "enRange": {
+      "start": 145.94,
+      "end": 148.36
+    },
+    "zhRange": {
+      "start": 145.94,
+      "end": 148.36
+    }
+  },
+  {
+    "index": 56,
+    "speaker": "SPEAKER_00",
+    "enText": "根据海外市场研究机构Jedo Dynamics的数据",
+    "zhDisplay": "根据海外市场研究机构Jedo Dynamics的数据",
+    "zhSpoken": "根据海外市场研究机构Jedo Dynamics的数据",
+    "enRange": {
+      "start": 148.36,
+      "end": 151.88
+    },
+    "zhRange": {
+      "start": 148.36,
+      "end": 151.88
+    }
+  },
+  {
+    "index": 57,
+    "speaker": "SPEAKER_00",
+    "enText": "今年一季度Model Y售出了26.7万辆新车",
+    "zhDisplay": "今年一季度Model Y售出了26.7万辆新车",
+    "zhSpoken": "今年一季度Model Y售出了26.7万辆新车",
+    "enRange": {
+      "start": 151.88,
+      "end": 155.16
+    },
+    "zhRange": {
+      "start": 151.88,
+      "end": 155.16
+    }
+  },
+  {
+    "index": 58,
+    "speaker": "SPEAKER_00",
+    "enText": "同比增长大约69%",
+    "zhDisplay": "同比增长大约69%",
+    "zhSpoken": "同比增长大约69%",
+    "enRange": {
+      "start": 155.16,
+      "end": 157.3
+    },
+    "zhRange": {
+      "start": 155.16,
+      "end": 157.3
+    }
+  },
+  {
+    "index": 59,
+    "speaker": "SPEAKER_00",
+    "enText": "在中国市场SUV的销量排行当中仅次于比亚迪宋",
+    "zhDisplay": "在中国市场SUV的销量排行当中仅次于比亚迪宋",
+    "zhSpoken": "在中国市场SUV的销量排行当中仅次于比亚迪宋",
+    "enRange": {
+      "start": 157.3,
+      "end": 161.44
+    },
+    "zhRange": {
+      "start": 157.3,
+      "end": 161.44
+    }
+  },
+  {
+    "index": 60,
+    "speaker": "SPEAKER_00",
+    "enText": "在美国市场则是除去皮卡之外的最畅销车型",
+    "zhDisplay": "在美国市场则是除去皮卡之外的最畅销车型",
+    "zhSpoken": "在美国市场则是除去皮卡之外的最畅销车型",
+    "enRange": {
+      "start": 161.44,
+      "end": 164.94
+    },
+    "zhRange": {
+      "start": 161.44,
+      "end": 164.94
+    }
+  },
+  {
+    "index": 61,
+    "speaker": "SPEAKER_00",
+    "enText": "卡罗拉在一季度售出了大约26万辆车",
+    "zhDisplay": "卡罗拉在一季度售出了大约26万辆车",
+    "zhSpoken": "卡罗拉在一季度售出了大约26万辆车",
+    "enRange": {
+      "start": 164.94,
+      "end": 167.96
+    },
+    "zhRange": {
+      "start": 164.94,
+      "end": 167.96
+    }
+  },
+  {
+    "index": 62,
+    "speaker": "SPEAKER_00",
+    "enText": "在中美两国都有大幅度的下滑自去年以来特斯拉在全球范围内掀起了多轮降价潮主力车型Model Y和Model 3的价格都进行了不同程度的下调瑞幸加速开店开启代电加盟模式",
+    "zhDisplay": "在中美两国都有大幅度的下滑自去年以来特斯拉在全球范围内掀起了多轮降价潮主力车型Model Y和Model 3的价格都进行了不同程度的下调瑞幸加速开店开启代电加盟模式",
+    "zhSpoken": "在中美两国都有大幅度的下滑自去年以来特斯拉在全球范围内掀起了多轮降价潮主力车型Model Y和Model 3的价格都进行了不同程度的下调瑞幸加速开店开启代电加盟模式",
+    "enRange": {
+      "start": 167.96,
+      "end": 182.896
+    },
+    "zhRange": {
+      "start": 167.96,
+      "end": 182.896
+    }
+  },
+  {
+    "index": 63,
+    "speaker": "SPEAKER_00",
+    "enText": "5月29号瑞幸咖啡通过公众号宣布将会开启代电加盟的模式",
+    "zhDisplay": "5月29号瑞幸咖啡通过公众号宣布将会开启代电加盟的模式",
+    "zhSpoken": "5月29号瑞幸咖啡通过公众号宣布将会开启代电加盟的模式",
+    "enRange": {
+      "start": 182.896,
+      "end": 188.416
+    },
+    "zhRange": {
+      "start": 182.896,
+      "end": 188.416
+    }
+  },
+  {
+    "index": 64,
+    "speaker": "SPEAKER_00",
+    "enText": "这是瑞幸以联营的合作模式为基础",
+    "zhDisplay": "这是瑞幸以联营的合作模式为基础",
+    "zhSpoken": "这是瑞幸以联营的合作模式为基础",
+    "enRange": {
+      "start": 188.416,
+      "end": 191.056
+    },
+    "zhRange": {
+      "start": 188.416,
+      "end": 191.056
+    }
+  },
+  {
+    "index": 65,
+    "speaker": "SPEAKER_00",
+    "enText": "面向拥有商铺的加盟商推出的新模式",
+    "zhDisplay": "面向拥有商铺的加盟商推出的新模式",
+    "zhSpoken": "面向拥有商铺的加盟商推出的新模式",
+    "enRange": {
+      "start": 191.056,
+      "end": 193.836
+    },
+    "zhRange": {
+      "start": 191.056,
+      "end": 193.836
+    }
+  },
+  {
+    "index": 66,
+    "speaker": "SPEAKER_00",
+    "enText": "不过瑞幸暂时还没有公布具体的加盟政策和分成条件",
+    "zhDisplay": "不过瑞幸暂时还没有公布具体的加盟政策和分成条件",
+    "zhSpoken": "不过瑞幸暂时还没有公布具体的加盟政策和分成条件",
+    "enRange": {
+      "start": 193.836,
+      "end": 197.816
+    },
+    "zhRange": {
+      "start": 193.836,
+      "end": 197.816
+    }
+  },
+  {
+    "index": 67,
+    "speaker": "SPEAKER_00",
+    "enText": "代电加盟模式在餐饮连锁品牌当中并不常见",
+    "zhDisplay": "代电加盟模式在餐饮连锁品牌当中并不常见",
+    "zhSpoken": "代电加盟模式在餐饮连锁品牌当中并不常见",
+    "enRange": {
+      "start": 197.816,
+      "end": 201.416
+    },
+    "zhRange": {
+      "start": 197.816,
+      "end": 201.416
+    }
+  },
+  {
+    "index": 68,
+    "speaker": "SPEAKER_00",
+    "enText": "更多的是出现在便利店和地产经济等等领域",
+    "zhDisplay": "更多的是出现在便利店和地产经济等等领域",
+    "zhSpoken": "更多的是出现在便利店和地产经济等等领域",
+    "enRange": {
+      "start": 201.416,
+      "end": 204.636
+    },
+    "zhRange": {
+      "start": 201.416,
+      "end": 204.636
+    }
+  },
+  {
+    "index": 69,
+    "speaker": "SPEAKER_00",
+    "enText": "已经加盟了其他品牌的商家",
+    "zhDisplay": "已经加盟了其他品牌的商家",
+    "zhSpoken": "已经加盟了其他品牌的商家",
+    "enRange": {
+      "start": 204.636,
+      "end": 206.616
+    },
+    "zhRange": {
+      "start": 204.636,
+      "end": 206.616
+    }
+  },
+  {
+    "index": 70,
+    "speaker": "SPEAKER_00",
+    "enText": "可以通过代电加盟的方式转投瑞幸",
+    "zhDisplay": "可以通过代电加盟的方式转投瑞幸",
+    "zhSpoken": "可以通过代电加盟的方式转投瑞幸",
+    "enRange": {
+      "start": 206.616,
+      "end": 209.376
+    },
+    "zhRange": {
+      "start": 206.616,
+      "end": 209.376
+    }
+  },
+  {
+    "index": 71,
+    "speaker": "SPEAKER_00",
+    "enText": "从去年12月到今年1月",
+    "zhDisplay": "从去年12月到今年1月",
+    "zhSpoken": "从去年12月到今年1月",
+    "enRange": {
+      "start": 209.376,
+      "end": 211.516
+    },
+    "zhRange": {
+      "start": 209.376,
+      "end": 211.516
+    }
+  },
+  {
+    "index": 72,
+    "speaker": "SPEAKER_00",
+    "enText": "瑞幸开启了两轮招募加盟商的计划",
+    "zhDisplay": "瑞幸开启了两轮招募加盟商的计划",
+    "zhSpoken": "瑞幸开启了两轮招募加盟商的计划",
+    "enRange": {
+      "start": 211.516,
+      "end": 214.016
+    },
+    "zhRange": {
+      "start": 211.516,
+      "end": 214.016
+    }
+  },
+  {
+    "index": 73,
+    "speaker": "SPEAKER_00",
+    "enText": "覆盖了15个省的80个城市",
+    "zhDisplay": "覆盖了15个省的80个城市",
+    "zhSpoken": "覆盖了15个省的80个城市",
+    "enRange": {
+      "start": 214.016,
+      "end": 216.356
+    },
+    "zhRange": {
+      "start": 214.016,
+      "end": 216.356
+    }
+  },
+  {
+    "index": 74,
+    "speaker": "SPEAKER_00",
+    "enText": "这其中很多城市都是县街市",
+    "zhDisplay": "这其中很多城市都是县街市",
+    "zhSpoken": "这其中很多城市都是县街市",
+    "enRange": {
+      "start": 216.356,
+      "end": 218.476
+    },
+    "zhRange": {
+      "start": 216.356,
+      "end": 218.476
+    }
+  },
+  {
+    "index": 75,
+    "speaker": "SPEAKER_00",
+    "enText": "界面新闻的分析认为",
+    "zhDisplay": "界面新闻的分析认为",
+    "zhSpoken": "界面新闻的分析认为",
+    "enRange": {
+      "start": 218.476,
+      "end": 219.956
+    },
+    "zhRange": {
+      "start": 218.476,
+      "end": 219.956
+    }
+  },
+  {
+    "index": 76,
+    "speaker": "SPEAKER_00",
+    "enText": "瑞幸正试图通过对加盟商的进一步筛选",
+    "zhDisplay": "瑞幸正试图通过对加盟商的进一步筛选",
+    "zhSpoken": "瑞幸正试图通过对加盟商的进一步筛选",
+    "enRange": {
+      "start": 219.956,
+      "end": 222.896
+    },
+    "zhRange": {
+      "start": 219.956,
+      "end": 222.896
+    }
+  },
+  {
+    "index": 77,
+    "speaker": "SPEAKER_00",
+    "enText": "来提速下沉",
+    "zhDisplay": "来提速下沉",
+    "zhSpoken": "来提速下沉",
+    "enRange": {
+      "start": 222.896,
+      "end": 224.096
+    },
+    "zhRange": {
+      "start": 222.896,
+      "end": 224.096
+    }
+  },
+  {
+    "index": 78,
+    "speaker": "SPEAKER_00",
+    "enText": "根据瑞幸公布的财报",
+    "zhDisplay": "根据瑞幸公布的财报",
+    "zhSpoken": "根据瑞幸公布的财报",
+    "enRange": {
+      "start": 224.096,
+      "end": 225.856
+    },
+    "zhRange": {
+      "start": 224.096,
+      "end": 225.856
+    }
+  },
+  {
+    "index": 79,
+    "speaker": "SPEAKER_00",
+    "enText": "一季度瑞幸新增加门店1100多家",
+    "zhDisplay": "一季度瑞幸新增加门店1100多家",
+    "zhSpoken": "一季度瑞幸新增加门店1100多家",
+    "enRange": {
+      "start": 225.856,
+      "end": 228.636
+    },
+    "zhRange": {
+      "start": 225.856,
+      "end": 228.636
+    }
+  },
+  {
+    "index": 80,
+    "speaker": "SPEAKER_00",
+    "enText": "而去年全年新增加门店2190家",
+    "zhDisplay": "而去年全年新增加门店2190家",
+    "zhSpoken": "而去年全年新增加门店2190家",
+    "enRange": {
+      "start": 228.636,
+      "end": 231.976
+    },
+    "zhRange": {
+      "start": 228.636,
+      "end": 231.976
+    }
+  },
+  {
+    "index": 81,
+    "speaker": "SPEAKER_00",
+    "enText": "相当于今年一季度",
+    "zhDisplay": "相当于今年一季度",
+    "zhSpoken": "相当于今年一季度",
+    "enRange": {
+      "start": 231.976,
+      "end": 233.216
+    },
+    "zhRange": {
+      "start": 231.976,
+      "end": 233.216
+    }
+  },
+  {
+    "index": 82,
+    "speaker": "SPEAKER_00",
+    "enText": "瑞幸就完成了去年一半多的开店量",
+    "zhDisplay": "瑞幸就完成了去年一半多的开店量",
+    "zhSpoken": "瑞幸就完成了去年一半多的开店量",
+    "enRange": {
+      "start": 233.216,
+      "end": 235.396
+    },
+    "zhRange": {
+      "start": 233.216,
+      "end": 235.396
+    }
+  },
+  {
+    "index": 83,
+    "speaker": "SPEAKER_00",
+    "enText": "根据了解瑞幸的第1万家门店",
+    "zhDisplay": "根据了解瑞幸的第1万家门店",
+    "zhSpoken": "根据了解瑞幸的第1万家门店",
+    "enRange": {
+      "start": 235.396,
+      "end": 237.796
+    },
+    "zhRange": {
+      "start": 235.396,
+      "end": 237.796
+    }
+  },
+  {
+    "index": 84,
+    "speaker": "SPEAKER_00",
+    "enText": "预计将会于6月5号",
+    "zhDisplay": "预计将会于6月5号",
+    "zhSpoken": "预计将会于6月5号",
+    "enRange": {
+      "start": 237.796,
+      "end": 239.496
+    },
+    "zhRange": {
+      "start": 237.796,
+      "end": 239.496
+    }
+  },
+  {
+    "index": 85,
+    "speaker": "SPEAKER_00",
+    "enText": "在瑞幸总部厦门开业",
+    "zhDisplay": "在瑞幸总部厦门开业",
+    "zhSpoken": "在瑞幸总部厦门开业",
+    "enRange": {
+      "start": 239.496,
+      "end": 241.356
+    },
+    "zhRange": {
+      "start": 239.496,
+      "end": 241.356
+    }
+  },
+  {
+    "index": 86,
+    "speaker": "SPEAKER_00",
+    "enText": "万达子公司上市受阻",
+    "zhDisplay": "万达子公司上市受阻",
+    "zhSpoken": "万达子公司上市受阻",
+    "enRange": {
+      "start": 241.356,
+      "end": 244.516
+    },
+    "zhRange": {
+      "start": 241.356,
+      "end": 244.516
+    }
+  },
+  {
+    "index": 87,
+    "speaker": "SPEAKER_00",
+    "enText": "资金压力下寻求出售资产",
+    "zhDisplay": "资金压力下寻求出售资产",
+    "zhSpoken": "资金压力下寻求出售资产",
+    "enRange": {
+      "start": 244.516,
+      "end": 246.736
+    },
+    "zhRange": {
+      "start": 244.516,
+      "end": 246.736
+    }
+  },
+  {
+    "index": 88,
+    "speaker": "SPEAKER_00",
+    "enText": "根据5月30号财新的报道",
+    "zhDisplay": "根据5月30号财新的报道",
+    "zhSpoken": "根据5月30号财新的报道",
+    "enRange": {
+      "start": 246.736,
+      "end": 248.996
+    },
+    "zhRange": {
+      "start": 246.736,
+      "end": 248.996
+    }
+  },
+  {
+    "index": 89,
+    "speaker": "SPEAKER_00",
+    "enText": "万达想要出售位于上海南京",
+    "zhDisplay": "万达想要出售位于上海南京",
+    "zhSpoken": "万达想要出售位于上海南京",
+    "enRange": {
+      "start": 248.996,
+      "end": 251.576
+    },
+    "zhRange": {
+      "start": 248.996,
+      "end": 251.576
+    }
+  },
+  {
+    "index": 90,
+    "speaker": "SPEAKER_00",
+    "enText": "无锡和常州的商场",
+    "zhDisplay": "无锡和常州的商场",
+    "zhSpoken": "无锡和常州的商场",
+    "enRange": {
+      "start": 251.576,
+      "end": 253.056
+    },
+    "zhRange": {
+      "start": 251.576,
+      "end": 253.056
+    }
+  },
+  {
+    "index": 91,
+    "speaker": "SPEAKER_00",
+    "enText": "此前彭博社也曾经报道过",
+    "zhDisplay": "此前彭博社也曾经报道过",
+    "zhSpoken": "此前彭博社也曾经报道过",
+    "enRange": {
+      "start": 253.056,
+      "end": 255.236
+    },
+    "zhRange": {
+      "start": 253.056,
+      "end": 255.236
+    }
+  },
+  {
+    "index": 92,
+    "speaker": "SPEAKER_00",
+    "enText": "万达想要出售多达20家购物中心",
+    "zhDisplay": "万达想要出售多达20家购物中心",
+    "zhSpoken": "万达想要出售多达20家购物中心",
+    "enRange": {
+      "start": 255.236,
+      "end": 257.876
+    },
+    "zhRange": {
+      "start": 255.236,
+      "end": 257.876
+    }
+  },
+  {
+    "index": 93,
+    "speaker": "SPEAKER_00",
+    "enText": "随后万达方面回应到",
+    "zhDisplay": "随后万达方面回应到",
+    "zhSpoken": "随后万达方面回应到",
+    "enRange": {
+      "start": 257.876,
+      "end": 259.676
+    },
+    "zhRange": {
+      "start": 257.876,
+      "end": 259.676
+    }
+  },
+  {
+    "index": 94,
+    "speaker": "SPEAKER_00",
+    "enText": "没有直接出售这些商场的计划",
+    "zhDisplay": "没有直接出售这些商场的计划",
+    "zhSpoken": "没有直接出售这些商场的计划",
+    "enRange": {
+      "start": 259.676,
+      "end": 261.856
+    },
+    "zhRange": {
+      "start": 259.676,
+      "end": 261.856
+    }
+  },
+  {
+    "index": 95,
+    "speaker": "SPEAKER_00",
+    "enText": "财新的分析认为",
+    "zhDisplay": "财新的分析认为",
+    "zhSpoken": "财新的分析认为",
+    "enRange": {
+      "start": 261.856,
+      "end": 263.216
+    },
+    "zhRange": {
+      "start": 261.856,
+      "end": 263.216
+    }
+  },
+  {
+    "index": 96,
+    "speaker": "SPEAKER_00",
+    "enText": "万达之所以如此回应",
+    "zhDisplay": "万达之所以如此回应",
+    "zhSpoken": "万达之所以如此回应",
+    "enRange": {
+      "start": 263.216,
+      "end": 265.056
+    },
+    "zhRange": {
+      "start": 263.216,
+      "end": 265.056
+    }
+  },
+  {
+    "index": 97,
+    "speaker": "SPEAKER_00",
+    "enText": "是因为部分商场项目",
+    "zhDisplay": "是因为部分商场项目",
+    "zhSpoken": "是因为部分商场项目",
+    "enRange": {
+      "start": 265.056,
+      "end": 266.616
+    },
+    "zhRange": {
+      "start": 265.056,
+      "end": 266.616
+    }
+  },
+  {
+    "index": 98,
+    "speaker": "SPEAKER_00",
+    "enText": "能否出售如何出售",
+    "zhDisplay": "能否出售如何出售",
+    "zhSpoken": "能否出售如何出售",
+    "enRange": {
+      "start": 266.616,
+      "end": 268.236
+    },
+    "zhRange": {
+      "start": 266.616,
+      "end": 268.236
+    }
+  },
+  {
+    "index": 99,
+    "speaker": "SPEAKER_00",
+    "enText": "还要与地方政府来沟通",
+    "zhDisplay": "还要与地方政府来沟通",
+    "zhSpoken": "还要与地方政府来沟通",
+    "enRange": {
+      "start": 268.236,
+      "end": 269.916
+    },
+    "zhRange": {
+      "start": 268.236,
+      "end": 269.916
+    }
+  },
+  {
+    "index": 100,
+    "speaker": "SPEAKER_00",
+    "enText": "万达目前还在和复兴集团",
+    "zhDisplay": "万达目前还在和复兴集团",
+    "zhSpoken": "万达目前还在和复兴集团",
+    "enRange": {
+      "start": 269.916,
+      "end": 272.436
+    },
+    "zhRange": {
+      "start": 269.916,
+      "end": 272.436
+    }
+  },
+  {
+    "index": 101,
+    "speaker": "SPEAKER_00",
+    "enText": "沟通出售上海万达瑞华酒店",
+    "zhDisplay": "沟通出售上海万达瑞华酒店",
+    "zhSpoken": "沟通出售上海万达瑞华酒店",
+    "enRange": {
+      "start": 272.436,
+      "end": 274.696
+    },
+    "zhRange": {
+      "start": 272.436,
+      "end": 274.696
+    }
+  },
+  {
+    "index": 102,
+    "speaker": "SPEAKER_00",
+    "enText": "另外根据彭博社5月31号的报道",
+    "zhDisplay": "另外根据彭博社5月31号的报道",
+    "zhSpoken": "另外根据彭博社5月31号的报道",
+    "enRange": {
+      "start": 274.696,
+      "end": 277.196
+    },
+    "zhRange": {
+      "start": 274.696,
+      "end": 277.196
+    }
+  },
+  {
+    "index": 103,
+    "speaker": "SPEAKER_00",
+    "enText": "万达还想以10亿人民币的价格",
+    "zhDisplay": "万达还想以10亿人民币的价格",
+    "zhSpoken": "万达还想以10亿人民币的价格",
+    "enRange": {
+      "start": 277.196,
+      "end": 279.176
+    },
+    "zhRange": {
+      "start": 277.196,
+      "end": 279.176
+    }
+  },
+  {
+    "index": 104,
+    "speaker": "SPEAKER_00",
+    "enText": "出售自己的支付牌照",
+    "zhDisplay": "出售自己的支付牌照",
+    "zhSpoken": "出售自己的支付牌照",
+    "enRange": {
+      "start": 279.176,
+      "end": 280.556
+    },
+    "zhRange": {
+      "start": 279.176,
+      "end": 280.556
+    }
+  },
+  {
+    "index": 105,
+    "speaker": "SPEAKER_00",
+    "enText": "潜在的买家包括字节跳动等等公司",
+    "zhDisplay": "潜在的买家包括字节跳动等等公司",
+    "zhSpoken": "潜在的买家包括字节跳动等等公司",
+    "enRange": {
+      "start": 280.556,
+      "end": 283.336
+    },
+    "zhRange": {
+      "start": 280.556,
+      "end": 283.336
+    }
+  },
+  {
+    "index": 106,
+    "speaker": "SPEAKER_00",
+    "enText": "万达旗下的子公司",
+    "zhDisplay": "万达旗下的子公司",
+    "zhSpoken": "万达旗下的子公司",
+    "enRange": {
+      "start": 283.336,
+      "end": 284.736
+    },
+    "zhRange": {
+      "start": 283.336,
+      "end": 284.736
+    }
+  },
+  {
+    "index": 107,
+    "speaker": "SPEAKER_00",
+    "enText": "万达商馆从2021年开始",
+    "zhDisplay": "万达商馆从2021年开始",
+    "zhSpoken": "万达商馆从2021年开始",
+    "enRange": {
+      "start": 284.736,
+      "end": 286.736
+    },
+    "zhRange": {
+      "start": 284.736,
+      "end": 286.736
+    }
+  },
+  {
+    "index": 108,
+    "speaker": "SPEAKER_00",
+    "enText": "就在寻求在香港上市",
+    "zhDisplay": "就在寻求在香港上市",
+    "zhSpoken": "就在寻求在香港上市",
+    "enRange": {
+      "start": 286.736,
+      "end": 288.616
+    },
+    "zhRange": {
+      "start": 286.736,
+      "end": 288.616
+    }
+  },
+  {
+    "index": 109,
+    "speaker": "SPEAKER_00",
+    "enText": "万达曾经与腾讯",
+    "zhDisplay": "万达曾经与腾讯",
+    "zhSpoken": "万达曾经与腾讯",
+    "enRange": {
+      "start": 288.616,
+      "end": 290.256
+    },
+    "zhRange": {
+      "start": 288.616,
+      "end": 290.256
+    }
+  },
+  {
+    "index": 110,
+    "speaker": "SPEAKER_00",
+    "enText": "京东苏宁等等外部投资者",
+    "zhDisplay": "京东苏宁等等外部投资者",
+    "zhSpoken": "京东苏宁等等外部投资者",
+    "enRange": {
+      "start": 290.256,
+      "end": 292.216
+    },
+    "zhRange": {
+      "start": 290.256,
+      "end": 292.216
+    }
+  },
+  {
+    "index": 111,
+    "speaker": "SPEAKER_00",
+    "enText": "签订过对赌协议",
+    "zhDisplay": "签订过对赌协议",
+    "zhSpoken": "签订过对赌协议",
+    "enRange": {
+      "start": 292.216,
+      "end": 293.436
+    },
+    "zhRange": {
+      "start": 292.216,
+      "end": 293.436
+    }
+  },
+  {
+    "index": 112,
+    "speaker": "SPEAKER_00",
+    "enText": "如果万达商馆",
+    "zhDisplay": "如果万达商馆",
+    "zhSpoken": "如果万达商馆",
+    "enRange": {
+      "start": 293.436,
+      "end": 294.616
+    },
+    "zhRange": {
+      "start": 293.436,
+      "end": 294.616
+    }
+  },
+  {
+    "index": 113,
+    "speaker": "SPEAKER_00",
+    "enText": "没能在今年年底前在香港上市",
+    "zhDisplay": "没能在今年年底前在香港上市",
+    "zhSpoken": "没能在今年年底前在香港上市",
+    "enRange": {
+      "start": 294.616,
+      "end": 296.716
+    },
+    "zhRange": {
+      "start": 294.616,
+      "end": 296.716
+    }
+  },
+  {
+    "index": 114,
+    "speaker": "SPEAKER_00",
+    "enText": "投资者可以要求万达",
+    "zhDisplay": "投资者可以要求万达",
+    "zhSpoken": "投资者可以要求万达",
+    "enRange": {
+      "start": 296.716,
+      "end": 298.476
+    },
+    "zhRange": {
+      "start": 296.716,
+      "end": 298.476
+    }
+  },
+  {
+    "index": 115,
+    "speaker": "SPEAKER_00",
+    "enText": "回购价值60亿美元的股权",
+    "zhDisplay": "回购价值60亿美元的股权",
+    "zhSpoken": "回购价值60亿美元的股权",
+    "enRange": {
+      "start": 298.476,
+      "end": 300.176
+    },
+    "zhRange": {
+      "start": 298.476,
+      "end": 300.176
+    }
+  },
+  {
+    "index": 116,
+    "speaker": "SPEAKER_00",
+    "enText": "类似的情况是",
+    "zhDisplay": "类似的情况是",
+    "zhSpoken": "类似的情况是",
+    "enRange": {
+      "start": 300.176,
+      "end": 301.376
+    },
+    "zhRange": {
+      "start": 300.176,
+      "end": 301.376
+    }
+  },
+  {
+    "index": 117,
+    "speaker": "SPEAKER_00",
+    "enText": "万达13亿美元贷款的还款日期",
+    "zhDisplay": "万达13亿美元贷款的还款日期",
+    "zhSpoken": "万达13亿美元贷款的还款日期",
+    "enRange": {
+      "start": 301.376,
+      "end": 303.656
+    },
+    "zhRange": {
+      "start": 301.376,
+      "end": 303.656
+    }
+  },
+  {
+    "index": 118,
+    "speaker": "SPEAKER_00",
+    "enText": "也涉及到万达商馆的上市情况",
+    "zhDisplay": "也涉及到万达商馆的上市情况",
+    "zhSpoken": "也涉及到万达商馆的上市情况",
+    "enRange": {
+      "start": 303.656,
+      "end": 306.296
+    },
+    "zhRange": {
+      "start": 303.656,
+      "end": 306.296
+    }
+  },
+  {
+    "index": 119,
+    "speaker": "SPEAKER_00",
+    "enText": "OpenAI CEO签署联名信",
+    "zhDisplay": "OpenAI CEO签署联名信",
+    "zhSpoken": "OpenAI CEO签署联名信",
+    "enRange": {
+      "start": 306.296,
+      "end": 310.096
+    },
+    "zhRange": {
+      "start": 306.296,
+      "end": 310.096
+    }
+  },
+  {
+    "index": 120,
+    "speaker": "SPEAKER_00",
+    "enText": "警告人工智能可能导致人类灭绝",
+    "zhDisplay": "警告人工智能可能导致人类灭绝",
+    "zhSpoken": "警告人工智能可能导致人类灭绝",
+    "enRange": {
+      "start": 310.096,
+      "end": 313.276
+    },
+    "zhRange": {
+      "start": 310.096,
+      "end": 313.276
+    }
+  },
+  {
+    "index": 121,
+    "speaker": "SPEAKER_00",
+    "enText": "今年3月马斯克联名签署了一封",
+    "zhDisplay": "今年3月马斯克联名签署了一封",
+    "zhSpoken": "今年3月马斯克联名签署了一封",
+    "enRange": {
+      "start": 313.276,
+      "end": 315.956
+    },
+    "zhRange": {
+      "start": 313.276,
+      "end": 315.956
+    }
+  },
+  {
+    "index": 122,
+    "speaker": "SPEAKER_00",
+    "enText": "呼吁暂停AI研究的公开信",
+    "zhDisplay": "呼吁暂停AI研究的公开信",
+    "zhSpoken": "呼吁暂停AI研究的公开信",
+    "enRange": {
+      "start": 315.956,
+      "end": 317.896
+    },
+    "zhRange": {
+      "start": 315.956,
+      "end": 317.896
+    }
+  },
+  {
+    "index": 123,
+    "speaker": "SPEAKER_00",
+    "enText": "最近人工智能领域又出现了一封公开信",
+    "zhDisplay": "最近人工智能领域又出现了一封公开信",
+    "zhSpoken": "最近人工智能领域又出现了一封公开信",
+    "enRange": {
+      "start": 317.896,
+      "end": 320.916
+    },
+    "zhRange": {
+      "start": 317.896,
+      "end": 320.916
+    }
+  },
+  {
+    "index": 124,
+    "speaker": "SPEAKER_00",
+    "enText": "根据科技媒体TechCrunch5月30号的报道",
+    "zhDisplay": "根据科技媒体TechCrunch5月30号的报道",
+    "zhSpoken": "根据科技媒体TechCrunch5月30号的报道",
+    "enRange": {
+      "start": 320.916,
+      "end": 323.836
+    },
+    "zhRange": {
+      "start": 320.916,
+      "end": 323.836
+    }
+  },
+  {
+    "index": 125,
+    "speaker": "SPEAKER_00",
+    "enText": "OpenAI的CEO Sam Altman和上百名AI研究员和科学家",
+    "zhDisplay": "OpenAI的CEO Sam Altman和上百名AI研究员和科学家",
+    "zhSpoken": "OpenAI的CEO Sam Altman和上百名AI研究员和科学家",
+    "enRange": {
+      "start": 323.836,
+      "end": 328.076
+    },
+    "zhRange": {
+      "start": 323.836,
+      "end": 328.076
+    }
+  },
+  {
+    "index": 126,
+    "speaker": "SPEAKER_00",
+    "enText": "签署了一封联名信",
+    "zhDisplay": "签署了一封联名信",
+    "zhSpoken": "签署了一封联名信",
+    "enRange": {
+      "start": 328.076,
+      "end": 329.696
+    },
+    "zhRange": {
+      "start": 328.076,
+      "end": 329.696
+    }
+  },
+  {
+    "index": 127,
+    "speaker": "SPEAKER_00",
+    "enText": "呼吁社会关注AI灭绝人类的可能性",
+    "zhDisplay": "呼吁社会关注AI灭绝人类的可能性",
+    "zhSpoken": "呼吁社会关注AI灭绝人类的可能性",
+    "enRange": {
+      "start": 329.696,
+      "end": 332.556
+    },
+    "zhRange": {
+      "start": 329.696,
+      "end": 332.556
+    }
+  },
+  {
+    "index": 128,
+    "speaker": "SPEAKER_00",
+    "enText": "整个公开信只有一句话",
+    "zhDisplay": "整个公开信只有一句话",
+    "zhSpoken": "整个公开信只有一句话",
+    "enRange": {
+      "start": 332.556,
+      "end": 334.596
+    },
+    "zhRange": {
+      "start": 332.556,
+      "end": 334.596
+    }
+  },
+  {
+    "index": 129,
+    "speaker": "SPEAKER_00",
+    "enText": "那就是减少人工智能给人类带来的灭绝风险",
+    "zhDisplay": "那就是减少人工智能给人类带来的灭绝风险",
+    "zhSpoken": "那就是减少人工智能给人类带来的灭绝风险",
+    "enRange": {
+      "start": 334.596,
+      "end": 337.976
+    },
+    "zhRange": {
+      "start": 334.596,
+      "end": 337.976
+    }
+  },
+  {
+    "index": 130,
+    "speaker": "SPEAKER_00",
+    "enText": "应该和流行疾病和武器战争一样",
+    "zhDisplay": "应该和流行疾病和武器战争一样",
+    "zhSpoken": "应该和流行疾病和武器战争一样",
+    "enRange": {
+      "start": 337.976,
+      "end": 340.756
+    },
+    "zhRange": {
+      "start": 337.976,
+      "end": 340.756
+    }
+  },
+  {
+    "index": 131,
+    "speaker": "SPEAKER_00",
+    "enText": "成为全球都需要优先考虑的事情",
+    "zhDisplay": "成为全球都需要优先考虑的事情",
+    "zhSpoken": "成为全球都需要优先考虑的事情",
+    "enRange": {
+      "start": 340.756,
+      "end": 343.376
+    },
+    "zhRange": {
+      "start": 340.756,
+      "end": 343.376
+    }
+  },
+  {
+    "index": 132,
+    "speaker": "SPEAKER_00",
+    "enText": "除了Sam Altman带头签名的行业人士还包括Deep Mind的首席执行官Demis HasevisAnthorpic的首席执行官Dario Almod以及多位土林奖得主和高校教授刊登了这封公开信的旧金山",
+    "zhDisplay": "除了Sam Altman带头签名的行业人士还包括Deep Mind的首席执行官Demis HasevisAnthorpic的首席执行官Dario Almod以及多位土林奖得主和高校教授刊登了这封公开信的旧金山",
+    "zhSpoken": "除了Sam Altman带头签名的行业人士还包括Deep Mind的首席执行官Demis HasevisAnthorpic的首席执行官Dario Almod以及多位土林奖得主和高校教授刊登了这封公开信的旧金山",
+    "enRange": {
+      "start": 343.376,
+      "end": 356.532
+    },
+    "zhRange": {
+      "start": 343.376,
+      "end": 356.532
+    }
+  },
+  {
+    "index": 133,
+    "speaker": "SPEAKER_00",
+    "enText": "AI安全中心官网解释道",
+    "zhDisplay": "AI安全中心官网解释道",
+    "zhSpoken": "AI安全中心官网解释道",
+    "enRange": {
+      "start": 356.532,
+      "end": 358.332
+    },
+    "zhRange": {
+      "start": 356.532,
+      "end": 358.332
+    }
+  },
+  {
+    "index": 134,
+    "speaker": "SPEAKER_00",
+    "enText": "这封信之所以如此简短",
+    "zhDisplay": "这封信之所以如此简短",
+    "zhSpoken": "这封信之所以如此简短",
+    "enRange": {
+      "start": 358.332,
+      "end": 360.152
+    },
+    "zhRange": {
+      "start": 358.332,
+      "end": 360.152
+    }
+  },
+  {
+    "index": 135,
+    "speaker": "SPEAKER_00",
+    "enText": "只有一句话",
+    "zhDisplay": "只有一句话",
+    "zhSpoken": "只有一句话",
+    "enRange": {
+      "start": 360.152,
+      "end": 360.972
+    },
+    "zhRange": {
+      "start": 360.152,
+      "end": 360.972
+    }
+  },
+  {
+    "index": 136,
+    "speaker": "SPEAKER_00",
+    "enText": "是因为其他关于AI的讨论都过于繁杂",
+    "zhDisplay": "是因为其他关于AI的讨论都过于繁杂",
+    "zhSpoken": "是因为其他关于AI的讨论都过于繁杂",
+    "enRange": {
+      "start": 360.972,
+      "end": 363.972
+    },
+    "zhRange": {
+      "start": 360.972,
+      "end": 363.972
+    }
+  },
+  {
+    "index": 137,
+    "speaker": "SPEAKER_00",
+    "enText": "他们担心最重要的风险被其他的噪音所掩盖",
+    "zhDisplay": "他们担心最重要的风险被其他的噪音所掩盖",
+    "zhSpoken": "他们担心最重要的风险被其他的噪音所掩盖",
+    "enRange": {
+      "start": 363.972,
+      "end": 367.072
+    },
+    "zhRange": {
+      "start": 363.972,
+      "end": 367.072
+    }
+  },
+  {
+    "index": 138,
+    "speaker": "SPEAKER_00",
+    "enText": "不过普林斯顿大学的一位教授",
+    "zhDisplay": "不过普林斯顿大学的一位教授",
+    "zhSpoken": "不过普林斯顿大学的一位教授",
+    "enRange": {
+      "start": 367.072,
+      "end": 369.172
+    },
+    "zhRange": {
+      "start": 367.072,
+      "end": 369.172
+    }
+  },
+  {
+    "index": 139,
+    "speaker": "SPEAKER_00",
+    "enText": "在接受BBC的采访时表示",
+    "zhDisplay": "在接受BBC的采访时表示",
+    "zhSpoken": "在接受BBC的采访时表示",
+    "enRange": {
+      "start": 369.172,
+      "end": 370.912
+    },
+    "zhRange": {
+      "start": 369.172,
+      "end": 370.912
+    }
+  },
+  {
+    "index": 140,
+    "speaker": "SPEAKER_00",
+    "enText": "如此类似科幻片的灾难场景是不现实的",
+    "zhDisplay": "如此类似科幻片的灾难场景是不现实的",
+    "zhSpoken": "如此类似科幻片的灾难场景是不现实的",
+    "enRange": {
+      "start": 370.912,
+      "end": 373.872
+    },
+    "zhRange": {
+      "start": 370.912,
+      "end": 373.872
+    }
+  },
+  {
+    "index": 141,
+    "speaker": "SPEAKER_00",
+    "enText": "目前人工智能还远远没有这样的能力",
+    "zhDisplay": "目前人工智能还远远没有这样的能力",
+    "zhSpoken": "目前人工智能还远远没有这样的能力",
+    "enRange": {
+      "start": 373.872,
+      "end": 376.292
+    },
+    "zhRange": {
+      "start": 373.872,
+      "end": 376.292
+    }
+  },
+  {
+    "index": 142,
+    "speaker": "SPEAKER_00",
+    "enText": "而且这封公开信分散了人们对AI短期危害的注意力",
+    "zhDisplay": "而且这封公开信分散了人们对AI短期危害的注意力",
+    "zhSpoken": "而且这封公开信分散了人们对AI短期危害的注意力",
+    "enRange": {
+      "start": 376.292,
+      "end": 380.052
+    },
+    "zhRange": {
+      "start": 376.292,
+      "end": 380.052
+    }
+  },
+  {
+    "index": 143,
+    "speaker": "SPEAKER_00",
+    "enText": "坏血诈骗案的主角霍姆斯入狱服刑",
+    "zhDisplay": "坏血诈骗案的主角霍姆斯入狱服刑",
+    "zhSpoken": "坏血诈骗案的主角霍姆斯入狱服刑",
+    "enRange": {
+      "start": 380.052,
+      "end": 384.332
+    },
+    "zhRange": {
+      "start": 380.052,
+      "end": 384.332
+    }
+  },
+  {
+    "index": 144,
+    "speaker": "SPEAKER_00",
+    "enText": "5月30号",
+    "zhDisplay": "5月30号",
+    "zhSpoken": "5月30号",
+    "enRange": {
+      "start": 384.332,
+      "end": 385.372
+    },
+    "zhRange": {
+      "start": 384.332,
+      "end": 385.372
+    }
+  },
+  {
+    "index": 145,
+    "speaker": "SPEAKER_00",
+    "enText": "Cerenus的创始人伊丽莎白霍姆斯",
+    "zhDisplay": "Cerenus的创始人伊丽莎白霍姆斯",
+    "zhSpoken": "Cerenus的创始人伊丽莎白霍姆斯",
+    "enRange": {
+      "start": 385.372,
+      "end": 387.392
+    },
+    "zhRange": {
+      "start": 385.372,
+      "end": 387.392
+    }
+  },
+  {
+    "index": 146,
+    "speaker": "SPEAKER_00",
+    "enText": "抵达了美国德州的一个小型监狱",
+    "zhDisplay": "抵达了美国德州的一个小型监狱",
+    "zhSpoken": "抵达了美国德州的一个小型监狱",
+    "enRange": {
+      "start": 387.392,
+      "end": 389.692
+    },
+    "zhRange": {
+      "start": 387.392,
+      "end": 389.692
+    }
+  },
+  {
+    "index": 147,
+    "speaker": "SPEAKER_00",
+    "enText": "正式开始自己为期11年的刑期",
+    "zhDisplay": "正式开始自己为期11年的刑期",
+    "zhSpoken": "正式开始自己为期11年的刑期",
+    "enRange": {
+      "start": 389.692,
+      "end": 392.312
+    },
+    "zhRange": {
+      "start": 389.692,
+      "end": 392.312
+    }
+  },
+  {
+    "index": 148,
+    "speaker": "SPEAKER_00",
+    "enText": "霍姆斯在斯坦福大学就读的时候",
+    "zhDisplay": "霍姆斯在斯坦福大学就读的时候",
+    "zhSpoken": "霍姆斯在斯坦福大学就读的时候",
+    "enRange": {
+      "start": 392.312,
+      "end": 394.712
+    },
+    "zhRange": {
+      "start": 392.312,
+      "end": 394.712
+    }
+  },
+  {
+    "index": 149,
+    "speaker": "SPEAKER_00",
+    "enText": "号称发明了一种革命性的血液检测技术",
+    "zhDisplay": "号称发明了一种革命性的血液检测技术",
+    "zhSpoken": "号称发明了一种革命性的血液检测技术",
+    "enRange": {
+      "start": 394.712,
+      "end": 397.772
+    },
+    "zhRange": {
+      "start": 394.712,
+      "end": 397.772
+    }
+  },
+  {
+    "index": 150,
+    "speaker": "SPEAKER_00",
+    "enText": "只用手指上的一滴血就能够完成各种各样重要的医学检测",
+    "zhDisplay": "只用手指上的一滴血就能够完成各种各样重要的医学检测",
+    "zhSpoken": "只用手指上的一滴血就能够完成各种各样重要的医学检测",
+    "enRange": {
+      "start": 397.772,
+      "end": 401.592
+    },
+    "zhRange": {
+      "start": 397.772,
+      "end": 401.592
+    }
+  },
+  {
+    "index": 151,
+    "speaker": "SPEAKER_00",
+    "enText": "随后霍姆斯辍学并且成立了Theranos公司",
+    "zhDisplay": "随后霍姆斯辍学并且成立了Theranos公司",
+    "zhSpoken": "随后霍姆斯辍学并且成立了Theranos公司",
+    "enRange": {
+      "start": 401.592,
+      "end": 405.012
+    },
+    "zhRange": {
+      "start": 401.592,
+      "end": 405.012
+    }
+  },
+  {
+    "index": 152,
+    "speaker": "SPEAKER_00",
+    "enText": "在2004年到2007年之间",
+    "zhDisplay": "在2004年到2007年之间",
+    "zhSpoken": "在2004年到2007年之间",
+    "enRange": {
+      "start": 405.012,
+      "end": 407.232
+    },
+    "zhRange": {
+      "start": 405.012,
+      "end": 407.232
+    }
+  },
+  {
+    "index": 153,
+    "speaker": "SPEAKER_00",
+    "enText": "Theranos获得了硅谷知名投资机构",
+    "zhDisplay": "Theranos获得了硅谷知名投资机构",
+    "zhSpoken": "Theranos获得了硅谷知名投资机构",
+    "enRange": {
+      "start": 407.232,
+      "end": 409.692
+    },
+    "zhRange": {
+      "start": 407.232,
+      "end": 409.692
+    }
+  },
+  {
+    "index": 154,
+    "speaker": "SPEAKER_00",
+    "enText": "传媒大亨莫多克和美国前国务卿基辛格等等诸多名人的投资",
+    "zhDisplay": "传媒大亨莫多克和美国前国务卿基辛格等等诸多名人的投资",
+    "zhSpoken": "传媒大亨莫多克和美国前国务卿基辛格等等诸多名人的投资",
+    "enRange": {
+      "start": 409.692,
+      "end": 414.092
+    },
+    "zhRange": {
+      "start": 409.692,
+      "end": 414.092
+    }
+  },
+  {
+    "index": 155,
+    "speaker": "SPEAKER_00",
+    "enText": "直到2015年",
+    "zhDisplay": "直到2015年",
+    "zhSpoken": "直到2015年",
+    "enRange": {
+      "start": 414.092,
+      "end": 415.672
+    },
+    "zhRange": {
+      "start": 414.092,
+      "end": 415.672
+    }
+  },
+  {
+    "index": 156,
+    "speaker": "SPEAKER_00",
+    "enText": "华尔街日报的一篇报道揭开了这家公司的真相",
+    "zhDisplay": "华尔街日报的一篇报道揭开了这家公司的真相",
+    "zhSpoken": "华尔街日报的一篇报道揭开了这家公司的真相",
+    "enRange": {
+      "start": 415.672,
+      "end": 418.512
+    },
+    "zhRange": {
+      "start": 415.672,
+      "end": 418.512
+    }
+  },
+  {
+    "index": 157,
+    "speaker": "SPEAKER_00",
+    "enText": "Theranos血液检测水平从来就没有达到他们宣传的程度",
+    "zhDisplay": "Theranos血液检测水平从来就没有达到他们宣传的程度",
+    "zhSpoken": "Theranos血液检测水平从来就没有达到他们宣传的程度",
+    "enRange": {
+      "start": 418.512,
+      "end": 422.532
+    },
+    "zhRange": {
+      "start": 418.512,
+      "end": 422.532
+    }
+  },
+  {
+    "index": 158,
+    "speaker": "SPEAKER_00",
+    "enText": "检测结果十分不准确",
+    "zhDisplay": "检测结果十分不准确",
+    "zhSpoken": "检测结果十分不准确",
+    "enRange": {
+      "start": 422.532,
+      "end": 424.372
+    },
+    "zhRange": {
+      "start": 422.532,
+      "end": 424.372
+    }
+  },
+  {
+    "index": 159,
+    "speaker": "SPEAKER_00",
+    "enText": "去年11月霍姆斯因为欺骗投资者被判决入狱11年3个月",
+    "zhDisplay": "去年11月霍姆斯因为欺骗投资者被判决入狱11年3个月",
+    "zhSpoken": "去年11月霍姆斯因为欺骗投资者被判决入狱11年3个月",
+    "enRange": {
+      "start": 424.372,
+      "end": 429.272
+    },
+    "zhRange": {
+      "start": 424.372,
+      "end": 429.272
+    }
+  },
+  {
+    "index": 160,
+    "speaker": "SPEAKER_00",
+    "enText": "从判决到正式入狱的半年时间里",
+    "zhDisplay": "从判决到正式入狱的半年时间里",
+    "zhSpoken": "从判决到正式入狱的半年时间里",
+    "enRange": {
+      "start": 429.272,
+      "end": 431.832
+    },
+    "zhRange": {
+      "start": 429.272,
+      "end": 431.832
+    }
+  },
+  {
+    "index": 161,
+    "speaker": "SPEAKER_00",
+    "enText": "霍姆斯多次上诉",
+    "zhDisplay": "霍姆斯多次上诉",
+    "zhSpoken": "霍姆斯多次上诉",
+    "enRange": {
+      "start": 431.832,
+      "end": 433.032
+    },
+    "zhRange": {
+      "start": 431.832,
+      "end": 433.032
+    }
+  },
+  {
+    "index": 162,
+    "speaker": "SPEAKER_00",
+    "enText": "想要延迟到监狱服刑的时间",
+    "zhDisplay": "想要延迟到监狱服刑的时间",
+    "zhSpoken": "想要延迟到监狱服刑的时间",
+    "enRange": {
+      "start": 433.032,
+      "end": 435.052
+    },
+    "zhRange": {
+      "start": 433.032,
+      "end": 435.052
+    }
+  },
+  {
+    "index": 163,
+    "speaker": "SPEAKER_00",
+    "enText": "除了监禁",
+    "zhDisplay": "除了监禁",
+    "zhSpoken": "除了监禁",
+    "enRange": {
+      "start": 435.052,
+      "end": 436.092
+    },
+    "zhRange": {
+      "start": 435.052,
+      "end": 436.092
+    }
+  },
+  {
+    "index": 164,
+    "speaker": "SPEAKER_00",
+    "enText": "霍姆斯还需要向投资人支付4.52亿美元的赔偿",
+    "zhDisplay": "霍姆斯还需要向投资人支付4.52亿美元的赔偿",
+    "zhSpoken": "霍姆斯还需要向投资人支付4.52亿美元的赔偿",
+    "enRange": {
+      "start": 436.092,
+      "end": 439.932
+    },
+    "zhRange": {
+      "start": 436.092,
+      "end": 439.932
+    }
+  },
+  {
+    "index": 165,
+    "speaker": "SPEAKER_00",
+    "enText": "为了拉动消费",
+    "zhDisplay": "为了拉动消费",
+    "zhSpoken": "为了拉动消费",
+    "enRange": {
+      "start": 439.932,
+      "end": 442.232
+    },
+    "zhRange": {
+      "start": 439.932,
+      "end": 442.232
+    }
+  },
+  {
+    "index": 166,
+    "speaker": "SPEAKER_00",
+    "enText": "日本想要推出数字游民签证",
+    "zhDisplay": "日本想要推出数字游民签证",
+    "zhSpoken": "日本想要推出数字游民签证",
+    "enRange": {
+      "start": 442.232,
+      "end": 444.672
+    },
+    "zhRange": {
+      "start": 442.232,
+      "end": 444.672
+    }
+  },
+  {
+    "index": 167,
+    "speaker": "SPEAKER_00",
+    "enText": "根据日本每日新闻5月28号的报道",
+    "zhDisplay": "根据日本每日新闻5月28号的报道",
+    "zhSpoken": "根据日本每日新闻5月28号的报道",
+    "enRange": {
+      "start": 444.672,
+      "end": 447.292
+    },
+    "zhRange": {
+      "start": 444.672,
+      "end": 447.292
+    }
+  },
+  {
+    "index": 168,
+    "speaker": "SPEAKER_00",
+    "enText": "日本政府计划推出数字游民签证的政策",
+    "zhDisplay": "日本政府计划推出数字游民签证的政策",
+    "zhSpoken": "日本政府计划推出数字游民签证的政策",
+    "enRange": {
+      "start": 447.292,
+      "end": 450.252
+    },
+    "zhRange": {
+      "start": 447.292,
+      "end": 450.252
+    }
+  },
+  {
+    "index": 169,
+    "speaker": "SPEAKER_00",
+    "enText": "想要吸引人才到日本居住生活",
+    "zhDisplay": "想要吸引人才到日本居住生活",
+    "zhSpoken": "想要吸引人才到日本居住生活",
+    "enRange": {
+      "start": 450.252,
+      "end": 452.672
+    },
+    "zhRange": {
+      "start": 450.252,
+      "end": 452.672
+    }
+  },
+  {
+    "index": 170,
+    "speaker": "SPEAKER_00",
+    "enText": "并且带动本地的消费",
+    "zhDisplay": "并且带动本地的消费",
+    "zhSpoken": "并且带动本地的消费",
+    "enRange": {
+      "start": 452.672,
+      "end": 454.312
+    },
+    "zhRange": {
+      "start": 452.672,
+      "end": 454.312
+    }
+  },
+  {
+    "index": 171,
+    "speaker": "SPEAKER_00",
+    "enText": "日本现在和69个国家和地区有免签的安排",
+    "zhDisplay": "日本现在和69个国家和地区有免签的安排",
+    "zhSpoken": "日本现在和69个国家和地区有免签的安排",
+    "enRange": {
+      "start": 454.312,
+      "end": 457.812
+    },
+    "zhRange": {
+      "start": 454.312,
+      "end": 457.812
+    }
+  },
+  {
+    "index": 172,
+    "speaker": "SPEAKER_00",
+    "enText": "但是停留时间不能超过90天",
+    "zhDisplay": "但是停留时间不能超过90天",
+    "zhSpoken": "但是停留时间不能超过90天",
+    "enRange": {
+      "start": 457.812,
+      "end": 460.132
+    },
+    "zhRange": {
+      "start": 457.812,
+      "end": 460.132
+    }
+  },
+  {
+    "index": 173,
+    "speaker": "SPEAKER_00",
+    "enText": "同时在日本工作超过90天的外国人",
+    "zhDisplay": "同时在日本工作超过90天的外国人",
+    "zhSpoken": "同时在日本工作超过90天的外国人",
+    "enRange": {
+      "start": 460.132,
+      "end": 462.872
+    },
+    "zhRange": {
+      "start": 460.132,
+      "end": 462.872
+    }
+  },
+  {
+    "index": 174,
+    "speaker": "SPEAKER_00",
+    "enText": "则必须要去申请工作签证",
+    "zhDisplay": "则必须要去申请工作签证",
+    "zhSpoken": "则必须要去申请工作签证",
+    "enRange": {
+      "start": 462.872,
+      "end": 465.092
+    },
+    "zhRange": {
+      "start": 462.872,
+      "end": 465.092
+    }
+  },
+  {
+    "index": 175,
+    "speaker": "SPEAKER_00",
+    "enText": "推出数字游民签证",
+    "zhDisplay": "推出数字游民签证",
+    "zhSpoken": "推出数字游民签证",
+    "enRange": {
+      "start": 465.092,
+      "end": 466.572
+    },
+    "zhRange": {
+      "start": 465.092,
+      "end": 466.572
+    }
+  },
+  {
+    "index": 176,
+    "speaker": "SPEAKER_00",
+    "enText": "日本可以增强对那些不需要工作地点",
+    "zhDisplay": "日本可以增强对那些不需要工作地点",
+    "zhSpoken": "日本可以增强对那些不需要工作地点",
+    "enRange": {
+      "start": 466.572,
+      "end": 469.212
+    },
+    "zhRange": {
+      "start": 466.572,
+      "end": 469.212
+    }
+  },
+  {
+    "index": 177,
+    "speaker": "SPEAKER_00",
+    "enText": "依靠网络就可以办公人群的吸引力",
+    "zhDisplay": "依靠网络就可以办公人群的吸引力",
+    "zhSpoken": "依靠网络就可以办公人群的吸引力",
+    "enRange": {
+      "start": 469.212,
+      "end": 471.852
+    },
+    "zhRange": {
+      "start": 469.212,
+      "end": 471.852
+    }
+  },
+  {
+    "index": 178,
+    "speaker": "SPEAKER_00",
+    "enText": "目前葡萄牙西班牙等等南欧国家",
+    "zhDisplay": "目前葡萄牙西班牙等等南欧国家",
+    "zhSpoken": "目前葡萄牙西班牙等等南欧国家",
+    "enRange": {
+      "start": 471.852,
+      "end": 474.552
+    },
+    "zhRange": {
+      "start": 471.852,
+      "end": 474.552
+    }
+  },
+  {
+    "index": 179,
+    "speaker": "SPEAKER_00",
+    "enText": "和墨西哥哥斯达里加等等中南美洲国家",
+    "zhDisplay": "和墨西哥哥斯达里加等等中南美洲国家",
+    "zhSpoken": "和墨西哥哥斯达里加等等中南美洲国家",
+    "enRange": {
+      "start": 474.552,
+      "end": 477.132
+    },
+    "zhRange": {
+      "start": 474.552,
+      "end": 477.132
+    }
+  },
+  {
+    "index": 180,
+    "speaker": "SPEAKER_00",
+    "enText": "都推出了针对数字游民的签证",
+    "zhDisplay": "都推出了针对数字游民的签证",
+    "zhSpoken": "都推出了针对数字游民的签证",
+    "enRange": {
+      "start": 477.132,
+      "end": 479.252
+    },
+    "zhRange": {
+      "start": 477.132,
+      "end": 479.252
+    }
+  },
+  {
+    "index": 181,
+    "speaker": "SPEAKER_00",
+    "enText": "交个朋友入住京东",
+    "zhDisplay": "交个朋友入住京东",
+    "zhSpoken": "交个朋友入住京东",
+    "enRange": {
+      "start": 479.252,
+      "end": 482.372
+    },
+    "zhRange": {
+      "start": 479.252,
+      "end": 482.372
+    }
+  },
+  {
+    "index": 182,
+    "speaker": "SPEAKER_00",
+    "enText": "苹果将开启首次直播带货",
+    "zhDisplay": "苹果将开启首次直播带货",
+    "zhSpoken": "苹果将开启首次直播带货",
+    "enRange": {
+      "start": 482.372,
+      "end": 484.672
+    },
+    "zhRange": {
+      "start": 482.372,
+      "end": 484.672
+    }
+  },
+  {
+    "index": 183,
+    "speaker": "SPEAKER_00",
+    "enText": "根据第一财经5月30号的报道",
+    "zhDisplay": "根据第一财经5月30号的报道",
+    "zhSpoken": "根据第一财经5月30号的报道",
+    "enRange": {
+      "start": 484.672,
+      "end": 487.512
+    },
+    "zhRange": {
+      "start": 484.672,
+      "end": 487.512
+    }
+  },
+  {
+    "index": 184,
+    "speaker": "SPEAKER_00",
+    "enText": "京东直播与交个朋友达成战略合作",
+    "zhDisplay": "京东直播与交个朋友达成战略合作",
+    "zhSpoken": "京东直播与交个朋友达成战略合作",
+    "enRange": {
+      "start": 487.512,
+      "end": 490.632
+    },
+    "zhRange": {
+      "start": 487.512,
+      "end": 490.632
+    }
+  },
+  {
+    "index": 185,
+    "speaker": "SPEAKER_00",
+    "enText": "交个朋友将正式入驻京东直播",
+    "zhDisplay": "交个朋友将正式入驻京东直播",
+    "zhSpoken": "交个朋友将正式入驻京东直播",
+    "enRange": {
+      "start": 490.632,
+      "end": 493.412
+    },
+    "zhRange": {
+      "start": 490.632,
+      "end": 493.412
+    }
+  },
+  {
+    "index": 186,
+    "speaker": "SPEAKER_00",
+    "enText": "罗永浩分别在5月31号",
+    "zhDisplay": "罗永浩分别在5月31号",
+    "zhSpoken": "罗永浩分别在5月31号",
+    "enRange": {
+      "start": 493.412,
+      "end": 495.372
+    },
+    "zhRange": {
+      "start": 493.412,
+      "end": 495.372
+    }
+  },
+  {
+    "index": 187,
+    "speaker": "SPEAKER_00",
+    "enText": "6月3号以及6月17号进行三场直播",
+    "zhDisplay": "6月3号以及6月17号进行三场直播",
+    "zhSpoken": "6月3号以及6月17号进行三场直播",
+    "enRange": {
+      "start": 495.372,
+      "end": 498.372
+    },
+    "zhRange": {
+      "start": 495.372,
+      "end": 498.372
+    }
+  },
+  {
+    "index": 188,
+    "speaker": "SPEAKER_00",
+    "enText": "京东还在首场直播中",
+    "zhDisplay": "京东还在首场直播中",
+    "zhSpoken": "京东还在首场直播中",
+    "enRange": {
+      "start": 498.372,
+      "end": 500.292
+    },
+    "zhRange": {
+      "start": 498.372,
+      "end": 500.292
+    }
+  },
+  {
+    "index": 189,
+    "speaker": "SPEAKER_00",
+    "enText": "安排了一套6.18折的杭州房产",
+    "zhDisplay": "安排了一套6.18折的杭州房产",
+    "zhSpoken": "安排了一套6.18折的杭州房产",
+    "enRange": {
+      "start": 500.292,
+      "end": 502.692
+    },
+    "zhRange": {
+      "start": 500.292,
+      "end": 502.692
+    }
+  },
+  {
+    "index": 190,
+    "speaker": "SPEAKER_00",
+    "enText": "在去年双11之前",
+    "zhDisplay": "在去年双11之前",
+    "zhSpoken": "在去年双11之前",
+    "enRange": {
+      "start": 502.692,
+      "end": 504.512
+    },
+    "zhRange": {
+      "start": 502.692,
+      "end": 504.512
+    }
+  },
+  {
+    "index": 191,
+    "speaker": "SPEAKER_00",
+    "enText": "从抖音起家的罗永浩和交个朋友",
+    "zhDisplay": "从抖音起家的罗永浩和交个朋友",
+    "zhSpoken": "从抖音起家的罗永浩和交个朋友",
+    "enRange": {
+      "start": 504.512,
+      "end": 507.032
+    },
+    "zhRange": {
+      "start": 504.512,
+      "end": 507.032
+    }
+  },
+  {
+    "index": 192,
+    "speaker": "SPEAKER_00",
+    "enText": "入驻了淘宝直播",
+    "zhDisplay": "入驻了淘宝直播",
+    "zhSpoken": "入驻了淘宝直播",
+    "enRange": {
+      "start": 507.032,
+      "end": 508.212
+    },
+    "zhRange": {
+      "start": 507.032,
+      "end": 508.212
+    }
+  },
+  {
+    "index": 193,
+    "speaker": "SPEAKER_00",
+    "enText": "有业内人士表示",
+    "zhDisplay": "有业内人士表示",
+    "zhSpoken": "有业内人士表示",
+    "enRange": {
+      "start": 508.212,
+      "end": 509.532
+    },
+    "zhRange": {
+      "start": 508.212,
+      "end": 509.532
+    }
+  },
+  {
+    "index": 194,
+    "speaker": "SPEAKER_00",
+    "enText": "直播机构只在某个单一平台运营",
+    "zhDisplay": "直播机构只在某个单一平台运营",
+    "zhSpoken": "直播机构只在某个单一平台运营",
+    "enRange": {
+      "start": 509.532,
+      "end": 511.672
+    },
+    "zhRange": {
+      "start": 509.532,
+      "end": 511.672
+    }
+  },
+  {
+    "index": 195,
+    "speaker": "SPEAKER_00",
+    "enText": "可能会有增长瓶颈和经营风险",
+    "zhDisplay": "可能会有增长瓶颈和经营风险",
+    "zhSpoken": "可能会有增长瓶颈和经营风险",
+    "enRange": {
+      "start": 511.672,
+      "end": 514.032
+    },
+    "zhRange": {
+      "start": 511.672,
+      "end": 514.032
+    }
+  },
+  {
+    "index": 196,
+    "speaker": "SPEAKER_00",
+    "enText": "未来多渠道多平台经营将会成为常态",
+    "zhDisplay": "未来多渠道多平台经营将会成为常态",
+    "zhSpoken": "未来多渠道多平台经营将会成为常态",
+    "enRange": {
+      "start": 514.032,
+      "end": 516.872
+    },
+    "zhRange": {
+      "start": 514.032,
+      "end": 516.872
+    }
+  },
+  {
+    "index": 197,
+    "speaker": "SPEAKER_00",
+    "enText": "对于引入了罗永浩的京东直播第一财经的分析认为在短视频电商等等冲击之下京东迫切需要引流而目前直播电商的增速已经远快于传统电商在618即将到来之际",
+    "zhDisplay": "对于引入了罗永浩的京东直播第一财经的分析认为在短视频电商等等冲击之下京东迫切需要引流而目前直播电商的增速已经远快于传统电商在618即将到来之际",
+    "zhSpoken": "对于引入了罗永浩的京东直播第一财经的分析认为在短视频电商等等冲击之下京东迫切需要引流而目前直播电商的增速已经远快于传统电商在618即将到来之际",
+    "enRange": {
+      "start": 516.872,
+      "end": 529.588
+    },
+    "zhRange": {
+      "start": 516.872,
+      "end": 529.588
+    }
+  },
+  {
+    "index": 198,
+    "speaker": "SPEAKER_00",
+    "enText": "苹果也开启了全球第一次电商直播",
+    "zhDisplay": "苹果也开启了全球第一次电商直播",
+    "zhSpoken": "苹果也开启了全球第一次电商直播",
+    "enRange": {
+      "start": 529.588,
+      "end": 532.068
+    },
+    "zhRange": {
+      "start": 529.588,
+      "end": 532.068
+    }
+  },
+  {
+    "index": 199,
+    "speaker": "SPEAKER_00",
+    "enText": "在5月31号的晚上7点",
+    "zhDisplay": "在5月31号的晚上7点",
+    "zhSpoken": "在5月31号的晚上7点",
+    "enRange": {
+      "start": 532.068,
+      "end": 534.068
+    },
+    "zhRange": {
+      "start": 532.068,
+      "end": 534.068
+    }
+  },
+  {
+    "index": 200,
+    "speaker": "SPEAKER_00",
+    "enText": "苹果在天猫开始了618大速的直播",
+    "zhDisplay": "苹果在天猫开始了618大速的直播",
+    "zhSpoken": "苹果在天猫开始了618大速的直播",
+    "enRange": {
+      "start": 534.068,
+      "end": 537.368
+    },
+    "zhRange": {
+      "start": 534.068,
+      "end": 537.368
+    }
+  },
+  {
+    "index": 201,
+    "speaker": "SPEAKER_00",
+    "enText": "茅台冰淇淋年销量",
+    "zhDisplay": "茅台冰淇淋年销量",
+    "zhSpoken": "茅台冰淇淋年销量",
+    "enRange": {
+      "start": 537.368,
+      "end": 540.128
+    },
+    "zhRange": {
+      "start": 537.368,
+      "end": 540.128
+    }
+  },
+  {
+    "index": 202,
+    "speaker": "SPEAKER_00",
+    "enText": "接近千万杯将进入低线市场",
+    "zhDisplay": "接近千万杯将进入低线市场",
+    "zhSpoken": "接近千万杯将进入低线市场",
+    "enRange": {
+      "start": 540.128,
+      "end": 542.708
+    },
+    "zhRange": {
+      "start": 540.128,
+      "end": 542.708
+    }
+  },
+  {
+    "index": 203,
+    "speaker": "SPEAKER_00",
+    "enText": "5月29号",
+    "zhDisplay": "5月29号",
+    "zhSpoken": "5月29号",
+    "enRange": {
+      "start": 542.708,
+      "end": 544.108
+    },
+    "zhRange": {
+      "start": 542.708,
+      "end": 544.108
+    }
+  },
+  {
+    "index": 204,
+    "speaker": "SPEAKER_00",
+    "enText": "在茅台冰淇淋上市一周年的庆典上",
+    "zhDisplay": "在茅台冰淇淋上市一周年的庆典上",
+    "zhSpoken": "在茅台冰淇淋上市一周年的庆典上",
+    "enRange": {
+      "start": 544.108,
+      "end": 546.608
+    },
+    "zhRange": {
+      "start": 544.108,
+      "end": 546.608
+    }
+  },
+  {
+    "index": 205,
+    "speaker": "SPEAKER_00",
+    "enText": "茅台集团董事长",
+    "zhDisplay": "茅台集团董事长",
+    "zhSpoken": "茅台集团董事长",
+    "enRange": {
+      "start": 546.608,
+      "end": 548.088
+    },
+    "zhRange": {
+      "start": 546.608,
+      "end": 548.088
+    }
+  },
+  {
+    "index": 206,
+    "speaker": "SPEAKER_00",
+    "enText": "宣布茅台冰淇淋累计销量",
+    "zhDisplay": "宣布茅台冰淇淋累计销量",
+    "zhSpoken": "宣布茅台冰淇淋累计销量",
+    "enRange": {
+      "start": 548.088,
+      "end": 549.808
+    },
+    "zhRange": {
+      "start": 548.088,
+      "end": 549.808
+    }
+  },
+  {
+    "index": 207,
+    "speaker": "SPEAKER_00",
+    "enText": "接近1000万倍",
+    "zhDisplay": "接近1000万倍",
+    "zhSpoken": "接近1000万倍",
+    "enRange": {
+      "start": 549.808,
+      "end": 550.968
+    },
+    "zhRange": {
+      "start": 549.808,
+      "end": 550.968
+    }
+  },
+  {
+    "index": 208,
+    "speaker": "SPEAKER_00",
+    "enText": "茅台未来还会研发酒精巧克力",
+    "zhDisplay": "茅台未来还会研发酒精巧克力",
+    "zhSpoken": "茅台未来还会研发酒精巧克力",
+    "enRange": {
+      "start": 550.968,
+      "end": 553.448
+    },
+    "zhRange": {
+      "start": 550.968,
+      "end": 553.448
+    }
+  },
+  {
+    "index": 209,
+    "speaker": "SPEAKER_00",
+    "enText": "以及含酒精饮料等等产品",
+    "zhDisplay": "以及含酒精饮料等等产品",
+    "zhSpoken": "以及含酒精饮料等等产品",
+    "enRange": {
+      "start": 553.448,
+      "end": 555.328
+    },
+    "zhRange": {
+      "start": 553.448,
+      "end": 555.328
+    }
+  },
+  {
+    "index": 210,
+    "speaker": "SPEAKER_00",
+    "enText": "而且就在当天",
+    "zhDisplay": "而且就在当天",
+    "zhSpoken": "而且就在当天",
+    "enRange": {
+      "start": 555.328,
+      "end": 556.368
+    },
+    "zhRange": {
+      "start": 555.328,
+      "end": 556.368
+    }
+  },
+  {
+    "index": 211,
+    "speaker": "SPEAKER_00",
+    "enText": "茅台冰淇淋在乌鲁木齐兰州和银川",
+    "zhDisplay": "茅台冰淇淋在乌鲁木齐兰州和银川",
+    "zhSpoken": "茅台冰淇淋在乌鲁木齐兰州和银川",
+    "enRange": {
+      "start": 556.368,
+      "end": 558.828
+    },
+    "zhRange": {
+      "start": 556.368,
+      "end": 558.828
+    }
+  },
+  {
+    "index": 212,
+    "speaker": "SPEAKER_00",
+    "enText": "等7个城市的旗舰店同时开业",
+    "zhDisplay": "等7个城市的旗舰店同时开业",
+    "zhSpoken": "等7个城市的旗舰店同时开业",
+    "enRange": {
+      "start": 558.828,
+      "end": 560.988
+    },
+    "zhRange": {
+      "start": 558.828,
+      "end": 560.988
+    }
+  },
+  {
+    "index": 213,
+    "speaker": "SPEAKER_00",
+    "enText": "目前他们在全国一共开出了34家旗舰店",
+    "zhDisplay": "目前他们在全国一共开出了34家旗舰店",
+    "zhSpoken": "目前他们在全国一共开出了34家旗舰店",
+    "enRange": {
+      "start": 560.988,
+      "end": 564.488
+    },
+    "zhRange": {
+      "start": 560.988,
+      "end": 564.488
+    }
+  },
+  {
+    "index": 214,
+    "speaker": "SPEAKER_00",
+    "enText": "在去年茅台冰淇淋的营收达到了2.62亿元",
+    "zhDisplay": "在去年茅台冰淇淋的营收达到了2.62亿元",
+    "zhSpoken": "在去年茅台冰淇淋的营收达到了2.62亿元",
+    "enRange": {
+      "start": 564.488,
+      "end": 568.168
+    },
+    "zhRange": {
+      "start": 564.488,
+      "end": 568.168
+    }
+  },
+  {
+    "index": 215,
+    "speaker": "SPEAKER_00",
+    "enText": "根据36克的报道",
+    "zhDisplay": "根据36克的报道",
+    "zhSpoken": "根据36克的报道",
+    "enRange": {
+      "start": 568.168,
+      "end": 569.688
+    },
+    "zhRange": {
+      "start": 568.168,
+      "end": 569.688
+    }
+  },
+  {
+    "index": 216,
+    "speaker": "SPEAKER_00",
+    "enText": "线上渠道的销售额也已经破亿",
+    "zhDisplay": "线上渠道的销售额也已经破亿",
+    "zhSpoken": "线上渠道的销售额也已经破亿",
+    "enRange": {
+      "start": 569.688,
+      "end": 572.108
+    },
+    "zhRange": {
+      "start": 569.688,
+      "end": 572.108
+    }
+  },
+  {
+    "index": 217,
+    "speaker": "SPEAKER_00",
+    "enText": "这个成绩已经接近中薛高",
+    "zhDisplay": "这个成绩已经接近中薛高",
+    "zhSpoken": "这个成绩已经接近中薛高",
+    "enRange": {
+      "start": 572.108,
+      "end": 574.028
+    },
+    "zhRange": {
+      "start": 572.108,
+      "end": 574.028
+    }
+  },
+  {
+    "index": 218,
+    "speaker": "SPEAKER_00",
+    "enText": "哈根达斯和孟龙的线上销售额",
+    "zhDisplay": "哈根达斯和孟龙的线上销售额",
+    "zhSpoken": "哈根达斯和孟龙的线上销售额",
+    "enRange": {
+      "start": 574.028,
+      "end": 576.208
+    },
+    "zhRange": {
+      "start": 574.028,
+      "end": 576.208
+    }
+  },
+  {
+    "index": 219,
+    "speaker": "SPEAKER_00",
+    "enText": "从茅台冰淇淋已经布局的31个地区来看",
+    "zhDisplay": "从茅台冰淇淋已经布局的31个地区来看",
+    "zhSpoken": "从茅台冰淇淋已经布局的31个地区来看",
+    "enRange": {
+      "start": 576.208,
+      "end": 579.248
+    },
+    "zhRange": {
+      "start": 576.208,
+      "end": 579.248
+    }
+  },
+  {
+    "index": 220,
+    "speaker": "SPEAKER_00",
+    "enText": "除了一线和新一线城市",
+    "zhDisplay": "除了一线和新一线城市",
+    "zhSpoken": "除了一线和新一线城市",
+    "enRange": {
+      "start": 579.248,
+      "end": 580.948
+    },
+    "zhRange": {
+      "start": 579.248,
+      "end": 580.948
+    }
+  },
+  {
+    "index": 221,
+    "speaker": "SPEAKER_00",
+    "enText": "还有尊义 哈尔滨 呼和浩特等等二三线城市",
+    "zhDisplay": "还有尊义 哈尔滨 呼和浩特等等二三线城市",
+    "zhSpoken": "还有尊义 哈尔滨 呼和浩特等等二三线城市",
+    "enRange": {
+      "start": 580.948,
+      "end": 584.588
+    },
+    "zhRange": {
+      "start": 580.948,
+      "end": 584.588
+    }
+  },
+  {
+    "index": 222,
+    "speaker": "SPEAKER_00",
+    "enText": "茅台还会继续逐步下沉渠道",
+    "zhDisplay": "茅台还会继续逐步下沉渠道",
+    "zhSpoken": "茅台还会继续逐步下沉渠道",
+    "enRange": {
+      "start": 584.588,
+      "end": 587.108
+    },
+    "zhRange": {
+      "start": 584.588,
+      "end": 587.108
+    }
+  },
+  {
+    "index": 223,
+    "speaker": "SPEAKER_00",
+    "enText": "在今年建立两级分销体系",
+    "zhDisplay": "在今年建立两级分销体系",
+    "zhSpoken": "在今年建立两级分销体系",
+    "enRange": {
+      "start": 587.108,
+      "end": 589.228
+    },
+    "zhRange": {
+      "start": 587.108,
+      "end": 589.228
+    }
+  },
+  {
+    "index": 224,
+    "speaker": "SPEAKER_00",
+    "enText": "省级经销商可以向下发展地级经销商",
+    "zhDisplay": "省级经销商可以向下发展地级经销商",
+    "zhSpoken": "省级经销商可以向下发展地级经销商",
+    "enRange": {
+      "start": 589.228,
+      "end": 592.088
+    },
+    "zhRange": {
+      "start": 589.228,
+      "end": 592.088
+    }
+  },
+  {
+    "index": 225,
+    "speaker": "SPEAKER_00",
+    "enText": "茅台董事长还表示过",
+    "zhDisplay": "茅台董事长还表示过",
+    "zhSpoken": "茅台董事长还表示过",
+    "enRange": {
+      "start": 592.088,
+      "end": 593.668
+    },
+    "zhRange": {
+      "start": 592.088,
+      "end": 593.668
+    }
+  },
+  {
+    "index": 226,
+    "speaker": "SPEAKER_00",
+    "enText": "茅台冰淇淋不是简单的消费商品",
+    "zhDisplay": "茅台冰淇淋不是简单的消费商品",
+    "zhSpoken": "茅台冰淇淋不是简单的消费商品",
+    "enRange": {
+      "start": 593.668,
+      "end": 595.948
+    },
+    "zhRange": {
+      "start": 593.668,
+      "end": 595.948
+    }
+  },
+  {
+    "index": 227,
+    "speaker": "SPEAKER_00",
+    "enText": "而是茅台品牌年轻化的战略级产品",
+    "zhDisplay": "而是茅台品牌年轻化的战略级产品",
+    "zhSpoken": "而是茅台品牌年轻化的战略级产品",
+    "enRange": {
+      "start": 595.948,
+      "end": 598.668
+    },
+    "zhRange": {
+      "start": 595.948,
+      "end": 598.668
+    }
+  },
+  {
+    "index": 228,
+    "speaker": "SPEAKER_00",
+    "enText": "那聊到这儿我们也很想来问问你",
+    "zhDisplay": "那聊到这儿我们也很想来问问你",
+    "zhSpoken": "那聊到这儿我们也很想来问问你",
+    "enRange": {
+      "start": 598.668,
+      "end": 600.908
+    },
+    "zhRange": {
+      "start": 598.668,
+      "end": 600.908
+    }
+  },
+  {
+    "index": 229,
+    "speaker": "SPEAKER_00",
+    "enText": "不知道你在这个夏天",
+    "zhDisplay": "不知道你在这个夏天",
+    "zhSpoken": "不知道你在这个夏天",
+    "enRange": {
+      "start": 600.908,
+      "end": 602.368
+    },
+    "zhRange": {
+      "start": 600.908,
+      "end": 602.368
+    }
+  },
+  {
+    "index": 230,
+    "speaker": "SPEAKER_00",
+    "enText": "是否会想要来尝试一下茅台冰淇淋",
+    "zhDisplay": "是否会想要来尝试一下茅台冰淇淋",
+    "zhSpoken": "是否会想要来尝试一下茅台冰淇淋",
+    "enRange": {
+      "start": 602.368,
+      "end": 604.928
+    },
+    "zhRange": {
+      "start": 602.368,
+      "end": 604.928
+    }
+  },
+  {
+    "index": 231,
+    "speaker": "SPEAKER_00",
+    "enText": "看看一口下去能不能尝出金钱的味道",
+    "zhDisplay": "看看一口下去能不能尝出金钱的味道",
+    "zhSpoken": "看看一口下去能不能尝出金钱的味道",
+    "enRange": {
+      "start": 604.928,
+      "end": 607.748
+    },
+    "zhRange": {
+      "start": 604.928,
+      "end": 607.748
+    }
+  },
+  {
+    "index": 232,
+    "speaker": "SPEAKER_00",
+    "enText": "其实吃吃喝喝的背后",
+    "zhDisplay": "其实吃吃喝喝的背后",
+    "zhSpoken": "其实吃吃喝喝的背后",
+    "enRange": {
+      "start": 607.748,
+      "end": 609.408
+    },
+    "zhRange": {
+      "start": 607.748,
+      "end": 609.408
+    }
+  },
+  {
+    "index": 233,
+    "speaker": "SPEAKER_00",
+    "enText": "不仅仅有我们每一个打工人下班之后的小快乐",
+    "zhDisplay": "不仅仅有我们每一个打工人下班之后的小快乐",
+    "zhSpoken": "不仅仅有我们每一个打工人下班之后的小快乐",
+    "enRange": {
+      "start": 609.408,
+      "end": 612.308
+    },
+    "zhRange": {
+      "start": 609.408,
+      "end": 612.308
+    }
+  },
+  {
+    "index": 234,
+    "speaker": "SPEAKER_00",
+    "enText": "还暗藏着整个商业世界变化的逻辑和门道",
+    "zhDisplay": "还暗藏着整个商业世界变化的逻辑和门道",
+    "zhSpoken": "还暗藏着整个商业世界变化的逻辑和门道",
+    "enRange": {
+      "start": 612.308,
+      "end": 615.328
+    },
+    "zhRange": {
+      "start": 612.308,
+      "end": 615.328
+    }
+  },
+  {
+    "index": 235,
+    "speaker": "SPEAKER_00",
+    "enText": "如果你感兴趣的话",
+    "zhDisplay": "如果你感兴趣的话",
+    "zhSpoken": "如果你感兴趣的话",
+    "enRange": {
+      "start": 615.328,
+      "end": 616.768
+    },
+    "zhRange": {
+      "start": 615.328,
+      "end": 616.768
+    }
+  },
+  {
+    "index": 236,
+    "speaker": "SPEAKER_00",
+    "enText": "非常推荐你来订阅我们生动活泼",
+    "zhDisplay": "非常推荐你来订阅我们生动活泼",
+    "zhSpoken": "非常推荐你来订阅我们生动活泼",
+    "enRange": {
+      "start": 616.768,
+      "end": 618.888
+    },
+    "zhRange": {
+      "start": 616.768,
+      "end": 618.888
+    }
+  },
+  {
+    "index": 237,
+    "speaker": "SPEAKER_00",
+    "enText": "筹备已久的另一档全新节目",
+    "zhDisplay": "筹备已久的另一档全新节目",
+    "zhSpoken": "筹备已久的另一档全新节目",
+    "enRange": {
+      "start": 618.888,
+      "end": 620.908
+    },
+    "zhRange": {
+      "start": 618.888,
+      "end": 620.908
+    }
+  },
+  {
+    "index": 238,
+    "speaker": "SPEAKER_00",
+    "enText": "名字就叫做吃喝玩乐了不起urban flow",
+    "zhDisplay": "名字就叫做吃喝玩乐了不起urban flow",
+    "zhSpoken": "名字就叫做吃喝玩乐了不起urban flow",
+    "enRange": {
+      "start": 620.908,
+      "end": 624.108
+    },
+    "zhRange": {
+      "start": 620.908,
+      "end": 624.108
+    }
+  },
+  {
+    "index": 239,
+    "speaker": "SPEAKER_00",
+    "enText": "现在这一档节目已经正式上线了",
+    "zhDisplay": "现在这一档节目已经正式上线了",
+    "zhSpoken": "现在这一档节目已经正式上线了",
+    "enRange": {
+      "start": 624.108,
+      "end": 627.208
+    },
+    "zhRange": {
+      "start": 624.108,
+      "end": 627.208
+    }
+  },
+  {
+    "index": 240,
+    "speaker": "SPEAKER_00",
+    "enText": "哈喽哈喽大家好",
+    "zhDisplay": "哈喽哈喽大家好",
+    "zhSpoken": "哈喽哈喽大家好",
+    "enRange": {
+      "start": 627.208,
+      "end": 628.788
+    },
+    "zhRange": {
+      "start": 627.208,
+      "end": 628.788
+    }
+  },
+  {
+    "index": 241,
+    "speaker": "SPEAKER_00",
+    "enText": "我是长得好看了不起的吃喝完了投资人莫莫",
+    "zhDisplay": "我是长得好看了不起的吃喝完了投资人莫莫",
+    "zhSpoken": "我是长得好看了不起的吃喝完了投资人莫莫",
+    "enRange": {
+      "start": 628.788,
+      "end": 631.328
+    },
+    "zhRange": {
+      "start": 628.788,
+      "end": 631.328
+    }
+  },
+  {
+    "index": 242,
+    "speaker": "SPEAKER_00",
+    "enText": "长阳都市生活",
+    "zhDisplay": "长阳都市生活",
+    "zhSpoken": "长阳都市生活",
+    "enRange": {
+      "start": 631.328,
+      "end": 632.988
+    },
+    "zhRange": {
+      "start": 631.328,
+      "end": 632.988
+    }
+  },
+  {
+    "index": 243,
+    "speaker": "SPEAKER_00",
+    "enText": "解读吃喝一口背后的商业秘密",
+    "zhDisplay": "解读吃喝一口背后的商业秘密",
+    "zhSpoken": "解读吃喝一口背后的商业秘密",
+    "enRange": {
+      "start": 632.988,
+      "end": 635.308
+    },
+    "zhRange": {
+      "start": 632.988,
+      "end": 635.308
+    }
+  },
+  {
+    "index": 244,
+    "speaker": "SPEAKER_00",
+    "enText": "这是时隔一年多之后",
+    "zhDisplay": "这是时隔一年多之后",
+    "zhSpoken": "这是时隔一年多之后",
+    "enRange": {
+      "start": 635.308,
+      "end": 637.768
+    },
+    "zhRange": {
+      "start": 635.308,
+      "end": 637.768
+    }
+  },
+  {
+    "index": 245,
+    "speaker": "SPEAKER_00",
+    "enText": "炮腾VC主播默默的全新回归",
+    "zhDisplay": "炮腾VC主播默默的全新回归",
+    "zhSpoken": "炮腾VC主播默默的全新回归",
+    "enRange": {
+      "start": 637.768,
+      "end": 639.728
+    },
+    "zhRange": {
+      "start": 637.768,
+      "end": 639.728
+    }
+  },
+  {
+    "index": 246,
+    "speaker": "SPEAKER_00",
+    "enText": "默默在这段新节目当中",
+    "zhDisplay": "默默在这段新节目当中",
+    "zhSpoken": "默默在这段新节目当中",
+    "enRange": {
+      "start": 639.728,
+      "end": 641.488
+    },
+    "zhRange": {
+      "start": 639.728,
+      "end": 641.488
+    }
+  },
+  {
+    "index": 247,
+    "speaker": "SPEAKER_00",
+    "enText": "将会邀请不同领域的嘉宾",
+    "zhDisplay": "将会邀请不同领域的嘉宾",
+    "zhSpoken": "将会邀请不同领域的嘉宾",
+    "enRange": {
+      "start": 641.488,
+      "end": 643.168
+    },
+    "zhRange": {
+      "start": 641.488,
+      "end": 643.168
+    }
+  },
+  {
+    "index": 248,
+    "speaker": "SPEAKER_00",
+    "enText": "一起来畅聊吃喝玩乐背后的商业模式",
+    "zhDisplay": "一起来畅聊吃喝玩乐背后的商业模式",
+    "zhSpoken": "一起来畅聊吃喝玩乐背后的商业模式",
+    "enRange": {
+      "start": 643.168,
+      "end": 646.188
+    },
+    "zhRange": {
+      "start": 643.168,
+      "end": 646.188
+    }
+  },
+  {
+    "index": 249,
+    "speaker": "SPEAKER_00",
+    "enText": "和经济学解读",
+    "zhDisplay": "和经济学解读",
+    "zhSpoken": "和经济学解读",
+    "enRange": {
+      "start": 646.188,
+      "end": 647.388
+    },
+    "zhRange": {
+      "start": 646.188,
+      "end": 647.388
+    }
+  },
+  {
+    "index": 250,
+    "speaker": "SPEAKER_00",
+    "enText": "会充满好奇心的你",
+    "zhDisplay": "会充满好奇心的你",
+    "zhSpoken": "会充满好奇心的你",
+    "enRange": {
+      "start": 647.388,
+      "end": 648.968
+    },
+    "zhRange": {
+      "start": 647.388,
+      "end": 648.968
+    }
+  },
+  {
+    "index": 251,
+    "speaker": "SPEAKER_00",
+    "enText": "来提供丰富又有趣的商业信息和视角",
+    "zhDisplay": "来提供丰富又有趣的商业信息和视角",
+    "zhSpoken": "来提供丰富又有趣的商业信息和视角",
+    "enRange": {
+      "start": 648.968,
+      "end": 651.768
+    },
+    "zhRange": {
+      "start": 648.968,
+      "end": 651.768
+    }
+  },
+  {
+    "index": 252,
+    "speaker": "SPEAKER_00",
+    "enText": "现在就可以拿起你的手机",
+    "zhDisplay": "现在就可以拿起你的手机",
+    "zhSpoken": "现在就可以拿起你的手机",
+    "enRange": {
+      "start": 651.768,
+      "end": 653.768
+    },
+    "zhRange": {
+      "start": 651.768,
+      "end": 653.768
+    }
+  },
+  {
+    "index": 253,
+    "speaker": "SPEAKER_00",
+    "enText": "搜索吃喝玩乐聊不起",
+    "zhDisplay": "搜索吃喝玩乐聊不起",
+    "zhSpoken": "搜索吃喝玩乐聊不起",
+    "enRange": {
+      "start": 653.768,
+      "end": 655.908
+    },
+    "zhRange": {
+      "start": 653.768,
+      "end": 655.908
+    }
+  },
+  {
+    "index": 254,
+    "speaker": "SPEAKER_00",
+    "enText": "赶紧订阅收听吧",
+    "zhDisplay": "赶紧订阅收听吧",
+    "zhSpoken": "赶紧订阅收听吧",
+    "enRange": {
+      "start": 655.908,
+      "end": 657.408
+    },
+    "zhRange": {
+      "start": 655.908,
+      "end": 657.408
+    }
+  },
+  {
+    "index": 255,
+    "speaker": "SPEAKER_00",
+    "enText": "好了今天的生多早咖啡就是这样",
+    "zhDisplay": "好了今天的生多早咖啡就是这样",
+    "zhSpoken": "好了今天的生多早咖啡就是这样",
+    "enRange": {
+      "start": 657.408,
+      "end": 659.768
+    },
+    "zhRange": {
+      "start": 657.408,
+      "end": 659.768
+    }
+  },
+  {
+    "index": 256,
+    "speaker": "SPEAKER_00",
+    "enText": "那我们明天一早再见啦",
+    "zhDisplay": "那我们明天一早再见啦",
+    "zhSpoken": "那我们明天一早再见啦",
+    "enRange": {
+      "start": 659.768,
+      "end": 661.248
+    },
+    "zhRange": {
+      "start": 659.768,
+      "end": 661.248
+    }
+  },
+  {
+    "index": 257,
+    "speaker": "SPEAKER_00",
+    "enText": "拜拜",
+    "zhDisplay": "拜拜",
+    "zhSpoken": "拜拜",
+    "enRange": {
+      "start": 661.248,
+      "end": 661.548
+    },
+    "zhRange": {
+      "start": 661.248,
+      "end": 661.548
+    }
+  },
+  {
+    "index": 258,
+    "speaker": "SPEAKER_01",
+    "enText": "这就是我们今天的节目了",
+    "zhDisplay": "这就是我们今天的节目了",
+    "zhSpoken": "这就是我们今天的节目了",
+    "enRange": {
+      "start": 662.988,
+      "end": 667.688
+    },
+    "zhRange": {
+      "start": 662.988,
+      "end": 667.688
+    }
+  },
+  {
+    "index": 259,
+    "speaker": "SPEAKER_01",
+    "enText": "我们其他的成员还有",
+    "zhDisplay": "我们其他的成员还有",
+    "zhSpoken": "我们其他的成员还有",
+    "enRange": {
+      "start": 667.688,
+      "end": 669.068
+    },
+    "zhRange": {
+      "start": 667.688,
+      "end": 669.068
+    }
+  },
+  {
+    "index": 260,
+    "speaker": "SPEAKER_01",
+    "enText": "监制泽林",
+    "zhDisplay": "监制泽林",
+    "zhSpoken": "监制泽林",
+    "enRange": {
+      "start": 669.068,
+      "end": 669.948
+    },
+    "zhRange": {
+      "start": 669.068,
+      "end": 669.948
+    }
+  },
+  {
+    "index": 261,
+    "speaker": "SPEAKER_01",
+    "enText": "监制一凡",
+    "zhDisplay": "监制一凡",
+    "zhSpoken": "监制一凡",
+    "enRange": {
+      "start": 669.948,
+      "end": 670.788
+    },
+    "zhRange": {
+      "start": 669.948,
+      "end": 670.788
+    }
+  },
+  {
+    "index": 262,
+    "speaker": "SPEAKER_01",
+    "enText": "声音授记Jack",
+    "zhDisplay": "声音授记Jack",
+    "zhSpoken": "声音授记Jack",
+    "enRange": {
+      "start": 670.788,
+      "end": 672.008
+    },
+    "zhRange": {
+      "start": 670.788,
+      "end": 672.008
+    }
+  },
+  {
+    "index": 263,
+    "speaker": "SPEAKER_01",
+    "enText": "实习生Aurora",
+    "zhDisplay": "实习生Aurora",
+    "zhSpoken": "实习生Aurora",
+    "enRange": {
+      "start": 672.008,
+      "end": 673.208
+    },
+    "zhRange": {
+      "start": 672.008,
+      "end": 673.208
+    }
+  },
+  {
+    "index": 264,
+    "speaker": "SPEAKER_01",
+    "enText": "感谢你收听今天的生动早咖啡",
+    "zhDisplay": "感谢你收听今天的生动早咖啡",
+    "zhSpoken": "感谢你收听今天的生动早咖啡",
+    "enRange": {
+      "start": 673.208,
+      "end": 675.488
+    },
+    "zhRange": {
+      "start": 673.208,
+      "end": 675.488
+    }
+  },
+  {
+    "index": 265,
+    "speaker": "SPEAKER_01",
+    "enText": "那我们就",
+    "zhDisplay": "那我们就",
+    "zhSpoken": "那我们就",
+    "enRange": {
+      "start": 675.488,
+      "end": 676.488
+    },
+    "zhRange": {
+      "start": 675.488,
+      "end": 676.488
+    }
+  },
+  {
+    "index": 266,
+    "speaker": "SPEAKER_01",
+    "enText": "下期再见",
+    "zhDisplay": "下期再见",
+    "zhSpoken": "下期再见",
+    "enRange": {
+      "start": 676.488,
+      "end": 678.048
+    },
+    "zhRange": {
+      "start": 676.488,
+      "end": 678.048
+    }
+  },
+  {
+    "index": 267,
+    "speaker": "SPEAKER_00",
+    "enText": "优优独播剧场——YoYo Television Series Exclusive",
+    "zhDisplay": "优优独播剧场——YoYo Television Series Exclusive",
+    "zhSpoken": "优优独播剧场——YoYo Television Series Exclusive",
+    "enRange": {
+      "start": 692.988,
+      "end": 698.348
+    },
+    "zhRange": {
+      "start": 692.988,
+      "end": 698.348
+    }
+  }
+]
