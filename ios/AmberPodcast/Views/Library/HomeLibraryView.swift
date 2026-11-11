@@ -15,6 +15,13 @@ public struct HomeLibraryView: View {
 
     @AppStorage("amber_cached_library_json_v2") private var cachedLibraryJson: String = ""
 
+    /// Stable height basis for hero sizing. iOS 26's tabViewBottomAccessory
+    /// resizes page content every frame while expanding/collapsing; deriving
+    /// the hero from live geo.size.height made the whole page re-layout on each
+    /// frame (visible stutter when restoring the Dock at the top). We snapshot
+    /// the height once and only re-baseline on real window changes.
+    @State private var layoutHeightBasis: CGFloat = 0
+
     @ObservedObject var player = DualTrackAudioPlayer.shared
     private let impactFeedback = UIImpactFeedbackGenerator(style: .light)
 
@@ -68,6 +75,16 @@ public struct HomeLibraryView: View {
                         .ignoresSafeArea(edges: .top)
                     }
                 }
+                .onAppear {
+                    if layoutHeightBasis < 1 { layoutHeightBasis = geo.size.height }
+                }
+                .onChange(of: geo.size.height) { _, newHeight in
+                    // >80pt means a real window change (rotation / split view),
+                    // not the ~30-60pt accessory expansion churn.
+                    if layoutHeightBasis > 0 && abs(newHeight - layoutHeightBasis) > 80 {
+                        layoutHeightBasis = newHeight
+                    }
+                }
             }
             .navigationTitle("首页")
             .navigationBarTitleDisplayMode(.large)
@@ -105,7 +122,10 @@ public struct HomeLibraryView: View {
     // MARK: - 1. Acoustic Hero Banner
     @ViewBuilder
     private func heroBannerSection(geometry: GeometryProxy) -> some View {
-        let heroHeight = geometry.size.height * AmberTheme.heroBannerRatio
+        // Use the stable basis, not live geo height — the latter changes every
+        // frame while the iOS 26 bottom accessory expands/collapses.
+        let basis = layoutHeightBasis > 0 ? layoutHeightBasis : geometry.size.height
+        let heroHeight = basis * AmberTheme.heroBannerRatio
 
         ZStack(alignment: .bottomLeading) {
             // Layer 1: High-Resolution Artwork Layer
