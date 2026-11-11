@@ -56,7 +56,7 @@ public struct PipelineStatusView: View {
                 }
             }
             .navigationTitle("转储")
-            .navigationBarTitleDisplayMode(.large)
+            .toolbarTitleDisplayMode(.inlineLarge)
             .amberImmersiveTopEdge()
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {

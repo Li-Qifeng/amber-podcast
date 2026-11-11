@@ -89,7 +89,7 @@ public struct HomeLibraryView: View {
                 }
             }
             .navigationTitle("首页")
-            .navigationBarTitleDisplayMode(.large)
+            .toolbarTitleDisplayMode(.inlineLarge)
             .amberImmersiveTopEdge()
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -148,17 +148,17 @@ public struct HomeLibraryView: View {
                 // Top Protection Scrim: Ensures status bar and navigation bar items have consistent contrast
                 LinearGradient(
                     stops: [
-                        .init(color: Color.black.opacity(0.72), location: 0.0),
-                        .init(color: Color.black.opacity(0.45), location: 0.45),
-                        .init(color: Color.black.opacity(0.16), location: 0.78),
+                        .init(color: Color.black.opacity(0.70), location: 0.0),
+                        .init(color: Color.black.opacity(0.42), location: 0.55),
+                        .init(color: Color.black.opacity(0.12), location: 0.85),
                         .init(color: .clear, location: 1.0)
                     ],
                     startPoint: .top,
                     endPoint: .bottom
                 )
-                // Covers status bar (59) + large title (~62) + falloff, so the
-                // white 首页 title never sits on bright artwork.
-                .frame(height: 178)
+                // Covers status bar (59) + inlineLarge title row (44) + falloff;
+                // the title no longer occupies a full large-title band.
+                .frame(height: 132)
 
                 Spacer()
 
