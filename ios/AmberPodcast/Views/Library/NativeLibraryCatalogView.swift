@@ -167,15 +167,10 @@ public struct NativeLibraryCatalogView: View {
                 .scrollBounceBehavior(.always, axes: .vertical)
                 .amberScrollObservable(tab: 1)
             }
-            .navigationTitle("")
-            .toolbarTitleDisplayMode(.inline)
+            .navigationTitle("资料库")
+            .toolbarTitleDisplayMode(.inlineLarge)
             .amberImmersiveTopEdge()
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Text("资料库")
-                        .font(.system(size: 26, weight: .bold, design: .rounded))
-                        .foregroundStyle(AmberTheme.labelPrimary)
-                }
                 ToolbarItem(placement: .topBarTrailing) {
                     CircularLiquidGlassAddButton {
                         showSubscribeSheet = true
@@ -250,7 +245,6 @@ public struct FeedListView: View {
             }
         }
         .navigationTitle("节目")
-        .amberBackButton()
     }
 }
 
@@ -280,7 +274,6 @@ public struct LatestEpisodesListView: View {
             }
         }
         .navigationTitle("最新单集")
-        .amberBackButton()
     }
 
     @ViewBuilder
@@ -332,6 +325,5 @@ public struct DownloadedEpisodesListView: View {
             }
         }
         .navigationTitle("已下载")
-        .amberBackButton()
     }
 }

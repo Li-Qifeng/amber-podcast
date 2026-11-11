@@ -88,18 +88,10 @@ public struct HomeLibraryView: View {
                     .ignoresSafeArea(edges: .top)
                 }
             }
-            .navigationTitle("")
-            .toolbarTitleDisplayMode(.inline)
+            .navigationTitle("首页")
+            .toolbarTitleDisplayMode(.inlineLarge)
             .amberImmersiveTopEdge()
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    // Custom leading title instead of a system large/inline title:
-                    // the system version morphs into a centred title on scroll.
-                    Text("首页")
-                        .font(.system(size: 26, weight: .bold, design: .rounded))
-                        .foregroundStyle(.white)
-                        .shadow(color: .black.opacity(0.35), radius: 6, y: 1)
-                }
                 ToolbarItem(placement: .topBarTrailing) {
                     CircularLiquidGlassAddButton {
                         showSubscribeSheet = true
@@ -805,7 +797,6 @@ public struct AllChannelsListView: View {
         }
         .navigationTitle("全部频道")
         .navigationBarTitleDisplayMode(.inline)
-        .amberBackButton()
     }
 
     private func channelCover(feed: PodcastFeed) -> some View {

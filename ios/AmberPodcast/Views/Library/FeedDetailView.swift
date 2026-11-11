@@ -112,7 +112,6 @@ public struct FeedDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         // Custom back button: the parent tab uses an empty system title, so the
         // default back label would collapse into a "..." placeholder.
-        .amberBackButton()
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 if isSubscribed {
