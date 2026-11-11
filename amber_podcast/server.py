@@ -964,24 +964,68 @@ def get_episode_artifacts(episode_id: str, token: str = Depends(verify_token)):
     }
 
 @app.post("/api/v1/ci/deploy")
-async def ci_deploy_webhook(bg_tasks: BackgroundTasks):
+async def ci_deploy_webhook(bg_tasks: BackgroundTasks, payload: Optional[Dict[str, Any]] = None):
     """Webhook triggered by GitHub Actions when iOS build succeeds: auto download, zsign, and publish to AirStore."""
+    # The exact run id matters: `gh run download` without one resolves to the
+    # newest run, which races the artifact index and can fetch the PREVIOUS
+    # build (version bump silently not applied).
+    run_id = str((payload or {}).get("run_id") or "").strip()
+
     def run_deploy():
         import subprocess, json, os, glob, shutil
         from pathlib import Path
         from datetime import datetime
         try:
-            logger.info("Starting automated AirStore deployment from GitHub Actions...")
+            logger.info(f"Starting automated AirStore deployment (run_id={run_id or 'latest'})...")
             tmp_dir = "/tmp/airstore_ci_auto"
             shutil.rmtree(tmp_dir, ignore_errors=True)
             os.makedirs(tmp_dir, exist_ok=True)
-            # 1. Download latest artifact
-            subprocess.run(["gh", "run", "download", "--name", "AmberPodcast-iOS-IPA", "--dir", tmp_dir, "--repo", "Li-Qifeng/amber-podcast"], check=True)
+            # 1. Download the artifact for THIS run (fallback: newest)
+            if run_id:
+                dl_cmd = ["gh", "run", "download", run_id, "--name", "AmberPodcast-iOS-IPA",
+                          "--dir", tmp_dir, "--repo", "Li-Qifeng/amber-podcast"]
+            else:
+                dl_cmd = ["gh", "run", "download", "--name", "AmberPodcast-iOS-IPA",
+                          "--dir", tmp_dir, "--repo", "Li-Qifeng/amber-podcast"]
+            subprocess.run(dl_cmd, check=True)
             ipas = glob.glob(f"{tmp_dir}/*.ipa")
             if not ipas:
                 logger.error("No IPA found in downloaded artifact")
                 return
             src_ipa = ipas[0]
+
+            # 1b. Verify the downloaded IPA really matches project.yml, otherwise
+            # deploying it would publish a stale version under the new number.
+            expected_ver = expected_build = None
+            try:
+                proj = Path("/root/projects/amber-podcast/ios/project.yml").read_text(encoding="utf-8")
+                import re as _re
+                mv = _re.search(r'MARKETING_VERSION:\s*["\']?([^"\'\s]+)', proj)
+                cb = _re.search(r'CURRENT_PROJECT_VERSION:\s*["\']?([^"\'\s]+)', proj)
+                expected_ver = mv.group(1) if mv else None
+                expected_build = cb.group(1) if cb else None
+            except Exception as _e:
+                logger.warning(f"Could not read expected version: {_e}")
+
+            if expected_ver:
+                import zipfile, plistlib
+                actual_ver = actual_build = None
+                with zipfile.ZipFile(src_ipa) as zf:
+                    for name in zf.namelist():
+                        if name.endswith(".app/Info.plist"):
+                            with zf.open(name) as fp:
+                                info = plistlib.load(fp)
+                            actual_ver = info.get("CFBundleShortVersionString")
+                            actual_build = info.get("CFBundleVersion")
+                            break
+                if actual_ver != expected_ver:
+                    logger.error(
+                        f"Artifact version mismatch: ipa={actual_ver}({actual_build}) "
+                        f"expected={expected_ver}({expected_build}); refusing to deploy stale build."
+                    )
+                    return
+                logger.info(f"Version verified: {actual_ver} (build {actual_build}).")
+
             dist_ipa = "/root/projects/amber-podcast/dist/AmberPodcast.ipa"
             os.makedirs(os.path.dirname(dist_ipa), exist_ok=True)
             shutil.copy2(src_ipa, dist_ipa)

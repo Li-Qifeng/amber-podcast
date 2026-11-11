@@ -183,4 +183,6 @@ jobs:
         if: success()
         run: |
           curl -s -X POST https://podcast.refoxai.com/api/v1/ci/deploy \
+            -H "Content-Type: application/json" \
+            -d "{\"run_id\": \"${{ github.run_id }}\"}" \
             --max-time 15 || echo "AirStore deploy trigger sent"
