@@ -358,6 +358,21 @@ public struct FullMappingSegment: Identifiable, Codable, Hashable {
         self.zhWords = try c.decodeIfPresent([WordTimestamp].self, forKey: .zhWords)
             ?? c.decodeIfPresent([WordTimestamp].self, forKey: .zhWordsSnake)
     }
+
+    /// Explicit encode because CodingKeys carries snake_case decode aliases that
+    /// have no matching stored property, which blocks synthesized Encodable.
+    public func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(index, forKey: .index)
+        try c.encode(speaker, forKey: .speaker)
+        try c.encode(enText, forKey: .enText)
+        try c.encode(zhDisplay, forKey: .zhDisplay)
+        try c.encode(zhSpoken, forKey: .zhSpoken)
+        try c.encode(enRange, forKey: .enRange)
+        try c.encode(zhRange, forKey: .zhRange)
+        try c.encodeIfPresent(enWords, forKey: .enWords)
+        try c.encodeIfPresent(zhWords, forKey: .zhWords)
+    }
 }
 
 // MARK: - Chapter
