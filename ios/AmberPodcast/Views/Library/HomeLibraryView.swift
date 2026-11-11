@@ -148,14 +148,17 @@ public struct HomeLibraryView: View {
                 // Top Protection Scrim: Ensures status bar and navigation bar items have consistent contrast
                 LinearGradient(
                     stops: [
-                        .init(color: Color.black.opacity(0.55), location: 0.0),
-                        .init(color: Color.black.opacity(0.20), location: 0.50),
+                        .init(color: Color.black.opacity(0.72), location: 0.0),
+                        .init(color: Color.black.opacity(0.45), location: 0.45),
+                        .init(color: Color.black.opacity(0.16), location: 0.78),
                         .init(color: .clear, location: 1.0)
                     ],
                     startPoint: .top,
                     endPoint: .bottom
                 )
-                .frame(height: 110)
+                // Covers status bar (59) + large title (~62) + falloff, so the
+                // white 首页 title never sits on bright artwork.
+                .frame(height: 178)
 
                 Spacer()
 

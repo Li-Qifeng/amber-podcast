@@ -55,7 +55,7 @@ public struct PipelineStatusView: View {
                     await loadAll()
                 }
             }
-            .navigationTitle("后台转储")
+            .navigationTitle("转储")
             .navigationBarTitleDisplayMode(.large)
             .amberImmersiveTopEdge()
             .toolbar {

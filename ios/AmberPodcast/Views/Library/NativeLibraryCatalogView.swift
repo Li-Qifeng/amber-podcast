@@ -168,6 +168,7 @@ public struct NativeLibraryCatalogView: View {
                 .amberScrollObservable(tab: 1)
             }
             .navigationTitle("资料库")
+            .navigationBarTitleDisplayMode(.large)
             .amberImmersiveTopEdge()
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
