@@ -214,6 +214,145 @@ public final class AmberAPIClient: ObservableObject {
         return try JSONDecoder().decode(PipelineStatusResponse.self, from: data)
     }
 
+    // MARK: - Pipeline Console (queue / stats / actions)
+
+    public struct PipelineTaskCard: Codable, Identifiable {
+        public let episodeId: String
+        public let title: String
+        public let feedId: String
+        public let feedTitle: String
+        public let coverUrl: String
+        public let status: String
+        public let progress: Int
+        public let errorMessage: String
+        public let elapsedSec: Int
+        public let updatedAt: Int
+
+        public var id: String { episodeId }
+
+        enum CodingKeys: String, CodingKey {
+            case episodeId = "episode_id"
+            case title
+            case feedId = "feed_id"
+            case feedTitle = "feed_title"
+            case coverUrl = "cover_url"
+            case status, progress
+            case errorMessage = "error_message"
+            case elapsedSec = "elapsed_sec"
+            case updatedAt = "updated_at"
+        }
+
+        /// Human-readable duration; "—" when the backend has no real start stamp.
+        public var elapsedText: String {
+            guard elapsedSec > 0 else { return "—" }
+            let m = elapsedSec / 60
+            let s = elapsedSec % 60
+            if m >= 60 { return "\(m / 60)h\(m % 60)m" }
+            return m > 0 ? "\(m)m\(s)s" : "\(s)s"
+        }
+    }
+
+    public struct PipelineQueueCounts: Codable {
+        public let running: Int
+        public let queued: Int
+        public let failed: Int
+        public let completed: Int
+    }
+
+    public struct PipelineQueueResponse: Codable {
+        public let running: [PipelineTaskCard]
+        public let queued: [PipelineTaskCard]
+        public let failed: [PipelineTaskCard]
+        public let completed: [PipelineTaskCard]
+        public let counts: PipelineQueueCounts
+    }
+
+    public struct PipelineTrendPoint: Codable, Identifiable {
+        public let date: String
+        public let count: Int
+        public var id: String { date }
+    }
+
+    public struct PipelineStatsResponse: Codable {
+        public let todayDumped: Int
+        public let avgDurationSec: Int
+        public let successRate: Double
+        public let totalReady: Int
+        public let totalFailed: Int
+        public let trend: [PipelineTrendPoint]
+
+        enum CodingKeys: String, CodingKey {
+            case todayDumped = "today_dumped"
+            case avgDurationSec = "avg_duration_sec"
+            case successRate = "success_rate"
+            case totalReady = "total_ready"
+            case totalFailed = "total_failed"
+            case trend
+        }
+    }
+
+    public struct BatchTranslateResponse: Codable {
+        public let queued: Int
+        public let skipped: Int
+        public let totalRequested: Int
+
+        enum CodingKeys: String, CodingKey {
+            case queued, skipped
+            case totalRequested = "total_requested"
+        }
+    }
+
+    public func fetchPipelineQueue() async throws -> PipelineQueueResponse {
+        let req = try makeRequest(endpoint: "/api/v1/pipeline/queue")
+        let (data, resp) = try await session.data(for: req)
+        guard (resp as? HTTPURLResponse)?.statusCode == 200 else {
+            throw URLError(.badServerResponse)
+        }
+        return try JSONDecoder().decode(PipelineQueueResponse.self, from: data)
+    }
+
+    public func fetchPipelineStats() async throws -> PipelineStatsResponse {
+        let req = try makeRequest(endpoint: "/api/v1/pipeline/stats")
+        let (data, resp) = try await session.data(for: req)
+        guard (resp as? HTTPURLResponse)?.statusCode == 200 else {
+            throw URLError(.badServerResponse)
+        }
+        return try JSONDecoder().decode(PipelineStatsResponse.self, from: data)
+    }
+
+    public func batchTranslate(
+        episodeIds: [String] = [],
+        feedId: String? = nil,
+        onlyIdle: Bool = true
+    ) async throws -> BatchTranslateResponse {
+        var payload: [String: Any] = ["only_idle": onlyIdle]
+        if let feedId = feedId { payload["feed_id"] = feedId }
+        if !episodeIds.isEmpty { payload["episode_ids"] = episodeIds }
+        let bodyData = try JSONSerialization.data(withJSONObject: payload)
+        let req = try makeRequest(endpoint: "/api/v1/pipeline/batch-translate", method: "POST", body: bodyData)
+        let (data, resp) = try await session.data(for: req)
+        guard (resp as? HTTPURLResponse)?.statusCode == 200 else {
+            throw URLError(.badServerResponse)
+        }
+        return try JSONDecoder().decode(BatchTranslateResponse.self, from: data)
+    }
+
+    public func cancelEpisodeTask(episodeId: String) async throws {
+        let req = try makeRequest(endpoint: "/api/v1/episodes/\(episodeId)/cancel", method: "POST")
+        let (_, resp) = try await session.data(for: req)
+        guard (resp as? HTTPURLResponse)?.statusCode == 200 else {
+            throw URLError(.badServerResponse)
+        }
+    }
+
+    public func deleteEpisodeArtifacts(episodeId: String) async throws {
+        let req = try makeRequest(endpoint: "/api/v1/episodes/\(episodeId)/artifacts", method: "DELETE")
+        let (_, resp) = try await session.data(for: req)
+        guard (resp as? HTTPURLResponse)?.statusCode == 200 else {
+            throw URLError(.badServerResponse)
+        }
+    }
+
     // MARK: - Feeds
     public func subscribe(url: String, autoTranslate: Bool = false) async throws {
         struct SubBody: Codable {
