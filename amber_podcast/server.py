@@ -981,14 +981,29 @@ async def ci_deploy_webhook(bg_tasks: BackgroundTasks, payload: Optional[Dict[st
             tmp_dir = "/tmp/airstore_ci_auto"
             shutil.rmtree(tmp_dir, ignore_errors=True)
             os.makedirs(tmp_dir, exist_ok=True)
-            # 1. Download the artifact for THIS run (fallback: newest)
+            # 1. Download the artifact for THIS run (fallback: newest).
+            #    Right after a run completes the artifact index can lag a few
+            #    seconds; a single failed download used to abort the deploy.
             if run_id:
                 dl_cmd = ["gh", "run", "download", run_id, "--name", "AmberPodcast-iOS-IPA",
                           "--dir", tmp_dir, "--repo", "Li-Qifeng/amber-podcast"]
             else:
                 dl_cmd = ["gh", "run", "download", "--name", "AmberPodcast-iOS-IPA",
                           "--dir", tmp_dir, "--repo", "Li-Qifeng/amber-podcast"]
-            subprocess.run(dl_cmd, check=True)
+            import time as _time
+            dl_ok, dl_err = False, ""
+            for attempt in range(3):
+                proc = subprocess.run(dl_cmd, capture_output=True, text=True)
+                if proc.returncode == 0:
+                    dl_ok = True
+                    break
+                dl_err = (proc.stderr or "").strip()[-400:]
+                logger.warning(f"Artifact download attempt {attempt + 1}/3 failed: {dl_err}")
+                if attempt < 2:
+                    _time.sleep(5 * (attempt + 1))
+            if not dl_ok:
+                logger.error(f"Artifact download failed after 3 attempts: {dl_err}")
+                return
             ipas = glob.glob(f"{tmp_dir}/*.ipa")
             if not ipas:
                 logger.error("No IPA found in downloaded artifact")
