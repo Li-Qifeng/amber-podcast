@@ -741,8 +741,9 @@ def get_pipeline_status(token: str = Depends(verify_token)):
             "failed_count": len(failed),
             "idle_count": len(idle),
             "storage_mb": round(storage_bytes / (1024 * 1024), 2),
-            "asr_engine": "SenseNova / Whisper Large-v3",
-            "tts_engine": "Edge Dual-Track Neutral",
+            "asr_engine": "Groq Whisper Large-v3 Turbo",
+            "llm_engine": "Groq Qwen 3.8 27B",
+            "tts_engine": "Edge TTS · 4 音色",
             "server_status": "healthy"
         },
         "feeds": feeds_grouped,
