@@ -250,6 +250,7 @@ public struct FeedListView: View {
             }
         }
         .navigationTitle("节目")
+        .amberBackButton()
     }
 }
 
@@ -279,6 +280,7 @@ public struct LatestEpisodesListView: View {
             }
         }
         .navigationTitle("最新单集")
+        .amberBackButton()
     }
 
     @ViewBuilder
@@ -330,5 +332,6 @@ public struct DownloadedEpisodesListView: View {
             }
         }
         .navigationTitle("已下载")
+        .amberBackButton()
     }
 }

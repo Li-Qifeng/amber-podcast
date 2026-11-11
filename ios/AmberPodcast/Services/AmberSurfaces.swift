@@ -76,4 +76,33 @@ public extension View {
             self.toolbarBackground(.hidden, for: .navigationBar)
         }
     }
+
+    /// 统一的返回按钮：纯箭头，不依赖上一页标题。
+    /// 三个 Tab 根页面的 navigationTitle 是空的（标题自绘在 leading），
+    /// 系统返回按钮拿不到文字会退化成 "..."，所以子页面必须自带返回按钮。
+    func amberBackButton() -> some View {
+        modifier(AmberBackButtonModifier())
+    }
+}
+
+public struct AmberBackButtonModifier: ViewModifier {
+    @Environment(\.dismiss) private var dismiss
+
+    public func body(content: Content) -> some View {
+        content
+            .navigationBarBackButtonHidden(true)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundStyle(AmberTheme.labelPrimary)
+                            .frame(width: 32, height: 32)
+                            .contentShape(Circle())
+                    }
+                }
+            }
+    }
 }

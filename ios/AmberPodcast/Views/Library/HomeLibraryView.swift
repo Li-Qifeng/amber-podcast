@@ -805,6 +805,7 @@ public struct AllChannelsListView: View {
         }
         .navigationTitle("全部频道")
         .navigationBarTitleDisplayMode(.inline)
+        .amberBackButton()
     }
 
     private func channelCover(feed: PodcastFeed) -> some View {
