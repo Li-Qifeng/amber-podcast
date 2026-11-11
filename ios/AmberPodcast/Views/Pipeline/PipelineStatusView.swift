@@ -55,10 +55,15 @@ public struct PipelineStatusView: View {
                     await loadAll()
                 }
             }
-            .navigationTitle("转储")
-            .toolbarTitleDisplayMode(.inlineLarge)
+            .navigationTitle("")
+            .toolbarTitleDisplayMode(.inline)
             .amberImmersiveTopEdge()
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Text("转储")
+                        .font(.system(size: 26, weight: .bold, design: .rounded))
+                        .foregroundStyle(AmberTheme.labelPrimary)
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         impactFeedback.impactOccurred()

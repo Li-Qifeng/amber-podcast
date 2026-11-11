@@ -120,9 +120,11 @@ public struct FeedDetailView: View {
                             Label("取消订阅此播客", systemImage: "trash")
                         }
                     } label: {
-                        Image(systemName: "ellipsis.circle")
-                            .font(.system(size: 16))
-                            .foregroundStyle(AmberTheme.labelSecondary)
+                        Image(systemName: "ellipsis")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(Color(uiColor: .label))
+                            .frame(width: 32, height: 32)
+                            .contentShape(Circle())
                     }
                 } else {
                     Button {
@@ -130,18 +132,17 @@ public struct FeedDetailView: View {
                         subscribeCurrentFeed()
                     } label: {
                         if isSubscribing {
-                            ProgressView().scaleEffect(0.7)
+                            ProgressView()
+                                .scaleEffect(0.7)
+                                .frame(width: 32, height: 32)
                         } else {
-                            HStack(spacing: 4) {
-                                Image(systemName: "plus")
-                                    .font(.system(size: 12, weight: .bold))
-                                Text("订阅")
-                                    .font(.system(size: 13, weight: .semibold, design: .rounded))
-                            }
-                            .foregroundStyle(AmberTheme.primaryAmber)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 5)
-                            .amberGlass(.capsule, isInteractive: true)
+                            // Match home's CircularLiquidGlassAddButton: 32pt circle,
+                            // same glyph size and tint. The toolbar supplies the glass.
+                            Image(systemName: "plus")
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundStyle(Color(uiColor: .label))
+                                .frame(width: 32, height: 32)
+                                .contentShape(Circle())
                         }
                     }
                     .disabled(isSubscribing)

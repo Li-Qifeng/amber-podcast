@@ -167,10 +167,15 @@ public struct NativeLibraryCatalogView: View {
                 .scrollBounceBehavior(.always, axes: .vertical)
                 .amberScrollObservable(tab: 1)
             }
-            .navigationTitle("资料库")
-            .toolbarTitleDisplayMode(.inlineLarge)
+            .navigationTitle("")
+            .toolbarTitleDisplayMode(.inline)
             .amberImmersiveTopEdge()
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Text("资料库")
+                        .font(.system(size: 26, weight: .bold, design: .rounded))
+                        .foregroundStyle(AmberTheme.labelPrimary)
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     CircularLiquidGlassAddButton {
                         showSubscribeSheet = true

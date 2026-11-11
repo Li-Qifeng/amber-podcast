@@ -2,6 +2,7 @@ import asyncio
 import os
 import json
 import subprocess
+import time
 from pathlib import Path
 from typing import List, Dict, Any, Tuple, Optional
 from amber_podcast.pipeline.translator import TranslatedSegment
@@ -13,6 +14,29 @@ class AlignmentEngine:
         self.tts = tts_provider
         import shutil
         self.ffmpeg = ffmpeg_bin or shutil.which("ffmpeg") or "/usr/local/bin/ffmpeg"
+
+    def _run_ffmpeg(self, cmd: List[str], label: str, retries: int = 2) -> None:
+        """Run ffmpeg with a small retry budget.
+
+        Inputs here are freshly written by the TTS stage, so a transient IO
+        error (handle not yet flushed, momentarily busy file) used to abort the
+        whole episode and surface as an opaque 'exit status 255'. Retry, then
+        raise with the captured stderr so the failure is diagnosable.
+        """
+        last_err = ""
+        last_rc = -1
+        for attempt in range(retries + 1):
+            proc = subprocess.run(cmd, capture_output=True, text=True)
+            if proc.returncode == 0:
+                return
+            last_err = (proc.stderr or "").strip()[-800:]
+            last_rc = proc.returncode
+            if attempt < retries:
+                time.sleep(1.5 * (attempt + 1))
+        raise RuntimeError(
+            f"ffmpeg {label} failed after {retries + 1} attempts "
+            f"(exit {last_rc}): {last_err}"
+        )
 
     async def build_dual_track_bundle(
         self,
@@ -116,7 +140,7 @@ class AlignmentEngine:
             "-c:a", "aac", "-b:a", "128k",
             str(raw_output_m4a)
         ]
-        subprocess.run(cmd_concat, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        self._run_ffmpeg(cmd_concat, "concat")
 
         # Normalize loudness to -16 LUFS (Apple Podcasts standard)
         cmd_norm = [
@@ -126,7 +150,7 @@ class AlignmentEngine:
             "-c:a", "aac", "-b:a", "128k",
             str(final_output_m4a)
         ]
-        subprocess.run(cmd_norm, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        self._run_ffmpeg(cmd_norm, "loudnorm")
 
         # 4. Save JSON artifacts
         timing_sync_file = work_path / "timing_sync.json"
