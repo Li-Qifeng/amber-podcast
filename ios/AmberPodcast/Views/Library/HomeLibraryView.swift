@@ -324,11 +324,11 @@ public struct HomeLibraryView: View {
         let cardWidth = screenWidth * AmberTheme.cardShelfWidthRatio
         let cardHeight = cardWidth / AmberTheme.cardShelfAspectRatio
 
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 16) {
             // L2 Section Header
             HStack(alignment: .firstTextBaseline) {
                 Text("继续收听")
-                    .font(.system(size: 17, weight: .semibold, design: .rounded))
+                    .font(.system(size: 24, weight: .bold, design: .rounded))
                     .foregroundStyle(AmberTheme.labelPrimary)
 
                 Spacer()
@@ -411,13 +411,15 @@ public struct HomeLibraryView: View {
                     }
                 }
                 .frame(width: width, height: height)
-                .amberMediaCard(radius: AmberTheme.radiusCardShelf)
+                .amberMediaCard(radius: 28)
 
-                // L3 Title (13pt, Medium weight)
+                // L3 Title (15pt, Medium weight)
                 Text(episode.title)
-                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                    .font(.system(size: 15, weight: .medium, design: .rounded))
                     .foregroundStyle(isPlayingThis ? AmberTheme.primaryAmber : AmberTheme.labelPrimary)
-                    .lineLimit(1)
+                    .lineLimit(3)
+                    .lineSpacing(2)
+                    .multilineTextAlignment(.leading)
                     .frame(width: width, alignment: .leading)
 
                 // L5 Subtitle (11pt, Muted)
@@ -437,10 +439,10 @@ public struct HomeLibraryView: View {
         let posterWidth: CGFloat = 110.0
         let posterHeight = posterWidth * 1.45
 
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 16) {
             HStack {
                 Text("订阅频道")
-                    .font(.system(size: 17, weight: .semibold, design: .rounded))
+                    .font(.system(size: 24, weight: .bold, design: .rounded))
                     .foregroundStyle(AmberTheme.labelPrimary)
 
                 Spacer()
@@ -483,16 +485,17 @@ public struct HomeLibraryView: View {
                                         .padding(5)
                                 }
                                 .frame(width: posterWidth, height: posterHeight)
-                                .amberMediaCard(radius: 10)
+                                .amberMediaCard(radius: 24)
 
                                 Text(feed.title)
-                                    .font(.system(size: 12, weight: .medium))
+                                    .font(.system(size: 14, weight: .semibold))
                                     .foregroundStyle(AmberTheme.labelPrimary)
-                                    .lineLimit(1)
+                                    .lineLimit(2)
+                                    .multilineTextAlignment(.leading)
                                     .frame(width: posterWidth, alignment: .leading)
 
                                 Text(feed.author)
-                                    .font(.system(size: 10.5, weight: .regular))
+                                    .font(.system(size: 11.5, weight: .regular))
                                     .foregroundStyle(AmberTheme.labelTertiary)
                                     .lineLimit(1)
                                     .frame(width: posterWidth, alignment: .leading)
