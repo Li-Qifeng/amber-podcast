@@ -11,12 +11,14 @@ public struct ShownotesView: View {
     public var body: some View {
         VStack(spacing: 0) {
             // Segmented Tab Switcher
-            HStack(spacing: 4) {
-                tabButton(title: "原版节目单", tag: 0)
-                tabButton(title: "精读笔记", tag: 1, icon: "doc.text")
+            AmberGlassContainer(spacing: 6) {
+                HStack(spacing: 4) {
+                    tabButton(title: "原版节目单", tag: 0)
+                    tabButton(title: "精读笔记", tag: 1, icon: "doc.text")
+                }
+                .padding(3)
+                .amberGlass(.capsule, isInteractive: true)
             }
-            .padding(3)
-            .liquidGlassCapsule()
             .padding(.horizontal, 24)
             .padding(.top, 10)
             .padding(.bottom, 16)

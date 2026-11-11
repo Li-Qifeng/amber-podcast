@@ -558,11 +558,13 @@ async def run_pipeline_task(episode_id: str):
                 m_seg = {
                     "index": idx,
                     "speaker": speaker,
-                    "enText": text,
-                    "zhDisplay": text,
-                    "zhSpoken": text,
-                    "enRange": {"start": start, "end": end},
-                    "zhRange": {"start": start, "end": end}
+                    "en_text": text,
+                    "zh_display": text,
+                    "zh_spoken": text,
+                    "en_range": {"start": start, "end": end},
+                    "zh_range": {"start": start, "end": end},
+                    "en_words": None,
+                    "zh_words": None
                 }
                 full_mapping.append(m_seg)
 

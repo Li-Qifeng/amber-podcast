@@ -40,6 +40,11 @@ public struct MainTabView: View {
         .fullScreenCover(isPresented: $showFullPlayer) {
             FullPlayerView(isPresented: $showFullPlayer)
         }
+        .onChange(of: player.requestFullPlayer) { _, requested in
+            guard requested else { return }
+            showFullPlayer = true
+            player.requestFullPlayer = false
+        }
         .onAppear {
             #if DEBUG
             // Launch-argument hooks so CI can screenshot a specific screen.

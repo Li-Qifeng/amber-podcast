@@ -140,9 +140,9 @@ public struct FullPlayerView: View {
                         .font(.system(size: 15, weight: .semibold))
                         .foregroundStyle(AmberTheme.labelSecondary)
                         .frame(width: 36, height: 36)
-                        .liquidGlassCapsule()
+                        .amberGlass(.circle, isInteractive: true)
                 }
-                .tactilePress(scale: 0.90)
+                .buttonStyle(TactileButtonStyle(scale: 0.90))
 
                 Spacer()
 
@@ -157,13 +157,15 @@ public struct FullPlayerView: View {
                 Spacer()
 
                 // Liquid Glass Switcher Tabs: Artwork / Subtitles / Shownotes
-                HStack(spacing: 4) {
-                    tabPillButton(icon: "music.note", tag: 0)
-                    tabPillButton(icon: "quote.bubble.fill", tag: 1)
-                    tabPillButton(icon: "text.alignleft", tag: 2)
+                AmberGlassContainer(spacing: 6) {
+                    HStack(spacing: 4) {
+                        tabPillButton(icon: "music.note", tag: 0)
+                        tabPillButton(icon: "quote.bubble.fill", tag: 1)
+                        tabPillButton(icon: "text.alignleft", tag: 2)
+                    }
+                    .padding(3)
+                    .amberGlass(.capsule, isInteractive: true)
                 }
-                .padding(3)
-                .liquidGlassCapsule()
             }
             .padding(.horizontal, 20)
             .padding(.top, 6)
@@ -293,7 +295,7 @@ public struct FullPlayerView: View {
             }
         }
         .padding(3)
-        .liquidGlassCapsule()
+        .amberGlass(.capsule, isInteractive: true)
     }
 
     // MARK: - Fluid Timeline Scrubber Area
@@ -374,53 +376,59 @@ public struct FullPlayerView: View {
             }
 
             // Controls: Skip 15s | Play/Pause | Skip 30s
-            HStack(spacing: 44) {
-                // Skip backward 15s
-                Button {
-                    player.skipBackward(15)
-                    impactFeedback.impactOccurred()
-                } label: {
-                    Image(systemName: "gobackward.15")
-                        .font(.system(size: 26, weight: .semibold))
-                        .foregroundStyle(AmberTheme.labelSecondary)
-                }
-                .buttonStyle(TactileButtonStyle(scale: 0.94))
+            AmberGlassContainer(spacing: 20) {
+                HStack(spacing: 28) {
+                    // Skip backward 15s
+                    Button {
+                        player.skipBackward(15)
+                        impactFeedback.impactOccurred()
+                    } label: {
+                        Image(systemName: "gobackward.15")
+                            .font(.system(size: 22, weight: .semibold))
+                            .foregroundStyle(AmberTheme.labelPrimary)
+                            .frame(width: 52, height: 52)
+                            .amberGlass(.circle, isInteractive: true)
+                    }
+                    .buttonStyle(TactileButtonStyle(scale: 0.94))
 
-                // Play / Pause Button with Buffering Indicator
-                Button {
-                    player.togglePlayPause()
-                    impactFeedback.impactOccurred()
-                } label: {
-                    ZStack {
-                        Circle()
-                            .fill(Color.white)
-                            .frame(width: 70, height: 70)
-                            .shadow(color: Color.black.opacity(0.35), radius: 8, y: 4)
+                    // Play / Pause Button with Buffering Indicator
+                    Button {
+                        player.togglePlayPause()
+                        impactFeedback.impactOccurred()
+                    } label: {
+                        ZStack {
+                            Circle()
+                                .fill(Color.white)
+                                .frame(width: 70, height: 70)
+                                .shadow(color: Color.black.opacity(0.35), radius: 8, y: 4)
 
-                        if player.isBuffering {
-                            ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle(tint: .black))
-                                .scaleEffect(1.2)
-                        } else {
-                            Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
-                                .font(.system(size: 28, weight: .bold))
-                                .foregroundStyle(Color.black)
-                                .offset(x: player.isPlaying ? 0 : 2)
+                            if player.isBuffering {
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .black))
+                                    .scaleEffect(1.2)
+                            } else {
+                                Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
+                                    .font(.system(size: 28, weight: .bold))
+                                    .foregroundStyle(Color.black)
+                                    .offset(x: player.isPlaying ? 0 : 2)
+                            }
                         }
                     }
-                }
-                .buttonStyle(TactileButtonStyle(scale: 0.94))
+                    .buttonStyle(TactileButtonStyle(scale: 0.94))
 
-                // Skip forward 30s
-                Button {
-                    player.skipForward(30)
-                    impactFeedback.impactOccurred()
-                } label: {
-                    Image(systemName: "goforward.30")
-                        .font(.system(size: 26, weight: .semibold))
-                        .foregroundStyle(AmberTheme.labelSecondary)
+                    // Skip forward 30s
+                    Button {
+                        player.skipForward(30)
+                        impactFeedback.impactOccurred()
+                    } label: {
+                        Image(systemName: "goforward.30")
+                            .font(.system(size: 22, weight: .semibold))
+                            .foregroundStyle(AmberTheme.labelPrimary)
+                            .frame(width: 52, height: 52)
+                            .amberGlass(.circle, isInteractive: true)
+                    }
+                    .buttonStyle(TactileButtonStyle(scale: 0.94))
                 }
-                .buttonStyle(TactileButtonStyle(scale: 0.94))
             }
         }
     }
@@ -464,7 +472,7 @@ public struct FullPlayerView: View {
             .foregroundStyle(AmberTheme.labelPrimary)
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
-            .liquidGlassCapsule()
+            .amberGlass(.capsule, isInteractive: true)
         } primaryAction: {
             cycleNextSpeed()
         }

@@ -28,6 +28,10 @@ public final class DualTrackAudioPlayer: ObservableObject {
     @Published public var isVocalBoostEnabled: Bool = false
     @Published public var currentSegmentIndex: Int = 0
 
+    /// One-shot signal: set true when a NEW episode starts playing so the root
+    /// view can present the full player. Reset to false once consumed.
+    @Published public var requestFullPlayer: Bool = false
+
     // Alignment and artifacts
     @Published public var timingSegments: [TimingSegment] = []
     @Published public var fullMapping: [FullMappingSegment] = []
@@ -183,6 +187,7 @@ public final class DualTrackAudioPlayer: ObservableObject {
         }
         await MainActor.run {
             self.loadEpisode(episode: episode, feed: feed, artifacts: artifacts, autoPlay: true)
+            self.requestFullPlayer = true
         }
     }
 

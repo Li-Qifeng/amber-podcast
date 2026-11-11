@@ -322,13 +322,41 @@ public struct FullMappingSegment: Identifiable, Codable, Hashable {
 
     enum CodingKeys: String, CodingKey {
         case index, speaker
-        case enText = "en_text"
-        case zhDisplay = "zh_display"
-        case zhSpoken = "zh_spoken"
-        case enRange = "en_range"
-        case zhRange = "zh_range"
-        case enWords = "en_words"
-        case zhWords = "zh_words"
+        // camelCase (Chinese pipeline, legacy archives)
+        case enText, zhDisplay, zhSpoken, enRange, zhRange, enWords, zhWords
+        // snake_case (English pipeline + current Chinese pipeline)
+        case enTextSnake = "en_text"
+        case zhDisplaySnake = "zh_display"
+        case zhSpokenSnake = "zh_spoken"
+        case enRangeSnake = "en_range"
+        case zhRangeSnake = "zh_range"
+        case enWordsSnake = "en_words"
+        case zhWordsSnake = "zh_words"
+    }
+
+    /// Backend has emitted both camelCase (Chinese branch) and snake_case
+    /// (English branch) for this payload. Decode either shape so already-dumped
+    /// archives render without re-running the pipeline.
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        self.index = try c.decode(Int.self, forKey: .index)
+        self.speaker = try c.decodeIfPresent(String.self, forKey: .speaker) ?? "Speaker"
+        self.enText = try c.decodeIfPresent(String.self, forKey: .enText)
+            ?? c.decodeIfPresent(String.self, forKey: .enTextSnake) ?? ""
+        self.zhDisplay = try c.decodeIfPresent(String.self, forKey: .zhDisplay)
+            ?? c.decodeIfPresent(String.self, forKey: .zhDisplaySnake) ?? ""
+        self.zhSpoken = try c.decodeIfPresent(String.self, forKey: .zhSpoken)
+            ?? c.decodeIfPresent(String.self, forKey: .zhSpokenSnake) ?? ""
+        self.enRange = try c.decodeIfPresent(TimingRange.self, forKey: .enRange)
+            ?? c.decodeIfPresent(TimingRange.self, forKey: .enRangeSnake)
+            ?? TimingRange(start: 0, end: 0)
+        self.zhRange = try c.decodeIfPresent(TimingRange.self, forKey: .zhRange)
+            ?? c.decodeIfPresent(TimingRange.self, forKey: .zhRangeSnake)
+            ?? TimingRange(start: 0, end: 0)
+        self.enWords = try c.decodeIfPresent([WordTimestamp].self, forKey: .enWords)
+            ?? c.decodeIfPresent([WordTimestamp].self, forKey: .enWordsSnake)
+        self.zhWords = try c.decodeIfPresent([WordTimestamp].self, forKey: .zhWords)
+            ?? c.decodeIfPresent([WordTimestamp].self, forKey: .zhWordsSnake)
     }
 }
 
