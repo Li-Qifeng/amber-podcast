@@ -149,23 +149,27 @@ async def _poll_all_feeds() -> List[str]:
             continue
 
         for ep in data.get("episodes", []):
-            # Reuse the stored id when this guid is already known: id derivation
-            # changed historically, so trusting ep["id"] would re-insert the
-            # whole back-catalogue on every poll.
-            existing = db.get_episode_by_guid(feed["id"], ep.get("guid") or "")
-            episode_id = existing["id"] if existing else ep["id"]
-            db.upsert_episode(
-                episode_id=episode_id,
-                feed_id=feed["id"],
-                title=ep["title"],
-                audio_url=ep["audio_url"],
-                duration=ep["duration"],
-                pub_date=ep["pub_date"],
-                shownotes=ep["shownotes"],
-                guid=ep["guid"],
-            )
-            if existing is None:
-                new_episode_ids.append(episode_id)
+            # One malformed episode must never abort the whole cycle: a single
+            # row of undecodable bytes used to kill the poll for every feed.
+            try:
+                existing = db.get_episode_by_guid(feed["id"], ep.get("guid") or "")
+                episode_id = existing["id"] if existing else ep["id"]
+                db.upsert_episode(
+                    episode_id=episode_id,
+                    feed_id=feed["id"],
+                    title=ep["title"],
+                    audio_url=ep["audio_url"],
+                    duration=ep["duration"],
+                    pub_date=ep["pub_date"],
+                    shownotes=ep["shownotes"],
+                    guid=ep["guid"],
+                )
+                if existing is None:
+                    new_episode_ids.append(episode_id)
+            except Exception as exc:
+                logger.warning("poll: episode %s of feed %s skipped: %s",
+                               ep.get("id"), feed["id"], exc)
+                continue
 
     queued = _queue_auto_translations(new_episode_ids)
     if new_episode_ids:

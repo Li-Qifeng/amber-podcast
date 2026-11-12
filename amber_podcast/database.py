@@ -185,8 +185,12 @@ class Database:
         if not guid:
             return None
         with self.get_conn() as conn:
+            # Deliberately NOT SELECT *: a single row with non-UTF8 bytes in a
+            # large text column (shownotes) makes sqlite3 raise on decode, and
+            # this lookup runs inside the feed poll. Only the identity columns
+            # are needed to decide whether the guide already exists.
             row = conn.execute(
-                "SELECT * FROM episodes WHERE feed_id = ? AND guid = ? ORDER BY created_at LIMIT 1",
+                "SELECT id, feed_id, guid FROM episodes WHERE feed_id = ? AND guid = ? ORDER BY created_at LIMIT 1",
                 (feed_id, guid),
             ).fetchone()
             return dict(row) if row else None
