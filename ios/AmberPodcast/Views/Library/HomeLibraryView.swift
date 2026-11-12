@@ -472,13 +472,11 @@ public struct HomeLibraryView: View {
     private func forYouShelf() -> some View {
         let recommended = forYouRecommendations
         if !recommended.isEmpty {
-            // Shelf title: use first subscribed feed with a non-nil genre
-            let shelfTitle: String
-            if let firstGenreFeed = feeds.first(where: { $0.genre != nil && !($0.genre!.isEmpty) }) {
-                shelfTitle = "因为你收听《\(firstGenreFeed.title)》"
-            } else {
-                shelfTitle = "为你推荐"
-            }
+            // Shelf title: use first subscribed feed with a non-nil genre.
+            // Single expressions only — ViewBuilder turns if/else assignment
+            // branches into Void, which does not conform to View.
+            let firstGenreFeed = feeds.first(where: { $0.genre != nil && !($0.genre!.isEmpty) })
+            let shelfTitle = firstGenreFeed.map { "因为你收听《\($0.title)》" } ?? "为你推荐"
 
             let cardSize: CGFloat = 120.0
 
