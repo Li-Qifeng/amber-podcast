@@ -205,7 +205,7 @@ import amber_podcast.server as server_mod
 
 def test_queue_auto_translations_only_new_post_subscribe_episodes(monkeypatch):
     enqueued = []
-    monkeypatch.setattr(server_mod, "_enqueue_pipeline", lambda eid: enqueued.append(eid))
+    monkeypatch.setattr(server_mod, "_enqueue_pipeline", lambda eid: (enqueued.append(eid), True)[1])
 
     db.upsert_feed(feed_id="feed_p1_auto", source_type="apple_rss", title="Auto",
                    author="T", feed_url="https://example.com/p1-auto",
@@ -225,7 +225,7 @@ def test_queue_auto_translations_only_new_post_subscribe_episodes(monkeypatch):
 
 def test_queue_auto_translations_skips_non_auto_translate_feeds(monkeypatch):
     enqueued = []
-    monkeypatch.setattr(server_mod, "_enqueue_pipeline", lambda eid: enqueued.append(eid))
+    monkeypatch.setattr(server_mod, "_enqueue_pipeline", lambda eid: (enqueued.append(eid), True)[1])
 
     db.upsert_feed(feed_id="feed_p1_manual", source_type="apple_rss", title="Manual",
                    author="T", feed_url="https://example.com/p1-manual",
@@ -241,7 +241,7 @@ def test_queue_auto_translations_skips_non_auto_translate_feeds(monkeypatch):
 
 def test_queue_auto_translations_skips_non_idle(monkeypatch):
     enqueued = []
-    monkeypatch.setattr(server_mod, "_enqueue_pipeline", lambda eid: enqueued.append(eid))
+    monkeypatch.setattr(server_mod, "_enqueue_pipeline", lambda eid: (enqueued.append(eid), True)[1])
 
     db.upsert_feed(feed_id="feed_p1_busy", source_type="apple_rss", title="Busy",
                    author="T", feed_url="https://example.com/p1-busy",
@@ -286,3 +286,43 @@ def test_poll_all_feeds_reports_episode_only_once(monkeypatch):
 def test_poll_endpoint_requires_auth():
     resp = client.post("/api/v1/pipeline/poll")
     assert resp.status_code == 401
+
+
+# --- P1: tunable pipeline settings ---
+
+def test_settings_defaults_and_update():
+    headers = {"Authorization": f"Bearer {AUTH_TOKEN}"}
+    resp = client.get("/api/v1/settings", headers=headers)
+    assert resp.status_code == 200, resp.text
+    settings = resp.json()["settings"]
+    assert set(settings) == {"auto_translate_default", "poll_interval_sec", "max_concurrent_pipelines"}
+
+    resp = client.put("/api/v1/settings", headers=headers, json={"poll_interval_sec": 900})
+    assert resp.status_code == 200, resp.text
+    assert resp.json()["settings"]["poll_interval_sec"] == "900"
+
+    again = client.get("/api/v1/settings", headers=headers).json()["settings"]
+    assert again["poll_interval_sec"] == "900"
+
+
+def test_settings_rejects_unknown_keys():
+    headers = {"Authorization": f"Bearer {AUTH_TOKEN}"}
+    resp = client.put("/api/v1/settings", headers=headers, json={"nonsense": 1})
+    assert resp.status_code == 400, resp.text
+
+
+def test_settings_requires_auth():
+    assert client.get("/api/v1/settings").status_code == 401
+
+
+def test_enqueue_pipeline_respects_concurrency_cap():
+    db.upsert_feed(feed_id="feed_cap", source_type="apple_rss", title="Cap",
+                   author="T", feed_url="https://example.com/cap",
+                   cover_url="", description="")
+    db.upsert_episode(episode_id="cap_running", feed_id="feed_cap", title="running",
+                      audio_url="https://e/r.mp3",
+                      pub_date="Wed, 11 Nov 2026 10:00:00 GMT")
+    db.update_episode_status("cap_running", status="transcribing")
+
+    # default cap is 1 and one pipeline is already active -> refuse
+    assert server_mod._enqueue_pipeline("cap_new") is False

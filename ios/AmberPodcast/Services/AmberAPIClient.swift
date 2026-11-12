@@ -155,6 +155,31 @@ public final class AmberAPIClient: ObservableObject {
         return try JSONDecoder().decode(LibraryResponse.self, from: data)
     }
 
+    // MARK: - Pipeline Settings
+
+    public struct PipelineSettingsResponse: Codable {
+        public let settings: [String: String]
+    }
+
+    public func fetchPipelineSettings() async throws -> [String: String] {
+        let req = try makeRequest(endpoint: "/api/v1/settings")
+        let (data, resp) = try await session.data(for: req)
+        guard (resp as? HTTPURLResponse)?.statusCode == 200 else {
+            throw URLError(.badServerResponse)
+        }
+        return try JSONDecoder().decode(PipelineSettingsResponse.self, from: data).settings
+    }
+
+    public func updatePipelineSettings(_ updates: [String: String]) async throws -> [String: String] {
+        let body = try JSONEncoder().encode(updates)
+        let req = try makeRequest(endpoint: "/api/v1/settings", method: "PUT", body: body)
+        let (data, resp) = try await session.data(for: req)
+        guard (resp as? HTTPURLResponse)?.statusCode == 200 else {
+            throw URLError(.badServerResponse)
+        }
+        return try JSONDecoder().decode(PipelineSettingsResponse.self, from: data).settings
+    }
+
     // MARK: - Pipeline Status (Dump & Transcription Telemetry)
     public struct PipelineStatusSummary: Codable {
         public let activeCount: Int

@@ -54,6 +54,33 @@ from amber_podcast.pipeline.archiver import EpisodeArchiver
 POLL_INTERVAL_SEC = int(os.environ.get("AMBER_POLL_INTERVAL", "1800"))
 POLL_STARTUP_DELAY_SEC = int(os.environ.get("AMBER_POLL_STARTUP_DELAY", "60"))
 
+# User-tunable pipeline settings, persisted as TEXT rows in the settings table.
+# These are the only keys PUT /api/v1/settings accepts.
+DEFAULT_SETTINGS: Dict[str, str] = {
+    "auto_translate_default": "0",    # newly subscribed feeds auto-transcribe
+    "poll_interval_sec": "1800",      # how often subscribed feeds are refreshed
+    "max_concurrent_pipelines": "1",  # dumps allowed to run at the same time
+}
+
+
+def _get_setting(key: str, default: Optional[str] = None) -> str:
+    try:
+        stored = db.get_settings()
+    except Exception:
+        stored = {}
+    if key in stored:
+        return stored[key]
+    if default is not None:
+        return default
+    return DEFAULT_SETTINGS.get(key, "")
+
+
+def _int_setting(key: str, fallback: int, minimum: int = 1) -> int:
+    try:
+        return max(minimum, int(_get_setting(key)))
+    except (TypeError, ValueError):
+        return fallback
+
 
 @asynccontextmanager
 async def lifespan(app):
@@ -80,7 +107,8 @@ xyz_agg = XiaoyuzhouAggregator()
 
 
 async def _poll_loop():
-    """Periodically refresh every subscribed feed."""
+    """Periodically refresh every subscribed feed. The interval is re-read each
+    cycle so a settings change takes effect without a restart."""
     await asyncio.sleep(POLL_STARTUP_DELAY_SEC)
     while True:
         try:
@@ -89,7 +117,7 @@ async def _poll_loop():
             raise
         except Exception:
             logger.exception("feed poll cycle failed")
-        await asyncio.sleep(POLL_INTERVAL_SEC)
+        await asyncio.sleep(_int_setting("poll_interval_sec", POLL_INTERVAL_SEC, minimum=60))
 
 
 async def _poll_all_feeds() -> List[str]:
@@ -132,10 +160,23 @@ async def _poll_all_feeds() -> List[str]:
     return new_episode_ids
 
 
-def _enqueue_pipeline(episode_id: str) -> None:
-    """Mark an episode pending and launch the pipeline (fire-and-forget)."""
+def _active_pipeline_count() -> int:
+    return len(db.list_episodes_by_statuses(
+        ["pending", "transcribing", "translating", "synthesizing"], limit=1000))
+
+
+def _enqueue_pipeline(episode_id: str) -> bool:
+    """Mark an episode pending and launch the pipeline, respecting the concurrency cap.
+
+    Returns False (leaving the episode idle) when the cap is reached — the next
+    poll cycle picks it up, so nothing is lost and we never stampede the box.
+    """
+    limit = _int_setting("max_concurrent_pipelines", 1)
+    if _active_pipeline_count() >= limit:
+        return False
     db.update_episode_status(episode_id, status="pending", progress=0)
     asyncio.create_task(run_pipeline_task(episode_id))
+    return True
 
 
 def _queue_auto_translations(episode_ids: List[str]) -> int:
@@ -152,8 +193,8 @@ def _queue_auto_translations(episode_ids: List[str]) -> int:
             continue
         if (_pub_ts(ep.get("pub_date")) or 0) <= feed["created_at"]:
             continue  # back-catalogue drop: never auto-transcribe pre-subscribe content
-        _enqueue_pipeline(eid)
-        queued += 1
+        if _enqueue_pipeline(eid):
+            queued += 1
     return queued
 
 
@@ -395,7 +436,7 @@ async def _subscribe_impl(req: SubscribeRequest):
                 feed_url=url,
                 cover_url=feed_info["cover_url"],
                 description=feed_info["description"],
-                auto_translate=1 if req.auto_translate else 0
+                auto_translate=1 if req.auto_translate else _int_setting("auto_translate_default", 0, minimum=0)
             )
             ep = data["episode"]
             db.upsert_episode(
@@ -420,7 +461,7 @@ async def _subscribe_impl(req: SubscribeRequest):
                 feed_url=url,
                 cover_url=feed_info["cover_url"],
                 description=feed_info["description"],
-                auto_translate=1 if req.auto_translate else 0
+                auto_translate=1 if req.auto_translate else _int_setting("auto_translate_default", 0, minimum=0)
             )
             for ep in data.get("episodes", []):
                 db.upsert_episode(
@@ -1008,6 +1049,29 @@ def get_pipeline_stats(token: str = Depends(verify_token)):
         "total_failed": len(failed),
         "trend": trend,
     }
+
+
+@app.get("/api/v1/settings")
+def get_settings(token: str = Depends(verify_token)):
+    """Pipeline settings: declared defaults merged with the user's overrides."""
+    merged = dict(DEFAULT_SETTINGS)
+    merged.update(db.get_settings())
+    return {"settings": merged}
+
+
+@app.put("/api/v1/settings")
+def update_settings(payload: Dict[str, Any], token: str = Depends(verify_token)):
+    """Update user-tunable pipeline settings.
+
+    Unknown keys are rejected outright — a typo must fail loudly rather than
+    silently persist a value nothing reads.
+    """
+    unknown = sorted(set(payload) - set(DEFAULT_SETTINGS))
+    if unknown:
+        raise HTTPException(status_code=400, detail=f"Unknown setting keys: {unknown}")
+    merged = dict(DEFAULT_SETTINGS)
+    merged.update(db.set_settings(payload))
+    return {"settings": merged}
 
 
 @app.post("/api/v1/pipeline/poll")

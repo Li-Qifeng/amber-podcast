@@ -71,6 +71,12 @@ CREATE TABLE IF NOT EXISTS playback_progress (
     updated_at INTEGER NOT NULL,
     FOREIGN KEY(episode_id) REFERENCES episodes(id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL,
+    updated_at INTEGER NOT NULL
+);
 """
 
 class Database:
@@ -260,3 +266,20 @@ class Database:
         with self.get_conn() as conn:
             row = conn.execute("SELECT * FROM playback_progress WHERE episode_id = ?", (episode_id,)).fetchone()
             return dict(row) if row else None
+
+    # --- Settings (key/value, user-tunable pipeline behaviour) ---
+    def get_settings(self) -> Dict[str, str]:
+        with self.get_conn() as conn:
+            return {row["key"]: row["value"]
+                    for row in conn.execute("SELECT key, value FROM settings")}
+
+    def set_settings(self, updates: Dict[str, Any]) -> Dict[str, str]:
+        now = int(time.time())
+        with self.get_conn() as conn:
+            for key, value in updates.items():
+                conn.execute(
+                    "INSERT INTO settings (key, value, updated_at) VALUES (?, ?, ?) "
+                    "ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at",
+                    (key, str(value), now),
+                )
+        return self.get_settings()

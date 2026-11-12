@@ -33,6 +33,11 @@ public struct SettingsView: View {
     @AppStorage("amber_backward_interval") private var backwardInterval: Int = 15
     @AppStorage("amber_appearance_mode") private var appearanceMode: String = "system"
 
+    // Server-side pipeline settings (persisted in the backend settings table,
+    // unlike the @AppStorage items above which are device-local).
+    @State private var pipelineSettings: [String: String] = [:]
+    @State private var isLoadingPipelineSettings: Bool = false
+
     private var preferredTrackMode: Binding<TrackMode> {
         Binding(
             get: { TrackMode(rawValue: preferredTrackModeRaw) ?? .chinese },
@@ -59,6 +64,9 @@ public struct SettingsView: View {
 
                     // Section 2: AI Translation Preferences
                     aiPreferencesSection
+
+                    // Section 2b: Server Pipeline (persisted server-side)
+                    pipelineSection
 
                     // Section 3: Acoustic Playback Engine
                     acousticEngineSection
@@ -258,6 +266,93 @@ public struct SettingsView: View {
             }
             .padding(16)
             .amberPlate(radius: AmberTheme.radiusCardRow)
+        }
+    }
+
+    // MARK: - Section 2b: Server Pipeline
+    //
+    // These live in the backend `settings` table (not device-local @AppStorage):
+    // they change what the server does, and the poll loop re-reads the interval
+    // each cycle so changes take effect without a restart.
+    private var pipelineSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            sectionHeader("服务端转录流水线")
+
+            VStack(spacing: 12) {
+                Toggle(isOn: Binding(
+                    get: { pipelineSettings["auto_translate_default"] == "1" },
+                    set: { updatePipelineSetting("auto_translate_default", $0 ? "1" : "0") }
+                )) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("新订阅默认自动转录")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundStyle(AmberTheme.labelPrimary)
+                        Text("订阅后新发布的单集自动入队转储；历史单集不会自动处理")
+                            .font(.system(size: 11.5))
+                            .foregroundStyle(AmberTheme.labelTertiary)
+                    }
+                }
+                .tint(AmberTheme.primaryAmber)
+
+                Divider().background(Color.white.opacity(0.08))
+
+                HStack {
+                    Text("检查新集间隔")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(AmberTheme.labelPrimary)
+                    Spacer()
+                    Picker("", selection: Binding(
+                        get: { Int(pipelineSettings["poll_interval_sec"] ?? "1800") ?? 1800 },
+                        set: { updatePipelineSetting("poll_interval_sec", String($0)) }
+                    )) {
+                        Text("15 分钟").tag(900)
+                        Text("30 分钟").tag(1800)
+                        Text("1 小时").tag(3600)
+                        Text("3 小时").tag(10800)
+                    }
+                    .tint(AmberTheme.primaryAmber)
+                }
+
+                Divider().background(Color.white.opacity(0.08))
+
+                HStack {
+                    Text("同时转储数量")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(AmberTheme.labelPrimary)
+                    Spacer()
+                    Picker("", selection: Binding(
+                        get: { Int(pipelineSettings["max_concurrent_pipelines"] ?? "1") ?? 1 },
+                        set: { updatePipelineSetting("max_concurrent_pipelines", String($0)) }
+                    )) {
+                        Text("1").tag(1)
+                        Text("2").tag(2)
+                        Text("3").tag(3)
+                    }
+                    .pickerStyle(.segmented)
+                    .frame(width: 140)
+                }
+            }
+            .padding(16)
+            .amberPlate(radius: AmberTheme.radiusCardRow)
+        }
+        .task { await loadPipelineSettings() }
+    }
+
+    private func loadPipelineSettings() async {
+        guard !isLoadingPipelineSettings else { return }
+        isLoadingPipelineSettings = true
+        if let loaded = try? await apiClient.fetchPipelineSettings() {
+            await MainActor.run { self.pipelineSettings = loaded }
+        }
+        await MainActor.run { self.isLoadingPipelineSettings = false }
+    }
+
+    private func updatePipelineSetting(_ key: String, _ value: String) {
+        pipelineSettings[key] = value  // optimistic; the server response reconciles
+        Task {
+            if let updated = try? await apiClient.updatePipelineSettings([key: value]) {
+                await MainActor.run { self.pipelineSettings = updated }
+            }
         }
     }
 
