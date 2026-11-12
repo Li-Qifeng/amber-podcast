@@ -137,12 +137,10 @@ public struct HomeLibraryView: View {
     @ViewBuilder
     private func latestEpisodesShelf() -> some View {
         if let ep = heroEpisode, let feed = heroFeed {
-            let cardWidth = screenWidth * 0.58
+            let cardWidth = screenWidth * 0.82
 
             VStack(alignment: .leading, spacing: 16) {
-                Text("最新单集")
-                    .font(.system(size: 24, weight: .bold, design: .rounded))
-                    .foregroundStyle(AmberTheme.labelPrimary)
+                sectionTitle("最新单集")
                     .padding(.horizontal, AmberTheme.pageMargin)
 
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -158,78 +156,99 @@ public struct HomeLibraryView: View {
         }
     }
 
-    @ViewBuilder
     private func latestEpisodeCard(episode: Episode, feed: PodcastFeed, cardWidth: CGFloat) -> some View {
-        Button {
+        // Apple "New Episodes" pattern: a self-contained dark container card —
+        // wide artwork flush to the top edge, then date / title / synopsis and a
+        // play capsule + ellipsis action bar.
+        let isPlayingThis = player.currentEpisode?.id == episode.id
+        let artworkHeight = cardWidth * 0.62
+        let synopsis = stripHTML(episode.shownotes ?? "")
+
+        return Button {
             playEpisode(episode, feed: feed)
         } label: {
-            VStack(alignment: .leading, spacing: 8) {
-                // Square artwork with NEW badge
-                ZStack(alignment: .topLeading) {
+            VStack(alignment: .leading, spacing: 0) {
+                // Wide artwork flush to the container's top edge
+                ZStack(alignment: .bottom) {
                     if let url = URL(string: feed.proxiedCoverUrl), !feed.proxiedCoverUrl.isEmpty {
                         CachedAsyncImage(url: url) { img in
                             img
                                 .resizable()
                                 .scaledToFill()
-                                .frame(width: cardWidth, height: cardWidth)
+                                .frame(width: cardWidth, height: artworkHeight)
                                 .clipped()
                         } placeholder: {
-                            coverPlaceholder(width: cardWidth, height: cardWidth, title: feed.title)
+                            coverPlaceholder(width: cardWidth, height: artworkHeight, title: feed.title)
                         }
                     } else {
-                        coverPlaceholder(width: cardWidth, height: cardWidth, title: feed.title)
+                        coverPlaceholder(width: cardWidth, height: artworkHeight, title: feed.title)
                     }
 
-                    // NEW badge
-                    Text("NEW")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundStyle(Color.white)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 3)
-                        .background(AmberTheme.primaryAmber, in: Capsule())
-                        .padding(8)
-
-                    // Progress bar at bottom (if played)
+                    // Progress bar at artwork bottom (if played)
                     if episode.progress > 0 {
-                        VStack {
-                            Spacer()
-                            GeometryReader { pGeo in
-                                ZStack(alignment: .leading) {
-                                    RoundedRectangle(cornerRadius: 1.5, style: .continuous)
-                                        .fill(Color.white.opacity(0.12))
-                                    RoundedRectangle(cornerRadius: 1.5, style: .continuous)
-                                        .fill(AmberTheme.primaryAmber)
-                                        .frame(width: pGeo.size.width * CGFloat(Double(episode.progress) / 100.0))
-                                }
+                        GeometryReader { pGeo in
+                            ZStack(alignment: .leading) {
+                                Rectangle().fill(Color.white.opacity(0.12))
+                                Rectangle()
+                                    .fill(AmberTheme.primaryAmber)
+                                    .frame(width: pGeo.size.width * CGFloat(Double(episode.progress) / 100.0))
                             }
-                            .frame(height: 3)
                         }
+                        .frame(height: 3)
                     }
                 }
-                .frame(width: cardWidth, height: cardWidth)
-                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .frame(width: cardWidth, height: artworkHeight)
+                .clipped()
 
-                // Episode title
-                Text(episode.title)
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundStyle(AmberTheme.labelPrimary)
-                    .lineLimit(2)
-                    .multilineTextAlignment(.leading)
-                    .frame(width: cardWidth, alignment: .leading)
+                VStack(alignment: .leading, spacing: 6) {
+                    // Published date
+                    Text(episode.pubDate)
+                        .font(.system(size: 11, weight: .regular))
+                        .foregroundStyle(AmberTheme.labelTertiary)
 
-                // Feed name
-                Text(feed.title)
-                    .font(.system(size: 11, weight: .regular))
-                    .foregroundStyle(AmberTheme.labelTertiary)
-                    .lineLimit(1)
-                    .frame(width: cardWidth, alignment: .leading)
+                    // Episode title (fixed 2 lines)
+                    Text(episode.title)
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundStyle(isPlayingThis ? AmberTheme.primaryAmber : AmberTheme.labelPrimary)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
 
-                // Duration
-                Text(formatDuration(Double(episode.duration)))
-                    .font(.system(size: 11, weight: .regular))
-                    .foregroundStyle(AmberTheme.labelTertiary)
-                    .frame(width: cardWidth, alignment: .leading)
+                    if !synopsis.isEmpty {
+                        Text(synopsis)
+                            .font(.system(size: 12, weight: .regular))
+                            .foregroundStyle(AmberTheme.labelSecondary)
+                            .lineLimit(2)
+                            .multilineTextAlignment(.leading)
+                    }
+
+                    // Bottom action bar: play capsule + ellipsis placeholder
+                    HStack(spacing: 8) {
+                        HStack(spacing: 5) {
+                            Image(systemName: isPlayingThis ? "pause.fill" : "play.fill")
+                                .font(.system(size: 10, weight: .bold))
+                            Text(isPlayingThis ? "正在播放" : "立即播放")
+                                .font(.system(size: 12, weight: .semibold))
+                        }
+                        .foregroundStyle(AmberTheme.labelPrimary)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 7)
+                        .background(Color.white.opacity(0.10), in: Capsule())
+
+                        Spacer()
+
+                        Image(systemName: "ellipsis")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(AmberTheme.labelTertiary)
+                    }
+                    .padding(.top, 4)
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 12)
             }
+            .frame(width: cardWidth)
+            .background(AmberTheme.surfaceRaised, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .contentShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
         }
         .buttonStyle(TactileButtonStyle(scale: 0.97))
     }
@@ -251,17 +270,15 @@ public struct HomeLibraryView: View {
         .frame(width: width, height: height)
     }
 
-    // MARK: - 2. 继续收听 (Apple Podcasts square card style)
+    // MARK: - 2. 继续收听 (Apple "Continue Playing" row card style)
     @ViewBuilder
     private func continueListeningShelf() -> some View {
-        let cardWidth = screenWidth * 0.42
+        let cardWidth = screenWidth * 0.78
 
         VStack(alignment: .leading, spacing: 16) {
             // Section Header
             HStack(alignment: .firstTextBaseline) {
-                Text("继续收听")
-                    .font(.system(size: 24, weight: .bold, design: .rounded))
-                    .foregroundStyle(AmberTheme.labelPrimary)
+                sectionTitle("继续收听")
 
                 Spacer()
 
@@ -289,12 +306,17 @@ public struct HomeLibraryView: View {
     }
 
     private func episodeCard(episode: Episode, feed: PodcastFeed, width: CGFloat) -> some View {
+        // Apple "Continue Playing" pattern: horizontal row card — square artwork
+        // on the left, show name / episode title / play capsule on the right.
         let isPlayingThis = player.currentEpisode?.id == episode.id
+        let remaining = episode.progress > 0
+            ? Double(episode.duration) * (1.0 - Double(episode.progress) / 100.0)
+            : Double(episode.duration)
 
         return Button {
             playEpisode(episode, feed: feed)
         } label: {
-            VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 12) {
                 // Square artwork with progress bar overlay
                 ZStack(alignment: .bottom) {
                     if let url = URL(string: feed.proxiedCoverUrl), !feed.proxiedCoverUrl.isEmpty {
@@ -302,22 +324,21 @@ public struct HomeLibraryView: View {
                             img
                                 .resizable()
                                 .scaledToFill()
-                                .frame(width: width, height: width)
+                                .frame(width: 76, height: 76)
                                 .clipped()
                         } placeholder: {
-                            coverPlaceholder(width: width, height: width, title: feed.title)
+                            coverPlaceholder(width: 76, height: 76, title: feed.title)
                         }
                     } else {
-                        coverPlaceholder(width: width, height: width, title: feed.title)
+                        coverPlaceholder(width: 76, height: 76, title: feed.title)
                     }
 
                     // Progress bar at bottom
                     if episode.progress > 0 {
                         GeometryReader { pGeo in
                             ZStack(alignment: .leading) {
-                                RoundedRectangle(cornerRadius: 1.5, style: .continuous)
-                                    .fill(Color.white.opacity(0.12))
-                                RoundedRectangle(cornerRadius: 1.5, style: .continuous)
+                                Rectangle().fill(Color.white.opacity(0.12))
+                                Rectangle()
                                     .fill(AmberTheme.primaryAmber)
                                     .frame(width: pGeo.size.width * CGFloat(Double(episode.progress) / 100.0))
                             }
@@ -325,47 +346,55 @@ public struct HomeLibraryView: View {
                         .frame(height: 3)
                     }
                 }
-                .frame(width: width, height: width)
-                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .frame(width: 76, height: 76)
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
 
-                // Episode title (highlighted when playing)
-                Text(episode.title)
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundStyle(isPlayingThis ? AmberTheme.primaryAmber : AmberTheme.labelPrimary)
-                    .lineLimit(2)
-                    .multilineTextAlignment(.leading)
-                    .frame(width: width, alignment: .leading)
+                // Info & control stack
+                VStack(alignment: .leading, spacing: 4) {
+                    // Show name
+                    Text(feed.title)
+                        .font(.system(size: 11, weight: .regular))
+                        .foregroundStyle(AmberTheme.labelTertiary)
+                        .lineLimit(1)
 
-                // Feed name
-                Text(feed.title)
-                    .font(.system(size: 11, weight: .regular))
-                    .foregroundStyle(AmberTheme.labelTertiary)
-                    .lineLimit(1)
-                    .frame(width: width, alignment: .leading)
+                    // Episode title (fixed 2 lines, highlighted when playing)
+                    Text(episode.title)
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(isPlayingThis ? AmberTheme.primaryAmber : AmberTheme.labelPrimary)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
 
-                // Progress + remaining duration
-                let remaining = episode.progress > 0
-                    ? Double(episode.duration) * (1.0 - Double(episode.progress) / 100.0)
-                    : Double(episode.duration)
-                Text(formatDuration(remaining))
-                    .font(.system(size: 11, weight: .regular))
-                    .foregroundStyle(AmberTheme.labelTertiary)
-                    .frame(width: width, alignment: .leading)
+                    // Play capsule with remaining time
+                    HStack(spacing: 5) {
+                        Image(systemName: isPlayingThis ? "pause.fill" : "play.fill")
+                            .font(.system(size: 9.5, weight: .bold))
+                        Text(formatDuration(remaining))
+                            .font(.system(size: 11.5, weight: .semibold))
+                    }
+                    .foregroundStyle(AmberTheme.labelPrimary)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(Color.white.opacity(0.10), in: Capsule())
+                    .padding(.top, 2)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
+            .padding(12)
+            .background(AmberTheme.surfaceRaised, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .frame(width: width)
         }
         .buttonStyle(TactileButtonStyle(scale: 0.97))
     }
 
-    // MARK: - 3. 我的播客 (Apple Podcasts square cover style)
+    // MARK: - 3. 我的播客 (Apple square cover shelf)
     @ViewBuilder
     private func subscribedChannelsShelf() -> some View {
-        let posterSize: CGFloat = 96.0
+        let posterSize: CGFloat = 132.0
 
         VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                Text("我的播客")
-                    .font(.system(size: 24, weight: .bold, design: .rounded))
-                    .foregroundStyle(AmberTheme.labelPrimary)
+            HStack(alignment: .firstTextBaseline) {
+                sectionTitle("我的播客")
 
                 Spacer()
 
@@ -399,11 +428,17 @@ public struct HomeLibraryView: View {
                                 }
                                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
 
+                                // Apple order: show name first, then genre/author
                                 Text(feed.title)
-                                    .font(.system(size: 12, weight: .regular))
+                                    .font(.system(size: 13, weight: .medium))
                                     .foregroundStyle(AmberTheme.labelPrimary)
-                                    .lineLimit(2)
-                                    .multilineTextAlignment(.leading)
+                                    .lineLimit(1)
+                                    .frame(width: posterSize, alignment: .leading)
+
+                                Text(podcastSubtitle(feed))
+                                    .font(.system(size: 11, weight: .regular))
+                                    .foregroundStyle(AmberTheme.labelTertiary)
+                                    .lineLimit(1)
                                     .frame(width: posterSize, alignment: .leading)
                             }
                         }
@@ -478,7 +513,7 @@ public struct HomeLibraryView: View {
             let firstGenreFeed = feeds.first(where: { $0.genre != nil && !($0.genre!.isEmpty) })
             let shelfTitle = firstGenreFeed.map { "因为你收听《\($0.title)》" } ?? "为你推荐"
 
-            let cardSize: CGFloat = 120.0
+            let cardSize: CGFloat = 132.0
 
             VStack(alignment: .leading, spacing: 16) {
                 Text(shelfTitle)
@@ -508,20 +543,18 @@ public struct HomeLibraryView: View {
                                     }
                                     .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
 
+                                    // Apple order: show name first, then genre/author
                                     Text(feed.title)
                                         .font(.system(size: 13, weight: .medium))
                                         .foregroundStyle(AmberTheme.labelPrimary)
-                                        .lineLimit(2)
-                                        .multilineTextAlignment(.leading)
+                                        .lineLimit(1)
                                         .frame(width: cardSize, alignment: .leading)
 
-                                    if let genre = feed.genre, !genre.isEmpty {
-                                        Text(genre)
-                                            .font(.system(size: 11, weight: .regular))
-                                            .foregroundStyle(AmberTheme.labelTertiary)
-                                            .lineLimit(1)
-                                            .frame(width: cardSize, alignment: .leading)
-                                    }
+                                    Text(podcastSubtitle(feed))
+                                        .font(.system(size: 11, weight: .regular))
+                                        .foregroundStyle(AmberTheme.labelTertiary)
+                                        .lineLimit(1)
+                                        .frame(width: cardSize, alignment: .leading)
                                 }
                             }
                             .buttonStyle(TactileButtonStyle(scale: 0.97))
@@ -902,6 +935,29 @@ public struct HomeLibraryView: View {
         let minutes = (total % 3600) / 60
         if hours > 0 { return "\(hours)h \(minutes)m" }
         return "\(minutes) min"
+    }
+
+    /// Apple "Title ›" section header language.
+    private func sectionTitle(_ title: String) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 6) {
+            Text(title)
+                .font(.system(size: 24, weight: .bold, design: .rounded))
+                .foregroundStyle(AmberTheme.labelPrimary)
+            Image(systemName: "chevron.right")
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(AmberTheme.labelTertiary)
+        }
+    }
+
+    private func stripHTML(_ text: String) -> String {
+        text.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    /// Apple card second line: genre when known, else the author, else nothing.
+    private func podcastSubtitle(_ feed: PodcastFeed) -> String {
+        if let g = feed.genre, !g.isEmpty { return g }
+        return feed.author
     }
 }
 

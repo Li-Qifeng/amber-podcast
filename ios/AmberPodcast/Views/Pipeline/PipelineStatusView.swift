@@ -1,10 +1,20 @@
 import SwiftUI
 
+/// Process-level cache for the pipeline (转储) page. NavigationStack destroys
+/// view state on every push/pop, so plain @State blanks the screen and refetches
+/// from zero. Holding the last payloads in a shared store gives instant stale
+/// content while .task refreshes in the background (stale-while-revalidate).
+@MainActor
+final class PipelineStore: ObservableObject {
+    static let shared = PipelineStore()
+    @Published var statusData: AmberAPIClient.PipelineStatusResponse? = nil
+    @Published var queueData: AmberAPIClient.PipelineQueueResponse? = nil
+    @Published var statsData: AmberAPIClient.PipelineStatsResponse? = nil
+}
+
 public struct PipelineStatusView: View {
     @StateObject private var apiClient = AmberAPIClient.shared
-    @State private var statusData: AmberAPIClient.PipelineStatusResponse? = nil
-    @State private var queueData: AmberAPIClient.PipelineQueueResponse? = nil
-    @State private var statsData: AmberAPIClient.PipelineStatsResponse? = nil
+    @ObservedObject private var store = PipelineStore.shared
     @State private var isLoading: Bool = false
     @State private var errorMessage: String? = nil
     @State private var showSettingsSheet: Bool = false
@@ -121,7 +131,7 @@ public struct PipelineStatusView: View {
                     .font(.system(size: 15, weight: .semibold, design: .rounded))
                     .foregroundStyle(AmberTheme.labelPrimary)
                 Spacer()
-                if let s = statsData {
+                if let s = store.statsData {
                     Text("成功率 \(Int((s.successRate * 100).rounded()))%")
                         .font(.system(size: 11, weight: .semibold, design: .rounded))
                         .foregroundStyle(s.successRate >= 0.9 ? AmberTheme.accentElectric : Color.orange)
@@ -130,23 +140,23 @@ public struct PipelineStatusView: View {
 
             LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
                 statTile(icon: "flame.fill", title: "今日转储",
-                         value: "\(statsData?.todayDumped ?? 0)", tint: AmberTheme.primaryAmber)
+                         value: "\(store.statsData?.todayDumped ?? 0)", tint: AmberTheme.primaryAmber)
                 statTile(icon: "clock.fill", title: "平均耗时",
                          value: avgDurationText, tint: Color.cyan)
                 statTile(icon: "checkmark.seal.fill", title: "就绪归档",
-                         value: "\(statsData?.totalReady ?? 0)", tint: AmberTheme.accentElectric)
+                         value: "\(store.statsData?.totalReady ?? 0)", tint: AmberTheme.accentElectric)
                 statTile(icon: "internaldrive.fill", title: "存储占用",
                          value: storageText, tint: Color.green)
             }
 
-            if let trend = statsData?.trend, !trend.isEmpty {
+            if let trend = store.statsData?.trend, !trend.isEmpty {
                 trendChart(trend)
             }
         }
     }
 
     private var avgDurationText: String {
-        guard let s = statsData, s.avgDurationSec > 0 else { return "—" }
+        guard let s = store.statsData, s.avgDurationSec > 0 else { return "—" }
         let m = s.avgDurationSec / 60
         let sec = s.avgDurationSec % 60
         if m >= 60 { return "\(m / 60)h\(m % 60)m" }
@@ -154,7 +164,7 @@ public struct PipelineStatusView: View {
     }
 
     private var storageText: String {
-        guard let mb = statusData?.summary.storageMb, mb > 0 else { return "—" }
+        guard let mb = store.statusData?.summary.storageMb, mb > 0 else { return "—" }
         return mb >= 1024 ? String(format: "%.1f GB", mb / 1024) : String(format: "%.0f MB", mb)
     }
 
@@ -208,7 +218,7 @@ public struct PipelineStatusView: View {
                     .font(.system(size: 15, weight: .semibold, design: .rounded))
                     .foregroundStyle(AmberTheme.labelPrimary)
                 Spacer()
-                if let c = queueData?.counts {
+                if let c = store.queueData?.counts {
                     Text("\(c.running) 进行 · \(c.queued) 排队")
                         .font(.system(size: 10.5))
                         .foregroundStyle(AmberTheme.labelTertiary)
@@ -240,7 +250,7 @@ public struct PipelineStatusView: View {
     }
 
     private var queueTabBar: some View {
-        let counts = queueData?.counts
+        let counts = store.queueData?.counts
         let tabs: [(String, Int)] = [
             ("进行中", counts?.running ?? 0),
             ("排队", counts?.queued ?? 0),
@@ -282,7 +292,7 @@ public struct PipelineStatusView: View {
     }
 
     private var currentQueueItems: [AmberAPIClient.PipelineTaskCard] {
-        guard let q = queueData else { return [] }
+        guard let q = store.queueData else { return [] }
         let base: [AmberAPIClient.PipelineTaskCard] = {
             switch queueTab {
             case 0: return q.running
@@ -388,14 +398,14 @@ public struct PipelineStatusView: View {
                     .font(.system(size: 15, weight: .semibold, design: .rounded))
                     .foregroundStyle(AmberTheme.labelPrimary)
                 Spacer()
-                if let groups = statusData?.feeds, !groups.isEmpty {
+                if let groups = store.statusData?.feeds, !groups.isEmpty {
                     Text("\(groups.count) 个播客")
                         .font(.system(size: 11.5))
                         .foregroundStyle(AmberTheme.labelSecondary)
                 }
             }
 
-            if let groups = statusData?.feeds, !groups.isEmpty {
+            if let groups = store.statusData?.feeds, !groups.isEmpty {
                 statusFilterBar
 
                 ForEach(groups) { group in
@@ -679,13 +689,13 @@ public struct PipelineStatusView: View {
                 .foregroundStyle(AmberTheme.labelPrimary)
 
             VStack(spacing: 0) {
-                infraRow(title: "语音识别 (ASR)", value: statusData?.summary.asrEngine ?? "Groq Whisper Large-v3 Turbo", icon: "waveform")
+                infraRow(title: "语音识别 (ASR)", value: store.statusData?.summary.asrEngine ?? "Groq Whisper Large-v3 Turbo", icon: "waveform")
                 Divider().background(Color.white.opacity(0.06))
-                infraRow(title: "双语精译模型", value: statusData?.summary.llmEngine ?? "Groq Qwen 3.8 27B", icon: "character.book.closed.fill")
+                infraRow(title: "双语精译模型", value: store.statusData?.summary.llmEngine ?? "Groq Qwen 3.8 27B", icon: "character.book.closed.fill")
                 Divider().background(Color.white.opacity(0.06))
-                infraRow(title: "语音合成 (TTS)", value: statusData?.summary.ttsEngine ?? "Edge TTS · 4 音色", icon: "speaker.wave.2.fill")
+                infraRow(title: "语音合成 (TTS)", value: store.statusData?.summary.ttsEngine ?? "Edge TTS · 4 音色", icon: "speaker.wave.2.fill")
                 Divider().background(Color.white.opacity(0.06))
-                infraRow(title: "网关健康度", value: statusData?.summary.serverStatus == "healthy" ? "正常运行 (200 OK)" : "连接检查中", icon: "network")
+                infraRow(title: "网关健康度", value: store.statusData?.summary.serverStatus == "healthy" ? "正常运行 (200 OK)" : "连接检查中", icon: "network")
             }
             .amberPlate(radius: 12)
         }
@@ -720,9 +730,9 @@ public struct PipelineStatusView: View {
         async let statsTask = try? await apiClient.fetchPipelineStats()
         let (s, q, st) = await (statusTask, queueTask, statsTask)
         await MainActor.run {
-            if let s = s { self.statusData = s }
-            if let q = q { self.queueData = q }
-            if let st = st { self.statsData = st }
+            if let s = s { self.store.statusData = s }
+            if let q = q { self.store.queueData = q }
+            if let st = st { self.store.statsData = st }
             self.isLoading = false
         }
     }
@@ -734,13 +744,13 @@ public struct PipelineStatusView: View {
             while !Task.isCancelled {
                 try? await Task.sleep(nanoseconds: 4_000_000_000)
                 if Task.isCancelled { break }
-                let active = (queueData?.counts.running ?? 0) + (queueData?.counts.queued ?? 0)
+                let active = (store.queueData?.counts.running ?? 0) + (store.queueData?.counts.queued ?? 0)
                 guard active > 0 else { continue }
                 if let q = try? await apiClient.fetchPipelineQueue() {
-                    await MainActor.run { self.queueData = q }
+                    await MainActor.run { self.store.queueData = q }
                 }
                 if let st = try? await apiClient.fetchPipelineStats() {
-                    await MainActor.run { self.statsData = st }
+                    await MainActor.run { self.store.statsData = st }
                 }
             }
         }
