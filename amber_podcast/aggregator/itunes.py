@@ -54,6 +54,31 @@ class ApplePodcastAggregator:
             except Exception:
                 return []
 
+    async def search_podcast_genre(self, title: str) -> Optional[str]:
+        """Reverse-lookup a podcast's primary genre from its title.
+
+        The subscribe flow only knows the RSS URL, not the iTunes collection id,
+        so we search by title and take the top hit's primaryGenreName. Returns
+        None when the search fails or yields nothing — callers must not block
+        on this.
+        """
+        if not title:
+            return None
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
+            try:
+                resp = await client.get(
+                    "https://itunes.apple.com/search",
+                    params={"term": title, "media": "podcast", "limit": 1},
+                )
+                if resp.status_code != 200:
+                    return None
+                results = resp.json().get("results", [])
+                if not results:
+                    return None
+                return results[0].get("primaryGenreName", "") or None
+            except Exception:
+                return None
+
     async def fetch_top_podcasts(self, country: str = "cn", limit: int = 25) -> List[Dict[str, Any]]:
         """Fetch real-time top podcasts from Apple Podcasts RSS and resolve metadata."""
         now = time.time()

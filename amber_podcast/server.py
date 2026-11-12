@@ -99,10 +99,12 @@ def _int_setting(key: str, fallback: int, minimum: int = 1) -> int:
 @asynccontextmanager
 async def lifespan(app):
     poller = asyncio.create_task(_poll_loop())
+    genre_backfiller = asyncio.create_task(_backfill_feed_genres())
     try:
         yield
     finally:
         poller.cancel()
+        genre_backfiller.cancel()
 
 
 app = FastAPI(title="Amber Podcast API", version="0.1.0", lifespan=lifespan)
@@ -176,6 +178,25 @@ async def _poll_all_feeds() -> List[str]:
         logger.info("poll: %d new episodes, %d queued for transcription",
                     len(new_episode_ids), queued)
     return new_episode_ids
+
+
+async def _backfill_feed_genres() -> None:
+    """Best-effort genre backfill for feeds missing one (iTunes Search by title).
+
+    Runs once at startup and fire-and-forget after each subscription. Genre is
+    a presentation nicety (home page "for you" shelf), so a failure must never
+    surface to the caller.
+    """
+    try:
+        for feed in db.list_feeds():
+            if feed.get("genre"):
+                continue
+            genre = await apple_agg.search_podcast_genre(feed.get("title", ""))
+            if genre:
+                db.set_feed_genre(feed["id"], genre)
+                logger.info("genre backfill: %s -> %s", feed["id"], genre)
+    except Exception as exc:
+        logger.warning("genre backfill cycle failed: %s", exc)
 
 
 def _active_pipeline_count() -> int:
@@ -535,6 +556,9 @@ async def _subscribe_impl(req: SubscribeRequest):
                 shownotes=ep["shownotes"],
                 guid=ep["guid"]
             )
+        # Fire-and-forget: attach a genre to the fresh feed so the home
+        # page "for you" shelf can use it; never blocks the subscribe.
+        asyncio.create_task(_backfill_feed_genres())
         return {"feed": feed, "episode_count": len(data.get("episodes", []))}
 
 @app.get("/api/v1/feeds")

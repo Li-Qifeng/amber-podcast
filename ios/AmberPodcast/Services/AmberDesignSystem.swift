@@ -82,9 +82,6 @@ public enum AmberTheme {
     // 4px Spacing Grid System & Screen Proportions
     public static let pageMargin: CGFloat = 18.0            // 18 pt edge margin (Rex spec)
     public static let cardGap: CGFloat = 12.0               // 12 pt card gap
-    public static let heroBannerRatio: CGFloat = 0.61       // 61% Screen Height (Rex hero dominance)
-    public static let cardShelfWidthRatio: CGFloat = 0.575  // 57.5% Screen Width (second card peeks 35%)
-    public static let cardShelfAspectRatio: CGFloat = 16.0 / 9.0 // 16:9 Landscape
     public static let dockWidthRatio: CGFloat = 0.92        // 92% Screen Width
     public static let dockHeight: CGFloat = 78.0            // 72 pt
     public static let dockBottomGap: CGFloat = 32.0         // 32 pt Home Bar clearance (Rex spec)

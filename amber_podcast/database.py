@@ -110,24 +110,42 @@ class Database:
                     )
             conn.execute("CREATE INDEX IF NOT EXISTS idx_episodes_pub_ts ON episodes(pub_ts DESC)")
 
+            fcols = {row[1] for row in conn.execute("PRAGMA table_info(feeds)").fetchall()}
+            if "genre" not in fcols:
+                # Apple primaryGenreName, filled lazily via iTunes Search — used by
+                # the home page "for you" recommendation shelf.
+                conn.execute("ALTER TABLE feeds ADD COLUMN genre TEXT DEFAULT ''")
+
     # --- Feed operations ---
     def upsert_feed(self, feed_id: str, source_type: str, title: str, author: str,
-                    feed_url: str, cover_url: str, description: str, auto_translate: int = 0) -> Optional[Dict[str, Any]]:
+                    feed_url: str, cover_url: str, description: str, auto_translate: int = 0,
+                    genre: str = "") -> Optional[Dict[str, Any]]:
         now = int(time.time())
         with self.get_conn() as conn:
             conn.execute("""
-                INSERT INTO feeds (id, source_type, title, author, feed_url, cover_url, description, auto_translate, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO feeds (id, source_type, title, author, feed_url, cover_url, description, auto_translate, genre, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(feed_url) DO UPDATE SET
                     title=excluded.title,
                     author=excluded.author,
                     cover_url=excluded.cover_url,
                     description=excluded.description,
                     auto_translate=excluded.auto_translate,
+                    genre=CASE WHEN excluded.genre != '' THEN excluded.genre ELSE feeds.genre END,
                     updated_at=excluded.updated_at
-            """, (feed_id, source_type, title, author, feed_url, cover_url, description, auto_translate, now, now))
-        # feed_url 是唯一标识，返回按 URL 查到的实际 feed（可能是历史旧 id）
+            """, (feed_id, source_type, title, author, feed_url, cover_url, description, auto_translate, genre, now, now))
+        # feed_url is the unique identity; return the actual feed found by URL (may be a legacy id)
         return self.get_feed_by_url(feed_url)
+
+    def set_feed_genre(self, feed_id: str, genre: str) -> None:
+        """Lazy genre backfill (iTunes Search) — never clobber a known value."""
+        if not genre:
+            return
+        with self.get_conn() as conn:
+            conn.execute(
+                "UPDATE feeds SET genre = ? WHERE id = ? AND (genre IS NULL OR genre = '')",
+                (genre, feed_id),
+            )
 
     def get_feed(self, feed_id: str) -> Optional[Dict[str, Any]]:
         with self.get_conn() as conn:
