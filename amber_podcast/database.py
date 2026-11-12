@@ -1,9 +1,25 @@
 import sqlite3
 import json
 import time
+from email.utils import parsedate_to_datetime
 from typing import Optional, List, Dict, Any
 from pathlib import Path
 from amber_podcast.config import DB_PATH
+
+
+def _pub_ts(pub_date: Optional[str]) -> int:
+    """Parse an RFC 822 podcast pub_date into an epoch timestamp (0 if unknown).
+
+    ``episodes.pub_date`` is stored as TEXT, so ``ORDER BY pub_date`` compares
+    strings ("Wed, 31 May 2023" > "Wed, 11 Nov 2026"). Every write must also
+    persist ``pub_ts`` so recency queries can sort numerically.
+    """
+    if not pub_date:
+        return 0
+    try:
+        return int(parsedate_to_datetime(pub_date).timestamp())
+    except (TypeError, ValueError, OverflowError):
+        return 0
 
 SCHEMA = """
 PRAGMA journal_mode = WAL;
@@ -31,6 +47,7 @@ CREATE TABLE IF NOT EXISTS episodes (
     audio_url TEXT NOT NULL,
     duration INTEGER DEFAULT 0,         -- in seconds
     pub_date TEXT DEFAULT '',
+    pub_ts INTEGER DEFAULT 0,           -- pub_date parsed to epoch; TEXT sorting is lexicographic and wrong
     shownotes TEXT DEFAULT '',
     status TEXT DEFAULT 'idle',         -- 'idle', 'transcribing', 'translating', 'synthesizing', 'ready', 'failed'
     progress INTEGER DEFAULT 0,         -- 0 to 100
@@ -75,6 +92,17 @@ class Database:
             cols = {row[1] for row in conn.execute("PRAGMA table_info(episodes)").fetchall()}
             if "dump_started_at" not in cols:
                 conn.execute("ALTER TABLE episodes ADD COLUMN dump_started_at INTEGER DEFAULT 0")
+            if "pub_ts" not in cols:
+                conn.execute("ALTER TABLE episodes ADD COLUMN pub_ts INTEGER DEFAULT 0")
+                # backfill: pub_date is TEXT, so every existing row needs a parsed epoch
+                for eid, pub_date in conn.execute(
+                    "SELECT id, pub_date FROM episodes WHERE pub_date != ''"
+                ).fetchall():
+                    conn.execute(
+                        "UPDATE episodes SET pub_ts = ? WHERE id = ?",
+                        (_pub_ts(pub_date), eid),
+                    )
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_episodes_pub_ts ON episodes(pub_ts DESC)")
 
     # --- Feed operations ---
     def upsert_feed(self, feed_id: str, source_type: str, title: str, author: str,
@@ -121,16 +149,17 @@ class Database:
         now = int(time.time())
         with self.get_conn() as conn:
             conn.execute("""
-                INSERT INTO episodes (id, feed_id, guid, title, audio_url, duration, pub_date, shownotes, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO episodes (id, feed_id, guid, title, audio_url, duration, pub_date, pub_ts, shownotes, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(id) DO UPDATE SET
                     title=excluded.title,
                     audio_url=excluded.audio_url,
                     duration=excluded.duration,
                     pub_date=excluded.pub_date,
+                    pub_ts=excluded.pub_ts,
                     shownotes=excluded.shownotes,
                     updated_at=excluded.updated_at
-            """, (episode_id, feed_id, guid, title, audio_url, duration, pub_date, shownotes, now, now))
+            """, (episode_id, feed_id, guid, title, audio_url, duration, pub_date, _pub_ts(pub_date), shownotes, now, now))
         return self.get_episode(episode_id)
 
     def get_episode(self, episode_id: str) -> Optional[Dict[str, Any]]:
@@ -142,12 +171,12 @@ class Database:
         with self.get_conn() as conn:
             if feed_id:
                 rows = conn.execute(
-                    "SELECT * FROM episodes WHERE feed_id = ? ORDER BY pub_date DESC, created_at DESC LIMIT ? OFFSET ?",
+                    "SELECT * FROM episodes WHERE feed_id = ? ORDER BY pub_ts DESC, created_at DESC LIMIT ? OFFSET ?",
                     (feed_id, limit, offset)
                 ).fetchall()
             else:
                 rows = conn.execute(
-                    "SELECT * FROM episodes ORDER BY pub_date DESC, created_at DESC LIMIT ? OFFSET ?",
+                    "SELECT * FROM episodes ORDER BY pub_ts DESC, created_at DESC LIMIT ? OFFSET ?",
                     (limit, offset)
                 ).fetchall()
             return [dict(r) for r in rows]

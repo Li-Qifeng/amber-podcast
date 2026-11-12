@@ -130,3 +130,66 @@ def test_stream_rejects_invalid_episode_id_and_track():
     assert bad_id.status_code == 400, bad_id.text
     bad_track = client.get("/api/v1/episodes/some_episode/stream/secret", headers=headers)
     assert bad_track.status_code == 400, bad_track.text
+
+
+# --- hero_episode selection (P0: only post-subscribe publications reach the hero) ---
+
+from amber_podcast.server import _pick_hero_episode
+
+
+def _feed_row(fid, created_at):
+    return {"id": fid, "created_at": created_at}
+
+
+def _episode_row(eid, fid, pub_ts):
+    return {"id": eid, "feed_id": fid, "pub_ts": pub_ts, "pub_date": ""}
+
+
+def test_pick_hero_episode_only_after_subscribe():
+    subscribed = 1_700_000_000
+    feeds = [_feed_row("f1", subscribed)]
+    episodes = [
+        _episode_row("old", "f1", subscribed - 86400),
+        _episode_row("new", "f1", subscribed + 3600),
+    ]
+    assert _pick_hero_episode(feeds, episodes)["id"] == "new"
+
+
+def test_pick_hero_episode_none_when_backcatalogue_only():
+    """A freshly subscribed show must not push its archive into the hero."""
+    subscribed = 1_700_000_000
+    feeds = [_feed_row("f1", subscribed)]
+    episodes = [
+        _episode_row("old1", "f1", subscribed - 86400),
+        _episode_row("old2", "f1", subscribed - 7200),
+    ]
+    assert _pick_hero_episode(feeds, episodes) is None
+
+
+def test_pick_hero_episode_picks_newest_across_feeds():
+    feeds = [_feed_row("f1", 100), _feed_row("f2", 100)]
+    episodes = [_episode_row("a", "f1", 200), _episode_row("b", "f2", 300)]
+    assert _pick_hero_episode(feeds, episodes)["id"] == "b"
+
+
+def test_list_episodes_sorts_by_pub_ts_not_lexicographic_text():
+    """'Wed, 31 May 2023' sorts ABOVE 'Wed, 11 Nov 2026' as raw TEXT."""
+    fid = "feed_pubts_sort"
+    db.upsert_feed(feed_id=fid, source_type="apple_rss", title="PubTs",
+                   author="T", feed_url="https://example.com/pubts",
+                   cover_url="", description="")
+    db.upsert_episode(episode_id="p_2023", feed_id=fid, title="2023",
+                      audio_url="https://e/a.mp3",
+                      pub_date="Wed, 31 May 2023 23:00:00 GMT")
+    db.upsert_episode(episode_id="p_2026", feed_id=fid, title="2026",
+                      audio_url="https://e/b.mp3",
+                      pub_date="Wed, 11 Nov 2026 10:00:00 GMT")
+    rows = db.list_episodes(feed_id=fid, limit=10)
+    assert [r["id"] for r in rows][:2] == ["p_2026", "p_2023"]
+
+
+def test_library_payload_exposes_hero_episode_field():
+    headers = {"Authorization": f"Bearer {AUTH_TOKEN}"}
+    resp = client.get("/api/v1/library", headers=headers)
+    assert resp.status_code == 200, resp.text
+    assert "hero_episode" in resp.json()

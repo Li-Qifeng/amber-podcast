@@ -4,6 +4,7 @@ import logging
 import time
 import hashlib
 import re
+from email.utils import parsedate_to_datetime
 from typing import Optional, List, Dict, Any
 from pathlib import Path
 from fastapi import FastAPI, Depends, HTTPException, Header, Query, BackgroundTasks, status
@@ -20,6 +21,20 @@ def stable_hash(s: str) -> str:
     会导致同一 URL/guid 生成不同的 feed_id/episode_id，触发重复订阅与外键约束失败。
     """
     return f"{int(hashlib.sha256(s.encode('utf-8')).hexdigest(), 16) % 100000000:08d}"
+
+def _pub_ts(pub_date: Optional[str]) -> Optional[int]:
+    """Parse an RFC 822 podcast pub_date into a unix timestamp.
+
+    ``episodes.pub_date`` is stored as TEXT, so SQL's ``ORDER BY pub_date``
+    sorts it lexicographically ("Mon, 9" < "Sun, 8") and cannot be trusted for
+    recency. Compare parsed timestamps instead. Returns None when unparseable.
+    """
+    if not pub_date:
+        return None
+    try:
+        return int(parsedate_to_datetime(pub_date).timestamp())
+    except (TypeError, ValueError, OverflowError):
+        return None
 
 from amber_podcast.config import AUTH_TOKEN, SERVER_HOST, SERVER_PORT, GDRIVE_DIR, DATA_DIR, SCRATCH_DIR
 from amber_podcast.database import Database
@@ -358,14 +373,42 @@ def list_feeds(token: str = Depends(verify_token)):
     """List all subscribed podcasts."""
     return {"feeds": db.list_feeds()}
 
+def _pick_hero_episode(feeds: List[Dict[str, Any]], episodes: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+    """Newest episode published *after* its own feed was subscribed.
+
+    A freshly added podcast must not push its back-catalogue into the hero —
+    only genuinely new drops qualify. ``pub_ts`` (numeric) is preferred over
+    parsing ``pub_date`` (TEXT) because the latter sorts lexicographically.
+    """
+    created_by_feed = {f["id"]: f["created_at"] for f in feeds}
+    hero = None
+    hero_ts = None
+    for ep in episodes:
+        subscribed_at = created_by_feed.get(ep["feed_id"])
+        pub_ts = ep.get("pub_ts") or _pub_ts(ep.get("pub_date"))
+        if subscribed_at is None or not pub_ts or pub_ts < subscribed_at:
+            continue
+        if hero_ts is None or pub_ts > hero_ts:
+            hero_ts = pub_ts
+            hero = ep
+    return hero
+
+
 @app.get("/api/v1/library")
 def get_library(token: str = Depends(verify_token)):
-    """Fetch all subscribed podcasts and their latest 30 episodes in 1 single fast database call."""
+    """Subscribed podcasts + latest 30 episodes + the hero episode.
+
+    ``hero_episode`` is the newest episode published after its feed was
+    subscribed; it is null when nothing new has arrived yet, and the client
+    collapses the hero in that case. ``recent_episodes`` is left unfiltered:
+    the "continue listening" shelf still shows the whole recent window.
+    """
     feeds = db.list_feeds()
     recent_episodes = db.list_episodes(feed_id=None, limit=30)
     return {
         "feeds": feeds,
-        "recent_episodes": recent_episodes
+        "recent_episodes": recent_episodes,
+        "hero_episode": _pick_hero_episode(feeds, recent_episodes),
     }
 
 @app.api_route("/api/v1/images/proxy", methods=["GET", "HEAD"])

@@ -13,6 +13,8 @@ public struct HomeLibraryView: View {
     @State private var newAutoTranslate: Bool = false
     @State private var isSubscribing: Bool = false
     @State private var errorMessage: String? = nil
+    @State private var discoverFeed: AmberAPIClient.DiscoverFeedResponse? = nil
+    @State private var isLoadingDiscover: Bool = false
 
     @AppStorage("amber_cached_library_json_v2") private var cachedLibraryJson: String = ""
 
@@ -31,13 +33,15 @@ public struct HomeLibraryView: View {
         return max(1, screenHeight - insets.top - insets.bottom)
     }
 
-    /// The hero artwork must belong to the feed that owns the featured episode.
-    /// Taking feeds.first and recentEpisodes.first independently paired The
-    /// Daily's cover with a 声动早咖啡 episode title.
+    /// The hero only shows an episode published *after* its feed was subscribed,
+    /// so a freshly added show never pushes its back-catalogue up top. The server
+    /// picks that episode (`hero_episode`); when nothing new has dropped yet it is
+    /// nil and the hero section collapses entirely. The artwork must still belong
+    /// to the feed that owns the episode, never feeds.first.
     private static func heroPair(
-        feeds: [PodcastFeed], episodes: [Episode]
+        feeds: [PodcastFeed], heroEpisode: Episode?
     ) -> (PodcastFeed?, Episode?) {
-        guard let ep = episodes.first else { return (feeds.first, nil) }
+        guard let ep = heroEpisode else { return (nil, nil) }
         return (feeds.first(where: { $0.id == ep.feedId }) ?? feeds.first, ep)
     }
 
@@ -51,7 +55,7 @@ public struct HomeLibraryView: View {
            !lib.feeds.isEmpty {
             self._feeds = State(initialValue: lib.feeds)
             self._recentEpisodes = State(initialValue: lib.recentEpisodes)
-            let hero = Self.heroPair(feeds: lib.feeds, episodes: lib.recentEpisodes)
+            let hero = Self.heroPair(feeds: lib.feeds, heroEpisode: lib.heroEpisode)
             self._heroFeed = State(initialValue: hero.0)
             self._heroEpisode = State(initialValue: hero.1)
             self._isLoading = State(initialValue: false)
@@ -79,12 +83,15 @@ public struct HomeLibraryView: View {
                         VStack(alignment: .leading, spacing: 0) {
                             AmberScrollTopProbe()
 
-                            // 1. Quiet Acoustic Hero Banner (58% Balanced Proportion)
-                            heroBannerSection()
+                            // 1. Hero — collapses entirely when no post-subscribe
+                            // episode exists (fresh library, or nothing new yet).
+                            if heroEpisode != nil {
+                                heroBannerSection()
+                            }
 
                             // 2. Shelf: "继续收听" (16:9 Precision Carousel)
                             continueListeningShelf()
-                                .padding(.top, 20)
+                                .padding(.top, heroEpisode != nil ? 20 : 8)
 
                             // 3. Shelf: "订阅频道" (2:3 Portrait Carousel)
                             subscribedChannelsShelf()
@@ -526,23 +533,46 @@ public struct HomeLibraryView: View {
         }
     }
 
-    // MARK: - Empty State (Quiet & Clear)
+    // MARK: - Empty State: recommendation shelves
+    //
+    // With no subscriptions the hero has nothing to headline, so it is gone and
+    // the screen becomes recommendation-first: category shelves that scroll
+    // two posters per page.
     private var emptyStateView: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "headphones")
-                .font(.system(size: 36, weight: .thin))
-                .foregroundStyle(AmberTheme.labelTertiary)
-                .padding(.top, 60)
+        ScrollView(.vertical, showsIndicators: false) {
+            VStack(alignment: .leading, spacing: 0) {
+                AmberScrollTopProbe()
+                welcomeHeader
 
-            Text("资料库暂无播客")
-                .font(.system(size: 18, weight: .semibold, design: .rounded))
+                if let discover = discoverFeed {
+                    recommendationShelf(title: "热门中文", items: discover.topChinese)
+                        .padding(.top, 30)
+                    recommendationShelf(title: "热门全球", items: discover.topGlobal)
+                        .padding(.top, 30)
+                } else if isLoadingDiscover {
+                    ProgressView()
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, 64)
+                }
+
+                Color.clear.frame(height: 168)
+            }
+        }
+        .scrollBounceBehavior(.always, axes: .vertical)
+        .amberScrollObservable(tab: 0)
+        .ignoresSafeArea(edges: .top)
+        .task { await loadDiscover() }
+    }
+
+    private var welcomeHeader: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("开始你的播客之旅")
+                .font(.system(size: 28, weight: .bold, design: .rounded))
                 .foregroundStyle(AmberTheme.labelPrimary)
 
-            Text("轻触右上角 ＋ 粘贴 Apple Podcasts 或小宇宙链接")
-                .font(.system(size: 13, weight: .regular))
-                .foregroundStyle(AmberTheme.labelTertiary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 40)
+            Text("订阅喜欢的节目，或从下面的推荐开始")
+                .font(.system(size: 14, weight: .regular))
+                .foregroundStyle(AmberTheme.labelSecondary)
 
             Button {
                 showSubscribeSheet = true
@@ -555,8 +585,81 @@ public struct HomeLibraryView: View {
                     .background(Color.white, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
             }
             .buttonStyle(TactileButtonStyle(scale: 0.96))
+            .padding(.top, 6)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(.horizontal, AmberTheme.pageMargin)
+        .padding(.top, 32)
+    }
+
+    /// A category shelf: posters sized to two-per-page, swiped horizontally.
+    @ViewBuilder
+    private func recommendationShelf(title: String, items: [PodcastFeed]) -> some View {
+        let gap: CGFloat = 12
+        let cardWidth = (screenWidth - AmberTheme.pageMargin * 2 - gap) / 2
+        let cardHeight = cardWidth * 1.35
+
+        if !items.isEmpty {
+            VStack(alignment: .leading, spacing: 14) {
+                Text(title)
+                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                    .foregroundStyle(AmberTheme.labelPrimary)
+                    .padding(.horizontal, AmberTheme.pageMargin)
+
+                ScrollView(.horizontal, showsIndicators: false) {
+                    LazyHStack(spacing: gap) {
+                        ForEach(items) { feed in
+                            NavigationLink(destination: FeedDetailView(feed: feed)) {
+                                VStack(alignment: .leading, spacing: 6) {
+                                    ZStack(alignment: .bottomTrailing) {
+                                        if let url = URL(string: feed.proxiedCoverUrl), !feed.proxiedCoverUrl.isEmpty {
+                                            CachedAsyncImage(url: url) { img in
+                                                img
+                                                    .resizable()
+                                                    .scaledToFill()
+                                                    .frame(width: cardWidth, height: cardHeight)
+                                                    .clipped()
+                                            } placeholder: {
+                                                coverPlaceholder(width: cardWidth, height: cardHeight, title: feed.title)
+                                            }
+                                        } else {
+                                            coverPlaceholder(width: cardWidth, height: cardHeight, title: feed.title)
+                                        }
+
+                                        Text(feed.sourceType == "xiaoyuzhou" ? "小宇宙" : "Apple")
+                                            .font(.system(size: 8.5, weight: .regular))
+                                            .foregroundStyle(Color.white.opacity(0.85))
+                                            .padding(.horizontal, 5)
+                                            .padding(.vertical, 2)
+                                            .background(Color.black.opacity(0.70), in: RoundedRectangle(cornerRadius: 3, style: .continuous))
+                                            .padding(6)
+                                    }
+                                    .frame(width: cardWidth, height: cardHeight)
+                                    .amberMediaCard(radius: 20)
+
+                                    Text(feed.title)
+                                        .font(.system(size: 14, weight: .semibold))
+                                        .foregroundStyle(AmberTheme.labelPrimary)
+                                        .lineLimit(2)
+                                        .multilineTextAlignment(.leading)
+                                        .frame(width: cardWidth, alignment: .leading)
+
+                                    Text(feed.author)
+                                        .font(.system(size: 11.5, weight: .regular))
+                                        .foregroundStyle(AmberTheme.labelTertiary)
+                                        .lineLimit(1)
+                                        .frame(width: cardWidth, alignment: .leading)
+                                }
+                            }
+                            .buttonStyle(TactileButtonStyle(scale: 0.97))
+                        }
+                    }
+                    .padding(.horizontal, AmberTheme.pageMargin)
+                    .scrollTargetLayout()
+                }
+                .scrollTargetBehavior(.viewAligned)
+                .scrollClipDisabled()
+            }
+        }
     }
 
     // MARK: - Subscribe Sheet
@@ -645,14 +748,14 @@ public struct HomeLibraryView: View {
         }
         self.feeds = lib.feeds
         self.recentEpisodes = lib.recentEpisodes
-        let hero = Self.heroPair(feeds: lib.feeds, episodes: lib.recentEpisodes)
+        let hero = Self.heroPair(feeds: lib.feeds, heroEpisode: lib.heroEpisode)
         self.heroFeed = hero.0
         self.heroEpisode = hero.1
         self.isLoading = false
     }
 
-    private func saveToCache(feeds: [PodcastFeed], recentEpisodes: [Episode]) {
-        let lib = AmberAPIClient.LibraryResponse(feeds: feeds, recentEpisodes: recentEpisodes)
+    private func saveToCache(feeds: [PodcastFeed], recentEpisodes: [Episode], heroEpisode: Episode?) {
+        let lib = AmberAPIClient.LibraryResponse(feeds: feeds, recentEpisodes: recentEpisodes, heroEpisode: heroEpisode)
         if let data = try? JSONEncoder().encode(lib), let str = String(data: data, encoding: .utf8) {
             cachedLibraryJson = str
         }
@@ -674,7 +777,7 @@ public struct HomeLibraryView: View {
                     #if DEBUG
                     self.feeds = PodcastFeed.samples
                     self.recentEpisodes = Episode.samples
-                    let hero = Self.heroPair(feeds: PodcastFeed.samples, episodes: Episode.samples)
+                    let hero = Self.heroPair(feeds: PodcastFeed.samples, heroEpisode: Episode.samples.first)
                     self.heroFeed = hero.0
                     self.heroEpisode = hero.1
                     #else
@@ -686,10 +789,10 @@ public struct HomeLibraryView: View {
                 } else {
                     self.feeds = lib.feeds
                     self.recentEpisodes = lib.recentEpisodes
-                    let hero = Self.heroPair(feeds: lib.feeds, episodes: lib.recentEpisodes)
+                    let hero = Self.heroPair(feeds: lib.feeds, heroEpisode: lib.heroEpisode)
                     self.heroFeed = hero.0
                     self.heroEpisode = hero.1
-                    self.saveToCache(feeds: lib.feeds, recentEpisodes: lib.recentEpisodes)
+                    self.saveToCache(feeds: lib.feeds, recentEpisodes: lib.recentEpisodes, heroEpisode: lib.heroEpisode)
                 }
                 self.isLoading = false
             }
@@ -700,6 +803,22 @@ public struct HomeLibraryView: View {
                 }
                 self.isLoading = false
             }
+        }
+    }
+
+    /// Recommendation shelves for the empty state. Fetched once per appearance;
+    /// failures are non-fatal — the header and subscribe button stay usable.
+    private func loadDiscover() async {
+        guard discoverFeed == nil, !isLoadingDiscover else { return }
+        isLoadingDiscover = true
+        do {
+            let feed = try await AmberAPIClient.shared.fetchDiscoverFeed()
+            await MainActor.run {
+                self.discoverFeed = feed
+                self.isLoadingDiscover = false
+            }
+        } catch {
+            await MainActor.run { self.isLoadingDiscover = false }
         }
     }
 

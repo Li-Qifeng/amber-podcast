@@ -129,15 +129,20 @@ public final class AmberAPIClient: ObservableObject {
     public struct LibraryResponse: Codable {
         public let feeds: [PodcastFeed]
         public let recentEpisodes: [Episode]
+        /// Newest episode published after its feed was subscribed. Null when no
+        /// new drop has landed yet — the home screen collapses the hero then.
+        public let heroEpisode: Episode?
 
-        public init(feeds: [PodcastFeed], recentEpisodes: [Episode]) {
+        public init(feeds: [PodcastFeed], recentEpisodes: [Episode], heroEpisode: Episode? = nil) {
             self.feeds = feeds
             self.recentEpisodes = recentEpisodes
+            self.heroEpisode = heroEpisode
         }
 
         enum CodingKeys: String, CodingKey {
             case feeds
             case recentEpisodes = "recent_episodes"
+            case heroEpisode = "hero_episode"
         }
     }
 
