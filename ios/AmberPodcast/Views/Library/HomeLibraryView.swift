@@ -31,6 +31,16 @@ public struct HomeLibraryView: View {
         return max(1, screenHeight - insets.top - insets.bottom)
     }
 
+    /// The hero artwork must belong to the feed that owns the featured episode.
+    /// Taking feeds.first and recentEpisodes.first independently paired The
+    /// Daily's cover with a 声动早咖啡 episode title.
+    private static func heroPair(
+        feeds: [PodcastFeed], episodes: [Episode]
+    ) -> (PodcastFeed?, Episode?) {
+        guard let ep = episodes.first else { return (feeds.first, nil) }
+        return (feeds.first(where: { $0.id == ep.feedId }) ?? feeds.first, ep)
+    }
+
     @ObservedObject var player = DualTrackAudioPlayer.shared
     private let impactFeedback = UIImpactFeedbackGenerator(style: .light)
 
@@ -41,8 +51,9 @@ public struct HomeLibraryView: View {
            !lib.feeds.isEmpty {
             self._feeds = State(initialValue: lib.feeds)
             self._recentEpisodes = State(initialValue: lib.recentEpisodes)
-            self._heroFeed = State(initialValue: lib.feeds.first)
-            self._heroEpisode = State(initialValue: lib.recentEpisodes.first)
+            let hero = Self.heroPair(feeds: lib.feeds, episodes: lib.recentEpisodes)
+            self._heroFeed = State(initialValue: hero.0)
+            self._heroEpisode = State(initialValue: hero.1)
             self._isLoading = State(initialValue: false)
         }
     }
@@ -634,8 +645,9 @@ public struct HomeLibraryView: View {
         }
         self.feeds = lib.feeds
         self.recentEpisodes = lib.recentEpisodes
-        self.heroFeed = lib.feeds.first
-        self.heroEpisode = lib.recentEpisodes.first
+        let hero = Self.heroPair(feeds: lib.feeds, episodes: lib.recentEpisodes)
+        self.heroFeed = hero.0
+        self.heroEpisode = hero.1
         self.isLoading = false
     }
 
@@ -662,8 +674,9 @@ public struct HomeLibraryView: View {
                     #if DEBUG
                     self.feeds = PodcastFeed.samples
                     self.recentEpisodes = Episode.samples
-                    self.heroFeed = PodcastFeed.samples.first
-                    self.heroEpisode = Episode.samples.first
+                    let hero = Self.heroPair(feeds: PodcastFeed.samples, episodes: Episode.samples)
+                    self.heroFeed = hero.0
+                    self.heroEpisode = hero.1
                     #else
                     self.feeds = []
                     self.recentEpisodes = []
@@ -673,8 +686,9 @@ public struct HomeLibraryView: View {
                 } else {
                     self.feeds = lib.feeds
                     self.recentEpisodes = lib.recentEpisodes
-                    self.heroFeed = lib.feeds.first
-                    self.heroEpisode = lib.recentEpisodes.first
+                    let hero = Self.heroPair(feeds: lib.feeds, episodes: lib.recentEpisodes)
+                    self.heroFeed = hero.0
+                    self.heroEpisode = hero.1
                     self.saveToCache(feeds: lib.feeds, recentEpisodes: lib.recentEpisodes)
                 }
                 self.isLoading = false
