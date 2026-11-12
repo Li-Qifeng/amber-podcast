@@ -3,6 +3,7 @@ import asyncio
 import logging
 import time
 import hashlib
+import re
 from typing import Optional, List, Dict, Any
 from pathlib import Path
 from fastapi import FastAPI, Depends, HTTPException, Header, Query, BackgroundTasks, status
@@ -251,6 +252,23 @@ async def subscribe_feed(
     token: str = Depends(verify_token)
 ):
     """Subscribe to a podcast URL (Apple RSS or Xiaoyuzhou)."""
+    try:
+        return await _subscribe_impl(req)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.warning(
+            "Subscribe failed url=%s: %s: %s",
+            req.url, type(exc).__name__, exc
+        )
+        raise HTTPException(
+            status_code=400,
+            detail=f"无法订阅该地址（{type(exc).__name__}）"
+        )
+
+
+async def _subscribe_impl(req: SubscribeRequest):
+    """Subscription logic, wrapped by subscribe_feed for error normalization."""
     url = req.url.strip()
     if "xiaoyuzhoufm.com" in url:
         # Xiaoyuzhou link
@@ -581,6 +599,7 @@ async def run_pipeline_task(episode_id: str):
             db.update_episode_status(episode_id, status="synthesizing", progress=90)
             archiver.archive_episode_bundle(
                 episode_id=episode_id,
+                original_audio_path=audio_path,
                 chinese_audio_path=audio_path,
                 timing_sync_path=timing_path,
                 full_mapping_path=mapping_path,
@@ -612,6 +631,7 @@ async def run_pipeline_task(episode_id: str):
         db.update_episode_status(episode_id, status="synthesizing", progress=90)
         archiver.archive_episode_bundle(
             episode_id=episode_id,
+            original_audio_path=audio_path,
             chinese_audio_path=dual_bundle["chinese_audio_path"],
             timing_sync_path=dual_bundle["timing_sync_path"],
             full_mapping_path=dual_bundle["full_mapping_path"],
@@ -1118,23 +1138,44 @@ async def ci_deploy_webhook(bg_tasks: BackgroundTasks, payload: Optional[Dict[st
 @app.get("/api/v1/episodes/{episode_id}/stream/{track}")
 def stream_audio(episode_id: str, track: str = "chinese"):
     """Stream audio with HTTP Range support for native iOS AVPlayer seeking."""
-    archive_dir = DATA_DIR / "archive" / episode_id
-    if not archive_dir.exists():
-        archive_dir = GDRIVE_DIR / "episodes" / episode_id
+    # Whitelist path components before touching the filesystem. AVPlayer loads
+    # this URL without auth headers, so never add Depends(verify_token) here.
+    if not re.fullmatch(r"[A-Za-z0-9_\-]+", episode_id):
+        raise HTTPException(status_code=400, detail="Invalid episode id")
+    if track not in ("chinese", "original"):
+        raise HTTPException(status_code=400, detail="Invalid audio track")
 
-    audio_file = archive_dir / f"{track}_audio.m4a"
-    if not audio_file.exists():
-        # Fallback to scratch directory
-        scratch_file = SCRATCH_DIR / episode_id / f"{track}_audio.m4a"
-        if scratch_file.exists():
-            audio_file = scratch_file
-        else:
-            raise HTTPException(status_code=404, detail=f"Audio track '{track}' not found for episode")
+    # Original downloads keep their source container (.mp3 in practice); only
+    # the synthesized Chinese track is always .m4a. Never assume a fixed name.
+    track_files = {
+        "chinese": ["chinese_audio.m4a", "chinese.m4a"],
+        "original": ["original_audio.m4a", "original.m4a", "original.mp3"],
+    }
+    candidates = track_files[track]
+    search_dirs = [
+        DATA_DIR / "archive" / episode_id,
+        GDRIVE_DIR / "episodes" / episode_id,
+        SCRATCH_DIR / episode_id,
+    ]
 
+    audio_file = None
+    for directory in search_dirs:
+        for name in candidates:
+            candidate = directory / name
+            if candidate.is_file() and candidate.stat().st_size > 0:
+                audio_file = candidate
+                break
+        if audio_file is not None:
+            break
+
+    if audio_file is None:
+        raise HTTPException(status_code=404, detail=f"Audio track '{track}' not found for episode")
+
+    suffix = audio_file.suffix
     return FileResponse(
         path=str(audio_file),
-        media_type="audio/mp4",
-        filename=f"{episode_id}_{track}.m4a"
+        media_type="audio/mpeg" if suffix == ".mp3" else "audio/mp4",
+        filename=f"{episode_id}_{track}{suffix}"
     )
 
 # --- Playback Progress Sync ---

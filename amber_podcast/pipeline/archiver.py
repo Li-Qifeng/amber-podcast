@@ -17,7 +17,8 @@ class EpisodeArchiver:
         timing_sync_path: str,
         full_mapping_path: str,
         chapters: Optional[list] = None,
-        article_markdown: Optional[str] = None
+        article_markdown: Optional[str] = None,
+        original_audio_path: Optional[str] = None
     ) -> Dict[str, Any]:
         """Atomically save synthesized artifacts to local fast SSD, and replicate to Google Drive."""
         # 1. Primary storage: Local SSD for 0.01s instant playback and streaming
@@ -26,6 +27,12 @@ class EpisodeArchiver:
 
         dst_chinese_audio = target_dir / "chinese_audio.m4a"
         shutil.copy2(chinese_audio_path, dst_chinese_audio)
+
+        dst_original_audio = None
+        if original_audio_path and os.path.isfile(original_audio_path):
+            # Keep the source container/extension (RSS originals are usually mp3).
+            dst_original_audio = target_dir / ("original" + Path(original_audio_path).suffix)
+            shutil.copy2(original_audio_path, dst_original_audio)
 
         dst_timing_sync = target_dir / "timing_sync.json"
         shutil.copy2(timing_sync_path, dst_timing_sync)
@@ -48,7 +55,10 @@ class EpisodeArchiver:
             try:
                 gdrive_target = self.gdrive_dir / "episodes" / episode_id
                 gdrive_target.mkdir(parents=True, exist_ok=True)
-                for item in [dst_chinese_audio, dst_timing_sync, dst_full_mapping, dst_chapters, dst_article]:
+                replicated = [dst_chinese_audio, dst_timing_sync, dst_full_mapping, dst_chapters, dst_article]
+                if dst_original_audio is not None:
+                    replicated.append(dst_original_audio)
+                for item in replicated:
                     if item.exists():
                         shutil.copy2(str(item), str(gdrive_target / item.name))
             except Exception as e:
@@ -60,7 +70,8 @@ class EpisodeArchiver:
             "timing_sync": str(dst_timing_sync),
             "full_mapping": str(dst_full_mapping),
             "chapters": str(dst_chapters) if chapters else None,
-            "article": str(dst_article) if article_markdown else None
+            "article": str(dst_article) if article_markdown else None,
+            "original_audio": str(dst_original_audio) if dst_original_audio else None
         }
 
     def get_google_stream_info(self, episode_id: str) -> Dict[str, Any]:

@@ -90,3 +90,43 @@ def test_feed_and_episode_endpoints():
     prog = resp.json()["playback_progress"]
     assert prog["position_ms"] == 45000
     assert prog["track_mode"] == "alternating"
+
+
+def test_subscribe_invalid_url_returns_4xx():
+    """Regression: a malformed feed URL must never leak a 500 + traceback."""
+    headers = {"Authorization": f"Bearer {AUTH_TOKEN}"}
+    resp = client.post(
+        "/api/v1/feeds/subscribe",
+        json={"url": "not-a-valid-url"},
+        headers=headers,
+    )
+    assert resp.status_code == 400, resp.text
+    assert "无法订阅" in resp.json()["detail"]
+
+
+def test_stream_original_track_resolves(tmp_path, monkeypatch):
+    """Regression: the original track keeps its source container (.mp3)."""
+    import amber_podcast.server as server_mod
+
+    eid = "test_stream_original"
+    scratch = tmp_path / "scratch" / eid
+    scratch.mkdir(parents=True)
+    (scratch / "original.mp3").write_bytes(b"ID3" + b"\x00" * 128)
+
+    monkeypatch.setattr(server_mod, "DATA_DIR", tmp_path / "empty_data")
+    monkeypatch.setattr(server_mod, "GDRIVE_DIR", tmp_path / "empty_gdrive")
+    monkeypatch.setattr(server_mod, "SCRATCH_DIR", tmp_path / "scratch")
+
+    headers = {"Authorization": f"Bearer {AUTH_TOKEN}"}
+    resp = client.get(f"/api/v1/episodes/{eid}/stream/original", headers=headers)
+    assert resp.status_code in (200, 206), resp.text
+    assert resp.headers["content-type"].startswith("audio/mpeg")
+
+
+def test_stream_rejects_invalid_episode_id_and_track():
+    """Regression: path components must be whitelisted before filesystem access."""
+    headers = {"Authorization": f"Bearer {AUTH_TOKEN}"}
+    bad_id = client.get("/api/v1/episodes/foo.bar/stream/chinese", headers=headers)
+    assert bad_id.status_code == 400, bad_id.text
+    bad_track = client.get("/api/v1/episodes/some_episode/stream/secret", headers=headers)
+    assert bad_track.status_code == 400, bad_track.text
