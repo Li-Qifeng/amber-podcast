@@ -536,8 +536,8 @@ public struct HomeLibraryView: View {
     // MARK: - Empty State: recommendation shelves
     //
     // With no subscriptions the hero has nothing to headline, so it is gone and
-    // the screen becomes recommendation-first: category shelves that scroll
-    // two posters per page.
+    // the screen becomes recommendation-first: square-poster shelves, two per
+    // page, each with a "查看全部" entry into a category grid.
     private var emptyStateView: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
@@ -545,10 +545,21 @@ public struct HomeLibraryView: View {
                 welcomeHeader
 
                 if let discover = discoverFeed {
-                    recommendationShelf(title: "热门中文", items: discover.topChinese)
-                        .padding(.top, 30)
-                    recommendationShelf(title: "热门全球", items: discover.topGlobal)
-                        .padding(.top, 30)
+                    recommendationShelf(title: "编辑精选", items: discover.featured)
+                        .padding(.top, 28)
+
+                    if let categories = discover.categories, !categories.isEmpty {
+                        ForEach(categories) { category in
+                            recommendationShelf(title: category.name, items: category.items)
+                                .padding(.top, 28)
+                        }
+                    } else {
+                        // Older backend without genre shelves: fall back to the charts.
+                        recommendationShelf(title: "热门中文", items: discover.topChinese)
+                            .padding(.top, 28)
+                        recommendationShelf(title: "热门全球", items: discover.topGlobal)
+                            .padding(.top, 28)
+                    }
                 } else if isLoadingDiscover {
                     ProgressView()
                         .frame(maxWidth: .infinity)
@@ -557,10 +568,15 @@ public struct HomeLibraryView: View {
 
                 Color.clear.frame(height: 168)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .scrollBounceBehavior(.always, axes: .vertical)
+        // No .ignoresSafeArea(edges: .top) here: the empty state has no
+        // full-bleed hero, and letting the scroll view run under the status bar
+        // made an upward overscroll flash the background above the content.
+        // bounce only when the content actually overflows, so a short page
+        // never rubber-bands past its own top edge.
+        .scrollBounceBehavior(.basedOnSize, axes: .vertical)
         .amberScrollObservable(tab: 0)
-        .ignoresSafeArea(edges: .top)
         .task { await loadDiscover() }
     }
 
@@ -591,19 +607,33 @@ public struct HomeLibraryView: View {
         .padding(.top, 32)
     }
 
-    /// A category shelf: posters sized to two-per-page, swiped horizontally.
+    /// A category shelf: square posters, two per page, with a "查看全部" entry.
     @ViewBuilder
     private func recommendationShelf(title: String, items: [PodcastFeed]) -> some View {
         let gap: CGFloat = 12
         let cardWidth = (screenWidth - AmberTheme.pageMargin * 2 - gap) / 2
-        let cardHeight = cardWidth * 1.35
+        let cardHeight = cardWidth   // square artwork
 
         if !items.isEmpty {
             VStack(alignment: .leading, spacing: 14) {
-                Text(title)
-                    .font(.system(size: 20, weight: .bold, design: .rounded))
-                    .foregroundStyle(AmberTheme.labelPrimary)
-                    .padding(.horizontal, AmberTheme.pageMargin)
+                HStack {
+                    Text(title)
+                        .font(.system(size: 20, weight: .bold, design: .rounded))
+                        .foregroundStyle(AmberTheme.labelPrimary)
+
+                    Spacer()
+
+                    NavigationLink(destination: CategoryGridView(title: title, items: items)) {
+                        HStack(spacing: 3) {
+                            Text("查看全部")
+                                .font(.system(size: 12, weight: .medium))
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 9, weight: .semibold))
+                        }
+                        .foregroundStyle(AmberTheme.labelSecondary)
+                    }
+                }
+                .padding(.horizontal, AmberTheme.pageMargin)
 
                 ScrollView(.horizontal, showsIndicators: false) {
                     LazyHStack(spacing: gap) {

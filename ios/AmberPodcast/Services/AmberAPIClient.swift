@@ -98,21 +98,41 @@ public final class AmberAPIClient: ObservableObject {
     }
 
     // MARK: - Discover Feed
+    public struct DiscoverCategory: Codable, Identifiable {
+        public let id: String
+        public let name: String
+        public let items: [PodcastFeed]
+
+        public init(id: String, name: String, items: [PodcastFeed]) {
+            self.id = id
+            self.name = name
+            self.items = items
+        }
+    }
+
     public struct DiscoverFeedResponse: Codable {
         public let featured: [PodcastFeed]
         public let topChinese: [PodcastFeed]
         public let topGlobal: [PodcastFeed]
+        /// Real Apple genre shelves. Optional so an older backend without the
+        /// field still decodes (the client falls back to the two charts).
+        public let categories: [DiscoverCategory]?
 
-        public init(featured: [PodcastFeed], topChinese: [PodcastFeed], topGlobal: [PodcastFeed]) {
+        public init(featured: [PodcastFeed],
+                    topChinese: [PodcastFeed],
+                    topGlobal: [PodcastFeed],
+                    categories: [DiscoverCategory]? = nil) {
             self.featured = featured
             self.topChinese = topChinese
             self.topGlobal = topGlobal
+            self.categories = categories
         }
 
         enum CodingKeys: String, CodingKey {
             case featured
             case topChinese = "top_chinese"
             case topGlobal = "top_global"
+            case categories
         }
     }
 

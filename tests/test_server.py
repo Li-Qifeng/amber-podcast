@@ -3,6 +3,20 @@ from starlette.testclient import TestClient
 from amber_podcast.server import app, db
 from amber_podcast.config import AUTH_TOKEN
 
+# Hard guard: the suite must never run against the production database.
+# conftest.py injects AMBER_DB_PATH before amber_podcast is imported, but that
+# isolation has silently failed at least twice (13:52 and 20:50 on 2026-11-12),
+# writing straight into data/amber.db. If the path is not a throwaway test DB,
+# abort the whole session instead of touching real data.
+from amber_podcast.config import DB_PATH as _DB_PATH_UNDER_TEST
+
+if "amber_test_" not in str(_DB_PATH_UNDER_TEST):
+    pytest.exit(
+        f"Refusing to run: DB_PATH={_DB_PATH_UNDER_TEST} is not an isolated test database. "
+        "conftest.py isolation did not apply — refusing to touch production data.",
+        returncode=1,
+    )
+
 client = TestClient(app)
 
 def test_health():

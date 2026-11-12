@@ -15,6 +15,7 @@ class ApplePodcastAggregator:
     def __init__(self, timeout: float = 15.0):
         self.timeout = timeout
         self._top_cache: Dict[str, Dict[str, Any]] = {}  # {country: {"time": ts, "data": [...]}}
+        self._genre_cache: Dict[str, Dict[str, Any]] = {}  # {"cn:1318": {"time": ts, "data": [...]}}
         self._cache_ttl = 3600 * 6  # 6 hours
 
     async def lookup_podcasts_batch(self, ids: List[str]) -> List[Dict[str, Any]]:
@@ -82,6 +83,44 @@ class ApplePodcastAggregator:
         # Return cached even if expired
         if country in self._top_cache and self._top_cache[country]["data"]:
             return self._top_cache[country]["data"][:limit]
+        return []
+
+    async def fetch_top_by_genre(self, country: str = "cn", genre_id: int = 0,
+                                 limit: int = 20) -> List[Dict[str, Any]]:
+        """Top podcasts inside one Apple genre.
+
+        The legacy iTunes RSS endpoint accepts ``genre=<id>`` (the modern
+        applemarketingtools feed does not), which is what gives us real
+        category shelves instead of just one global chart.
+        """
+        cache_key = f"{country}:{genre_id}"
+        now = time.time()
+        cached = self._genre_cache.get(cache_key)
+        if cached and now - cached["time"] < self._cache_ttl and cached["data"]:
+            return cached["data"][:limit]
+
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                resp = await client.get(
+                    f"https://itunes.apple.com/{country}/rss/toppodcasts/limit={limit}/genre={genre_id}/json"
+                )
+                if resp.status_code == 200:
+                    data = resp.json()
+                    entries = data.get("feed", {}).get("entry", [])
+                    ids = [
+                        e["id"]["attributes"]["im:id"]
+                        for e in entries
+                        if "id" in e and "attributes" in e["id"] and "im:id" in e["id"]["attributes"]
+                    ]
+                    podcasts = await self.lookup_podcasts_batch(ids)
+                    if podcasts:
+                        self._genre_cache[cache_key] = {"time": now, "data": podcasts}
+                        return podcasts[:limit]
+        except Exception:
+            pass
+
+        if cached and cached["data"]:
+            return cached["data"][:limit]
         return []
 
     async def search_podcasts(self, query: str, limit: int = 15, country: Optional[str] = None) -> List[Dict[str, Any]]:

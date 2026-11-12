@@ -63,6 +63,20 @@ DEFAULT_SETTINGS: Dict[str, str] = {
 }
 
 
+# Apple Podcasts genre ids (legacy RSS taxonomy). Order = shelf order on the
+# home empty state; /discover drops any genre that comes back empty.
+GENRE_SHELVES = [
+    ("科技", 1318),
+    ("商业", 1321),
+    ("教育", 1304),
+    ("艺术", 1301),
+    ("健康与健身", 1512),
+    ("新闻", 1489),
+    ("社会与文化", 1324),
+    ("喜剧", 1303),
+]
+
+
 def _get_setting(key: str, default: Optional[str] = None) -> str:
     try:
         stored = db.get_settings()
@@ -386,8 +400,20 @@ async def get_discover_feed(token: str = Depends(verify_token)):
             }
         ]
 
+    # 3. Genre shelves — real Apple categories (legacy RSS accepts genre=<id>).
+    #    Gathered concurrently; a dead genre is skipped, never fatal.
+    genre_results = await asyncio.gather(
+        *[apple_agg.fetch_top_by_genre("cn", gid, 20) for _, gid in GENRE_SHELVES],
+        return_exceptions=True,
+    )
+    categories = []
+    for (genre_name, gid), items in zip(GENRE_SHELVES, genre_results):
+        if isinstance(items, BaseException) or not items:
+            continue
+        categories.append({"id": str(gid), "name": genre_name, "items": items})
+
     # Save to ephemeral cache to help episode preview resolution
-    for item in featured + top_cn + top_us:
+    for item in featured + top_cn + top_us + [i for c in categories for i in c["items"]]:
         fid = str(item.get("id") or item.get("collection_id") or "")
         furl = item.get("feed_url")
         if fid and furl:
@@ -396,7 +422,8 @@ async def get_discover_feed(token: str = Depends(verify_token)):
     return {
         "featured": featured,
         "top_chinese": top_cn,
-        "top_global": top_us
+        "top_global": top_us,
+        "categories": categories,
     }
 
 @app.post("/api/v1/feeds/subscribe")
@@ -1304,9 +1331,12 @@ async def ci_deploy_webhook(bg_tasks: BackgroundTasks, payload: Optional[Dict[st
 
             # 4. Update projects.json
             p_json = "/root/ios-re/airstore-pro/data/studio/projects.json"
+            # Defined outside the branch: the Discord notice below formats it, and
+            # a missing projects.json used to leave it unbound -> NameError killed
+            # the whole deployment notification.
+            sz = round(os.path.getsize(out_ipa) / (1024 * 1024), 2)
             if os.path.exists(p_json):
                 d = json.load(open(p_json))
-                sz = round(os.path.getsize(out_ipa) / (1024 * 1024), 2)
                 for item in d:
                     if item.get("id") == "amber-podcast":
                         item["version"] = version
