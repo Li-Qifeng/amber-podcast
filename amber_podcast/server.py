@@ -4,6 +4,7 @@ import logging
 import time
 import hashlib
 import re
+from contextlib import asynccontextmanager
 from email.utils import parsedate_to_datetime
 from typing import Optional, List, Dict, Any
 from pathlib import Path
@@ -47,7 +48,23 @@ from amber_podcast.pipeline.tts.google_cloud import GoogleCloudTTSProvider
 from amber_podcast.pipeline.aligner import AlignmentEngine
 from amber_podcast.pipeline.archiver import EpisodeArchiver
 
-app = FastAPI(title="Amber Podcast API", version="0.1.0")
+# Feed polling: the server is the only writer of new episodes, so this is a
+# single in-process loop (uvicorn runs one worker here). New drops from an
+# auto_translate feed are queued for the pipeline immediately.
+POLL_INTERVAL_SEC = int(os.environ.get("AMBER_POLL_INTERVAL", "1800"))
+POLL_STARTUP_DELAY_SEC = int(os.environ.get("AMBER_POLL_STARTUP_DELAY", "60"))
+
+
+@asynccontextmanager
+async def lifespan(app):
+    poller = asyncio.create_task(_poll_loop())
+    try:
+        yield
+    finally:
+        poller.cancel()
+
+
+app = FastAPI(title="Amber Podcast API", version="0.1.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -60,6 +77,86 @@ app.add_middleware(
 db = Database()
 apple_agg = ApplePodcastAggregator()
 xyz_agg = XiaoyuzhouAggregator()
+
+
+async def _poll_loop():
+    """Periodically refresh every subscribed feed."""
+    await asyncio.sleep(POLL_STARTUP_DELAY_SEC)
+    while True:
+        try:
+            await _poll_all_feeds()
+        except asyncio.CancelledError:
+            raise
+        except Exception:
+            logger.exception("feed poll cycle failed")
+        await asyncio.sleep(POLL_INTERVAL_SEC)
+
+
+async def _poll_all_feeds() -> List[str]:
+    """One poll cycle. Returns ids of episodes discovered for the first time.
+
+    A failed feed is logged and skipped — one dead RSS URL must not stop the
+    others from being refreshed.
+    """
+    new_episode_ids: List[str] = []
+    for feed in db.list_feeds():
+        try:
+            data = await apple_agg.fetch_and_parse_feed(feed["feed_url"], feed["id"])
+        except Exception as exc:
+            logger.warning("poll: feed %s failed: %s", feed["id"], exc)
+            continue
+
+        for ep in data.get("episodes", []):
+            # Reuse the stored id when this guid is already known: id derivation
+            # changed historically, so trusting ep["id"] would re-insert the
+            # whole back-catalogue on every poll.
+            existing = db.get_episode_by_guid(feed["id"], ep.get("guid") or "")
+            episode_id = existing["id"] if existing else ep["id"]
+            db.upsert_episode(
+                episode_id=episode_id,
+                feed_id=feed["id"],
+                title=ep["title"],
+                audio_url=ep["audio_url"],
+                duration=ep["duration"],
+                pub_date=ep["pub_date"],
+                shownotes=ep["shownotes"],
+                guid=ep["guid"],
+            )
+            if existing is None:
+                new_episode_ids.append(episode_id)
+
+    queued = _queue_auto_translations(new_episode_ids)
+    if new_episode_ids:
+        logger.info("poll: %d new episodes, %d queued for transcription",
+                    len(new_episode_ids), queued)
+    return new_episode_ids
+
+
+def _enqueue_pipeline(episode_id: str) -> None:
+    """Mark an episode pending and launch the pipeline (fire-and-forget)."""
+    db.update_episode_status(episode_id, status="pending", progress=0)
+    asyncio.create_task(run_pipeline_task(episode_id))
+
+
+def _queue_auto_translations(episode_ids: List[str]) -> int:
+    """Queue newly discovered episodes for the pipeline — once, and only when
+    the feed opted into auto_translate and the drop postdates the subscription.
+    """
+    queued = 0
+    for eid in episode_ids:
+        ep = db.get_episode(eid)
+        if not ep or ep.get("status") != "idle":
+            continue  # already running/finished, or a duplicate from an overlap
+        feed = db.get_feed(ep["feed_id"])
+        if not feed or not feed.get("auto_translate"):
+            continue
+        if (_pub_ts(ep.get("pub_date")) or 0) <= feed["created_at"]:
+            continue  # back-catalogue drop: never auto-transcribe pre-subscribe content
+        _enqueue_pipeline(eid)
+        queued += 1
+    return queued
+
+
 archiver = EpisodeArchiver()
 
 # Auth dependency
@@ -911,6 +1008,13 @@ def get_pipeline_stats(token: str = Depends(verify_token)):
         "total_failed": len(failed),
         "trend": trend,
     }
+
+
+@app.post("/api/v1/pipeline/poll")
+async def trigger_poll(token: str = Depends(verify_token)):
+    """Run one feed poll cycle immediately (the same path the background loop uses)."""
+    new_ids = await _poll_all_feeds()
+    return {"new_episodes": len(new_ids), "episode_ids": new_ids}
 
 
 @app.post("/api/v1/pipeline/batch-translate")

@@ -193,3 +193,96 @@ def test_library_payload_exposes_hero_episode_field():
     resp = client.get("/api/v1/library", headers=headers)
     assert resp.status_code == 200, resp.text
     assert "hero_episode" in resp.json()
+
+
+# --- P1: feed polling + auto-transcription scoping ---
+
+import asyncio
+from email.utils import formatdate
+
+import amber_podcast.server as server_mod
+
+
+def test_queue_auto_translations_only_new_post_subscribe_episodes(monkeypatch):
+    enqueued = []
+    monkeypatch.setattr(server_mod, "_enqueue_pipeline", lambda eid: enqueued.append(eid))
+
+    db.upsert_feed(feed_id="feed_p1_auto", source_type="apple_rss", title="Auto",
+                   author="T", feed_url="https://example.com/p1-auto",
+                   cover_url="", description="", auto_translate=1)
+    feed = db.get_feed("feed_p1_auto")
+    db.upsert_episode(episode_id="p1_new", feed_id="feed_p1_auto", title="new",
+                      audio_url="https://e/n.mp3",
+                      pub_date=formatdate(feed["created_at"] + 3600, usegmt=True))
+    db.upsert_episode(episode_id="p1_old", feed_id="feed_p1_auto", title="old",
+                      audio_url="https://e/o.mp3",
+                      pub_date=formatdate(feed["created_at"] - 86400, usegmt=True))
+
+    queued = server_mod._queue_auto_translations(["p1_new", "p1_old"])
+    assert queued == 1
+    assert enqueued == ["p1_new"]
+
+
+def test_queue_auto_translations_skips_non_auto_translate_feeds(monkeypatch):
+    enqueued = []
+    monkeypatch.setattr(server_mod, "_enqueue_pipeline", lambda eid: enqueued.append(eid))
+
+    db.upsert_feed(feed_id="feed_p1_manual", source_type="apple_rss", title="Manual",
+                   author="T", feed_url="https://example.com/p1-manual",
+                   cover_url="", description="", auto_translate=0)
+    feed = db.get_feed("feed_p1_manual")
+    db.upsert_episode(episode_id="p1_manual_new", feed_id="feed_p1_manual", title="new",
+                      audio_url="https://e/m.mp3",
+                      pub_date=formatdate(feed["created_at"] + 3600, usegmt=True))
+
+    assert server_mod._queue_auto_translations(["p1_manual_new"]) == 0
+    assert enqueued == []
+
+
+def test_queue_auto_translations_skips_non_idle(monkeypatch):
+    enqueued = []
+    monkeypatch.setattr(server_mod, "_enqueue_pipeline", lambda eid: enqueued.append(eid))
+
+    db.upsert_feed(feed_id="feed_p1_busy", source_type="apple_rss", title="Busy",
+                   author="T", feed_url="https://example.com/p1-busy",
+                   cover_url="", description="", auto_translate=1)
+    feed = db.get_feed("feed_p1_busy")
+    db.upsert_episode(episode_id="p1_busy", feed_id="feed_p1_busy", title="busy",
+                      audio_url="https://e/b.mp3",
+                      pub_date=formatdate(feed["created_at"] + 3600, usegmt=True))
+    db.update_episode_status("p1_busy", status="transcribing")
+
+    assert server_mod._queue_auto_translations(["p1_busy"]) == 0
+    assert enqueued == []
+
+
+def test_poll_all_feeds_reports_episode_only_once(monkeypatch):
+    """Second poll cycle must not report the same episode as new."""
+    db.upsert_feed(feed_id="feed_p1_poll", source_type="apple_rss", title="Poll",
+                   author="T", feed_url="https://example.com/p1-poll",
+                   cover_url="", description="", auto_translate=0)
+
+    payload = {
+        "feed": {"title": "Poll", "author": "T", "cover_url": "", "description": ""},
+        "episodes": [{
+            "id": "poll_ep_1", "title": "Ep1", "audio_url": "https://e/1.mp3",
+            "duration": 60, "pub_date": "Wed, 11 Nov 2026 10:00:00 GMT",
+            "shownotes": "", "guid": "g1",
+        }],
+    }
+
+    async def fake_fetch(url, feed_id):
+        return payload if feed_id == "feed_p1_poll" else {"episodes": []}
+
+    monkeypatch.setattr(server_mod.apple_agg, "fetch_and_parse_feed", fake_fetch)
+    monkeypatch.setattr(server_mod, "_enqueue_pipeline", lambda eid: None)
+
+    first = asyncio.run(server_mod._poll_all_feeds())
+    assert "poll_ep_1" in first
+    second = asyncio.run(server_mod._poll_all_feeds())
+    assert second == []
+
+
+def test_poll_endpoint_requires_auth():
+    resp = client.post("/api/v1/pipeline/poll")
+    assert resp.status_code == 401

@@ -167,6 +167,24 @@ class Database:
             row = conn.execute("SELECT * FROM episodes WHERE id = ?", (episode_id,)).fetchone()
             return dict(row) if row else None
 
+    def get_episode_by_guid(self, feed_id: str, guid: str) -> Optional[Dict[str, Any]]:
+        """Look an episode up by its RSS guid.
+
+        Episode ids were not always derived the same way (older rows used a
+        different hash), so a feed poll that recomputes ``{feed_id}_{hash(guid)}``
+        can disagree with the id already stored. Reusing the stored id by guid
+        is the only safe way to avoid duplicating the entire back-catalogue on
+        every poll.
+        """
+        if not guid:
+            return None
+        with self.get_conn() as conn:
+            row = conn.execute(
+                "SELECT * FROM episodes WHERE feed_id = ? AND guid = ? ORDER BY created_at LIMIT 1",
+                (feed_id, guid),
+            ).fetchone()
+            return dict(row) if row else None
+
     def list_episodes(self, feed_id: Optional[str] = None, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
         with self.get_conn() as conn:
             if feed_id:
