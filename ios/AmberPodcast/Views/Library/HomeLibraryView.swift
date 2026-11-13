@@ -149,9 +149,7 @@ public struct HomeLibraryView: View {
     @ViewBuilder
     private func latestEpisodesShelf() -> some View {
         if let ep = heroEpisode, let feed = heroFeed {
-            // ~1.3 cards visible: card fills ~70% of the viewport and the next
-            // card peeks in from the trailing edge.
-            let cardWidth = screenWidth * 0.70
+            let cardWidth = screenWidth * 0.76
 
             VStack(alignment: .leading, spacing: 16) {
                 sectionTitle("最新单集")
@@ -170,20 +168,28 @@ public struct HomeLibraryView: View {
         }
     }
 
-    private func latestEpisodeCard(episode: Episode, feed: PodcastFeed, cardWidth: CGFloat) -> some View {
-        // Apple "New Episodes" pattern: a self-contained dark container card —
-        // wide artwork flush to the top edge, then date / title / synopsis and a
-        // play capsule + ellipsis action bar.
-        let isCurrent = player.currentEpisode?.id == episode.id
-        let isPlayingThis = isCurrent && player.isPlaying
+    // MARK: - Unified Apple-Pattern Hero Card (Shared by 最新单集 / 新节目推荐 / 试试这些频道)
+    /// A single self-contained dark container card. Passes `episode` for a dynamic
+    /// Apple expanding play capsule with sound wave and progress bar, or `nil` for a "查看节目" affordance.
+    private func unifiedHeroCard(
+        feed: PodcastFeed,
+        episode: Episode? = nil,
+        badgeText: String? = nil,
+        cardWidth: CGFloat
+    ) -> some View {
         let artworkHeight = cardWidth * 0.68
-        let synopsis = stripHTML(episode.shownotes)
+        let isCurrent = episode.map { player.currentEpisode?.id == $0.id } ?? false
+        let isPlayingThis = isCurrent && player.isPlaying
+        let liveProgress = isCurrent && player.duration > 0
+            ? (player.currentTime / player.duration)
+            : (episode.map { Double($0.progress) / 100.0 } ?? 0.0)
+        let titleText = episode?.title ?? feed.title
+        let synopsis = episode.map { stripHTML($0.shownotes) } ?? stripHTML(feed.description)
+        let badge = badgeText ?? (episode != nil ? "最新单集" : (feed.id.isEmpty ? "" : "节目"))
 
-        return Button {
-            playEpisode(episode, feed: feed)
-        } label: {
-            VStack(alignment: .leading, spacing: 0) {
-                // Wide artwork flush to the container's top edge
+        return VStack(alignment: .leading, spacing: 0) {
+            // Wide artwork flush to the container's top edge
+            NavigationLink(destination: FeedDetailView(feed: feed)) {
                 ZStack(alignment: .bottom) {
                     if let url = URL(string: feed.proxiedCoverUrl), !feed.proxiedCoverUrl.isEmpty {
                         CachedAsyncImage(url: url) { img in
@@ -199,14 +205,14 @@ public struct HomeLibraryView: View {
                         coverPlaceholder(width: cardWidth, height: artworkHeight, title: feed.title)
                     }
 
-                    // Progress bar at artwork bottom (if played)
-                    if episode.progress > 0 {
+                    // Live progress bar along the artwork's bottom edge
+                    if liveProgress > 0 {
                         GeometryReader { pGeo in
                             ZStack(alignment: .leading) {
                                 Rectangle().fill(Color.white.opacity(0.12))
                                 Rectangle()
                                     .fill(AmberTheme.primaryAmber)
-                                    .frame(width: pGeo.size.width * CGFloat(Double(episode.progress) / 100.0))
+                                    .frame(width: pGeo.size.width * CGFloat(liveProgress))
                             }
                         }
                         .frame(height: 3)
@@ -214,58 +220,86 @@ public struct HomeLibraryView: View {
                 }
                 .frame(width: cardWidth, height: artworkHeight)
                 .clipped()
+            }
+            .buttonStyle(.plain)
 
-                VStack(alignment: .leading, spacing: 6) {
-                    // Published date
-                    Text(AmberDate.short(episode.pubDate))
-                        .font(.system(size: 11, weight: .regular))
-                        .foregroundStyle(AmberTheme.labelTertiary)
+            VStack(alignment: .leading, spacing: 6) {
+                // Section badge
+                if !badge.isEmpty {
+                    Text(badge)
+                        .font(.system(size: 11, weight: .semibold, design: .rounded))
+                        .foregroundStyle(AmberTheme.primaryAmber)
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 2.5)
+                        .background(AmberTheme.primaryAmber.opacity(0.12), in: Capsule())
+                }
 
-                    // Episode title (fixed 2 lines)
-                    Text(episode.title)
-                        .font(.system(size: 15, weight: .bold))
-                        .foregroundStyle(isCurrent ? AmberTheme.primaryAmber : AmberTheme.labelPrimary)
-                        .lineLimit(2)
-                        .multilineTextAlignment(.leading)
-
-                    if !synopsis.isEmpty {
-                        Text(synopsis)
-                            .font(.system(size: 12, weight: .regular))
-                            .foregroundStyle(AmberTheme.labelSecondary)
+                NavigationLink(destination: FeedDetailView(feed: feed)) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        // Card title
+                        Text(titleText)
+                            .font(.system(size: 16, weight: .bold, design: .rounded))
+                            .foregroundStyle(isCurrent ? AmberTheme.primaryAmber : AmberTheme.labelPrimary)
                             .lineLimit(2)
                             .multilineTextAlignment(.leading)
-                    }
 
-                    // Bottom action bar: play capsule + ellipsis placeholder
-                    HStack(spacing: 8) {
-                        HStack(spacing: 5) {
-                            Image(systemName: isPlayingThis ? "pause.fill" : "play.fill")
-                                .font(.system(size: 10, weight: .bold))
-                            Text(isPlayingThis ? "正在播放" : (isCurrent ? "继续收听" : "立即播放"))
-                                .font(.system(size: 12, weight: .semibold))
+                        if !synopsis.isEmpty {
+                            Text(synopsis)
+                                .font(.system(size: 12, weight: .regular))
+                                .foregroundStyle(AmberTheme.labelSecondary)
+                                .lineLimit(2)
+                                .multilineTextAlignment(.leading)
                         }
-                        .foregroundStyle(AmberTheme.labelPrimary)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 7)
-                        .background(Color.white.opacity(0.10), in: Capsule())
-
-                        Spacer()
-
-                        Image(systemName: "ellipsis")
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(AmberTheme.labelTertiary)
                     }
-                    .padding(.top, 4)
                 }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 12)
+                .buttonStyle(.plain)
+
+                Spacer(minLength: 4)
+
+                // Bottom action capsule: Apple expanding play capsule for episodes, view for shows
+                HStack {
+                    if let ep = episode {
+                        AppleExpandingPlayCapsule(
+                            isPlaying: isPlayingThis,
+                            isCurrent: isCurrent,
+                            progress: liveProgress,
+                            durationText: formatDuration(Double(ep.duration)),
+                            tintColor: AmberTheme.primaryAmber
+                        ) {
+                            playEpisode(ep, feed: feed)
+                        }
+                    } else {
+                        NavigationLink(destination: FeedDetailView(feed: feed)) {
+                            HStack(spacing: 5) {
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 10, weight: .bold))
+                                Text("查看节目")
+                                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                            }
+                            .foregroundStyle(AmberTheme.labelPrimary)
+                            .padding(.horizontal, 13)
+                            .padding(.vertical, 7)
+                            .background(Color.white.opacity(0.10), in: Capsule())
+                        }
+                        .buttonStyle(AmberNavCapsuleButtonStyle())
+                    }
+
+                    Spacer()
+                }
+                .padding(.top, 4)
             }
-            .frame(width: cardWidth)
-            .background(AmberTheme.surfaceRaised, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
-            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-            .contentShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .padding(.horizontal, 14)
+            .padding(.top, 10)
+            .padding(.bottom, 12)
         }
-        .buttonStyle(TactileButtonStyle(scale: 0.97))
+        .frame(width: cardWidth)
+        .background(AmberTheme.surfaceRaised, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .contentShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+    }
+
+    private func latestEpisodeCard(episode: Episode, feed: PodcastFeed, cardWidth: CGFloat) -> some View {
+        unifiedHeroCard(feed: feed, episode: episode, badgeText: "最新单集", cardWidth: cardWidth)
     }
 
     private func coverPlaceholder(width: CGFloat, height: CGFloat, title: String) -> some View {
@@ -331,10 +365,13 @@ public struct HomeLibraryView: View {
         }
     }
 
-    // MARK: - 3. 我的播客 (Apple square cover shelf)
+    // MARK: - 3. 我的播客 (Apple square cover shelf: 2 full columns + hairline peek of 3rd)
     @ViewBuilder
     private func subscribedChannelsShelf() -> some View {
-        let posterSize: CGFloat = 148.0
+        let peekWidth: CGFloat = 22.0
+        let spacing: CGFloat = 12.0
+        let margin: CGFloat = AmberTheme.pageMargin
+        let posterSize: CGFloat = round((screenWidth - margin - 2 * spacing - peekWidth) / 2.0)
 
         VStack(alignment: .leading, spacing: 16) {
             HStack(alignment: .firstTextBaseline) {
@@ -351,7 +388,7 @@ public struct HomeLibraryView: View {
             .padding(.horizontal, AmberTheme.pageMargin)
 
             ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(spacing: 12) {
+                LazyHStack(spacing: spacing) {
                     ForEach(feeds) { feed in
                         NavigationLink(destination: FeedDetailView(feed: feed)) {
                             VStack(alignment: .leading, spacing: 6) {
@@ -370,7 +407,9 @@ public struct HomeLibraryView: View {
                                         coverPlaceholder(width: posterSize, height: posterSize, title: feed.title)
                                     }
                                 }
-                                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                .frame(width: posterSize, height: posterSize)
+                                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                                .shadow(color: .black.opacity(0.18), radius: 6, y: 3)
 
                                 // Apple order: show name first, then genre/author
                                 Text(feed.title)
@@ -527,107 +566,122 @@ public struct HomeLibraryView: View {
         }
     }
 
+    private func missedRowLeftContent(episode: Episode, feed: PodcastFeed?, isCurrent: Bool) -> some View {
+        HStack(spacing: 14) {
+            // Square artwork
+            ZStack(alignment: .bottom) {
+                if let f = feed, let url = URL(string: f.proxiedCoverUrl), !f.proxiedCoverUrl.isEmpty {
+                    CachedAsyncImage(url: url) { img in
+                        img
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 80, height: 80)
+                            .clipped()
+                    } placeholder: {
+                        coverPlaceholder(width: 80, height: 80, title: f.title)
+                    }
+                } else {
+                    coverPlaceholder(width: 80, height: 80, title: feed?.title ?? "")
+                }
+
+                if episode.progress > 0 {
+                    GeometryReader { pGeo in
+                        ZStack(alignment: .leading) {
+                            Rectangle().fill(Color.white.opacity(0.12))
+                            Rectangle()
+                                .fill(AmberTheme.primaryAmber)
+                                .frame(width: pGeo.size.width * CGFloat(Double(episode.progress) / 100.0))
+                        }
+                    }
+                    .frame(height: 3)
+                }
+            }
+            .frame(width: 80, height: 80)
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+
+            VStack(alignment: .leading, spacing: 4) {
+                // Localized date line (e.g. 11月12日)
+                Text(Self.localizedDate(episode.pubDate))
+                    .font(.system(size: 11, weight: .regular))
+                    .foregroundStyle(AmberTheme.labelTertiary)
+
+                // Episode title (fixed 2 lines)
+                Text(episode.title)
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundStyle(isCurrent ? AmberTheme.primaryAmber : AmberTheme.labelPrimary)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .contentShape(Rectangle())
+    }
+
     private func missedRow(episode: Episode) -> some View {
         let feed = feeds.first(where: { $0.id == episode.feedId })
         let isCurrent = player.currentEpisode?.id == episode.id
         let isPlayingThis = isCurrent && player.isPlaying
+        let liveProgress = isCurrent && player.duration > 0
+            ? (player.currentTime / player.duration)
+            : Double(episode.progress) / 100.0
         let remaining = episode.progress > 0
             ? Double(episode.duration) * (1.0 - Double(episode.progress) / 100.0)
             : Double(episode.duration)
 
-        return Button {
-            if let f = feed { playEpisode(episode, feed: f) }
-        } label: {
-            HStack(spacing: 14) {
-                // Square artwork
-                ZStack(alignment: .bottom) {
-                    if let f = feed, let url = URL(string: f.proxiedCoverUrl), !f.proxiedCoverUrl.isEmpty {
-                        CachedAsyncImage(url: url) { img in
-                            img
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 80, height: 80)
-                                .clipped()
-                        } placeholder: {
-                            coverPlaceholder(width: 80, height: 80, title: f.title)
-                        }
-                    } else {
-                        coverPlaceholder(width: 80, height: 80, title: feed?.title ?? "")
+        return HStack(spacing: 12) {
+            // Tapping artwork or title navigates to channel
+            Group {
+                if let f = feed {
+                    NavigationLink(destination: FeedDetailView(feed: feed)) {
+                        missedRowLeftContent(episode: episode, feed: f, isCurrent: isCurrent)
                     }
-
-                    if episode.progress > 0 {
-                        GeometryReader { pGeo in
-                            ZStack(alignment: .leading) {
-                                Rectangle().fill(Color.white.opacity(0.12))
-                                Rectangle()
-                                    .fill(AmberTheme.primaryAmber)
-                                    .frame(width: pGeo.size.width * CGFloat(Double(episode.progress) / 100.0))
-                            }
-                        }
-                        .frame(height: 3)
-                    }
-                }
-                .frame(width: 80, height: 80)
-                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-
-                VStack(alignment: .leading, spacing: 4) {
-                    // Localized date line (e.g. 11月12日)
-                    Text(Self.localizedDate(episode.pubDate))
-                        .font(.system(size: 11, weight: .regular))
-                        .foregroundStyle(AmberTheme.labelTertiary)
-
-                    // Episode title (fixed 2 lines)
-                    Text(episode.title)
-                        .font(.system(size: 15, weight: .bold))
-                        .foregroundStyle(isCurrent ? AmberTheme.primaryAmber : AmberTheme.labelPrimary)
-                        .lineLimit(2)
-                        .multilineTextAlignment(.leading)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-                // Bottom-right: play capsule + more menu
-                VStack(alignment: .leading, spacing: 6) {
-                    HStack(spacing: 5) {
-                        Image(systemName: isPlayingThis ? "pause.fill" : "play.fill")
-                            .font(.system(size: 11, weight: .bold))
-                        Text(formatDuration(remaining))
-                            .font(.system(size: 12.5, weight: .semibold))
-                    }
-                    .foregroundStyle(AmberTheme.labelPrimary)
-                    .padding(.horizontal, 13)
-                    .padding(.vertical, 7)
-                    .background(Color.white.opacity(0.14), in: Capsule())
-
-                    Menu {
-                        Button {
-                            if let f = feed { UIPasteboard.general.string = f.feedUrl }
-                        } label: {
-                            Label("复制节目链接", systemImage: "link")
-                        }
-                        ShareLink(item: episode.audioUrl) {
-                            Label("分享单集音频", systemImage: "square.and.arrow.up")
-                        }
-                    } label: {
-                        Image(systemName: "ellipsis")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundStyle(AmberTheme.labelTertiary)
-                            .frame(width: 30, height: 30)
-                            .contentShape(Rectangle())
-                    }
+                    .buttonStyle(.plain)
+                } else {
+                    missedRowLeftContent(episode: episode, feed: nil, isCurrent: isCurrent)
                 }
             }
-            .contentShape(Rectangle())
+
+            // Right action column: independent tactile play capsule with equalizer & progress bar + menu
+            VStack(alignment: .trailing, spacing: 6) {
+                AppleExpandingPlayCapsule(
+                    isPlaying: isPlayingThis,
+                    isCurrent: isCurrent,
+                    progress: liveProgress,
+                    durationText: formatDuration(remaining),
+                    tintColor: AmberTheme.primaryAmber
+                ) {
+                    if let f = feed {
+                        playEpisode(episode, feed: f)
+                    }
+                }
+
+                Menu {
+                    Button {
+                        if let f = feed { UIPasteboard.general.string = f.feedUrl }
+                    } label: {
+                        Label("复制节目链接", systemImage: "link")
+                    }
+                    ShareLink(item: episode.audioUrl) {
+                        Label("分享单集音频", systemImage: "square.and.arrow.up")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(AmberTheme.labelTertiary)
+                        .frame(width: 30, height: 26)
+                        .contentShape(Rectangle())
+                }
+            }
         }
-        .buttonStyle(TactileButtonStyle(scale: 0.98))
         .frame(height: 100)
     }
 
-    // MARK: - 5. 新节目推荐 (Apple "New Shows for You" adaptive tint card)
+    // MARK: - 5. 新节目推荐 (Apple Large Control - Unified Hero Card)
     @ViewBuilder
     private func newShowsForYouShelf() -> some View {
         let shows = newShowsForYou
         if !shows.isEmpty {
-            let cardWidth = screenWidth * 0.70
+            let cardWidth = screenWidth * 0.76
 
             VStack(alignment: .leading, spacing: 16) {
                 VStack(alignment: .leading, spacing: 3) {
@@ -641,10 +695,7 @@ public struct HomeLibraryView: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     LazyHStack(spacing: AmberTheme.cardGap) {
                         ForEach(shows) { feed in
-                            NavigationLink(destination: FeedDetailView(feed: feed)) {
-                                newShowCard(feed: feed, cardWidth: cardWidth)
-                            }
-                            .buttonStyle(TactileButtonStyle(scale: 0.97))
+                            unifiedHeroCard(feed: feed, episode: nil, badgeText: "新节目推荐", cardWidth: cardWidth)
                         }
                     }
                     .padding(.horizontal, AmberTheme.pageMargin)
@@ -656,106 +707,12 @@ public struct HomeLibraryView: View {
         }
     }
 
-    private func newShowCard(feed: PodcastFeed, cardWidth: CGFloat) -> some View {
-        // Apple "New Shows for You": card background takes the show's own tint.
-        // We approximate the adaptive tint by blurring the artwork itself; the
-        // card height follows its content so no dead space is left between the
-        // copy and the bottom action bar.
-        let synopsis = stripHTML(feed.description)
-        let artworkSize = cardWidth * 0.58
-
-        return VStack(spacing: 12) {
-            // Centred square artwork
-            Group {
-                if let url = URL(string: feed.proxiedCoverUrl), !feed.proxiedCoverUrl.isEmpty {
-                    CachedAsyncImage(url: url) { img in
-                        img
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: artworkSize, height: artworkSize)
-                            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                            .shadow(color: .black.opacity(0.35), radius: 14, y: 6)
-                    } placeholder: {
-                        coverPlaceholder(width: artworkSize, height: artworkSize, title: feed.title)
-                            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                    }
-                } else {
-                    coverPlaceholder(width: artworkSize, height: artworkSize, title: feed.title)
-                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                }
-            }
-            .frame(maxWidth: .infinity)
-
-            VStack(alignment: .leading, spacing: 6) {
-                Text(feed.title)
-                    .font(.system(size: 16, weight: .bold))
-                    .lineLimit(2)
-                    .multilineTextAlignment(.leading)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                if !synopsis.isEmpty {
-                    Text(synopsis)
-                        .font(.system(size: 12, weight: .regular))
-                        .opacity(0.85)
-                        .lineLimit(3)
-                        .multilineTextAlignment(.leading)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
-            }
-
-            // Bottom bar: genre line + view affordance — fills the card base
-            HStack {
-                Text(podcastSubtitle(feed))
-                    .font(.system(size: 11.5, weight: .regular))
-                    .opacity(0.75)
-                    .lineLimit(1)
-                Spacer()
-                HStack(spacing: 5) {
-                    Image(systemName: "play.fill")
-                        .font(.system(size: 10, weight: .bold))
-                    Text("查看节目")
-                        .font(.system(size: 12, weight: .semibold))
-                }
-                .foregroundStyle(Color.white)
-                .padding(.horizontal, 13)
-                .padding(.vertical, 7)
-                .background(Color.white.opacity(0.18), in: Capsule())
-            }
-        }
-        .padding(16)
-        .foregroundStyle(Color.white)
-        .frame(width: cardWidth, alignment: .leading)
-        .background(
-            Group {
-                if let url = URL(string: feed.proxiedCoverUrl), !feed.proxiedCoverUrl.isEmpty {
-                    CachedAsyncImage(url: url) { img in
-                        img
-                            .resizable()
-                            .scaledToFill()
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .clipped()
-                            .blur(radius: 44)
-                            .clipped()
-                            .overlay(Color.black.opacity(0.38))
-                    } placeholder: {
-                        AmberTheme.surfaceRaised
-                    }
-                } else {
-                    AmberTheme.surfaceRaised
-                }
-            }
-        )
-        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .contentShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-    }
-
-    // MARK: - 6. 试试这些频道 (Apple "Channels to Try" tall card)
+    // MARK: - 6. 试试这些频道 (Apple Large Control - Unified Hero Card)
     @ViewBuilder
     private func channelsToTryShelf() -> some View {
         let channels = channelsToTry
         if !channels.isEmpty {
-            let cardWidth = screenWidth * 0.55
-            let cardHeight = cardWidth * 1.3
+            let cardWidth = screenWidth * 0.76
 
             VStack(alignment: .leading, spacing: 16) {
                 VStack(alignment: .leading, spacing: 3) {
@@ -767,12 +724,9 @@ public struct HomeLibraryView: View {
                 .padding(.horizontal, AmberTheme.pageMargin)
 
                 ScrollView(.horizontal, showsIndicators: false) {
-                    LazyHStack(spacing: 12) {
+                    LazyHStack(spacing: AmberTheme.cardGap) {
                         ForEach(channels) { feed in
-                            NavigationLink(destination: FeedDetailView(feed: feed)) {
-                                channelCard(feed: feed, width: cardWidth, height: cardHeight)
-                            }
-                            .buttonStyle(TactileButtonStyle(scale: 0.97))
+                            unifiedHeroCard(feed: feed, episode: nil, badgeText: "推荐频道", cardWidth: cardWidth)
                         }
                     }
                     .padding(.horizontal, AmberTheme.pageMargin)
@@ -782,55 +736,6 @@ public struct HomeLibraryView: View {
                 .scrollClipDisabled()
             }
         }
-    }
-
-    private func channelCard(feed: PodcastFeed, width: CGFloat, height: CGFloat) -> some View {
-        // Apple "Channels to Try": tall poster card — artwork with the channel
-        // name over a gradient, then an info strip with the description.
-        let infoHeight = height * 0.30
-
-        return VStack(spacing: 0) {
-            // Poster zone
-            ZStack(alignment: .bottomLeading) {
-                if let url = URL(string: feed.proxiedCoverUrl), !feed.proxiedCoverUrl.isEmpty {
-                    CachedAsyncImage(url: url) { img in
-                        img
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: width, height: height - infoHeight)
-                            .clipped()
-                    } placeholder: {
-                        coverPlaceholder(width: width, height: height - infoHeight, title: feed.title)
-                    }
-                } else {
-                    coverPlaceholder(width: width, height: height - infoHeight, title: feed.title)
-                }
-
-                LinearGradient(colors: [.clear, .black.opacity(0.55)], startPoint: .center, endPoint: .bottom)
-
-                Text(feed.title)
-                    .font(.system(size: 17, weight: .bold))
-                    .foregroundStyle(Color.white)
-                    .lineLimit(2)
-                    .multilineTextAlignment(.leading)
-                    .padding(12)
-            }
-            .frame(width: width, height: height - infoHeight)
-            .clipped()
-
-            // Info strip
-            Text(stripHTML(feed.description))
-                .font(.system(size: 11.5, weight: .regular))
-                .foregroundStyle(AmberTheme.labelSecondary)
-                .lineLimit(3)
-                .multilineTextAlignment(.leading)
-                .padding(10)
-                .frame(width: width, height: infoHeight, alignment: .topLeading)
-                .background(AmberTheme.surfaceRaised)
-        }
-        .frame(width: width, height: height)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 
     // MARK: - 7. 探索更多 (Apple "More to Discover" grid — same row language as 你可能错过了)

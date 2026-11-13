@@ -19,40 +19,43 @@ class ApplePodcastAggregator:
         self._cache_ttl = 3600 * 6  # 6 hours
 
     async def lookup_podcasts_batch(self, ids: List[str]) -> List[Dict[str, Any]]:
-        """Batch lookup podcast metadata from iTunes API."""
+        """Batch lookup podcast metadata from iTunes API in chunks of 50."""
         if not ids:
             return []
-        ids_str = ",".join(ids[:50])
+        results = []
+        chunk_size = 50
         async with httpx.AsyncClient(timeout=self.timeout) as client:
-            try:
-                resp = await client.get(f"https://itunes.apple.com/lookup?id={ids_str}")
-                if resp.status_code != 200:
-                    return []
-                results = []
-                for item in resp.json().get("results", []):
-                    cid = str(item.get("collectionId", ""))
-                    feed_url = item.get("feedUrl", "")
-                    if not cid or not feed_url:
+            for i in range(0, min(len(ids), 100), chunk_size):
+                chunk = ids[i:i + chunk_size]
+                ids_str = ",".join(chunk)
+                try:
+                    resp = await client.get(f"https://itunes.apple.com/lookup?id={ids_str}")
+                    if resp.status_code != 200:
                         continue
-                    genre = item.get("primaryGenreName", "")
-                    track_count = item.get("trackCount", 0)
-                    desc = f"{genre} · {track_count} 集" if track_count else genre
-                    results.append({
-                        "id": cid,
-                        "collection_id": cid,
-                        "source_type": "apple_rss",
-                        "title": item.get("collectionName", ""),
-                        "author": item.get("artistName", ""),
-                        "feed_url": feed_url,
-                        "cover_url": item.get("artworkUrl600", item.get("artworkUrl100", "")),
-                        "description": desc,
-                        "genre": genre,
-                        "track_count": track_count,
-                        "auto_translate": 0
-                    })
-                return results
-            except Exception:
-                return []
+                    for item in resp.json().get("results", []):
+                        cid = str(item.get("collectionId", ""))
+                        feed_url = item.get("feedUrl", "")
+                        if not cid or not feed_url:
+                            continue
+                        genre = item.get("primaryGenreName", "")
+                        track_count = item.get("trackCount", 0)
+                        desc = f"{genre} · {track_count} 集" if track_count else genre
+                        results.append({
+                            "id": cid,
+                            "collection_id": cid,
+                            "source_type": "apple_rss",
+                            "title": item.get("collectionName", ""),
+                            "author": item.get("artistName", ""),
+                            "feed_url": feed_url,
+                            "cover_url": item.get("artworkUrl600", item.get("artworkUrl100", "")),
+                            "description": desc,
+                            "genre": genre,
+                            "track_count": track_count,
+                            "auto_translate": 0
+                        })
+                except Exception:
+                    continue
+        return results
 
     async def search_podcast_genre(self, title: str) -> Optional[str]:
         """Reverse-lookup a podcast's primary genre from its title.
@@ -111,7 +114,7 @@ class ApplePodcastAggregator:
         return []
 
     async def fetch_top_by_genre(self, country: str = "cn", genre_id: int = 0,
-                                 limit: int = 20) -> List[Dict[str, Any]]:
+                                 limit: int = 50) -> List[Dict[str, Any]]:
         """Top podcasts inside one Apple genre.
 
         The legacy iTunes RSS endpoint accepts ``genre=<id>`` (the modern

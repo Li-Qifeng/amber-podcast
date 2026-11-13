@@ -345,6 +345,7 @@ public struct LiquidGlassCapsule<Content: View>: View {
 // MARK: - Apple Podcasts Signature Fluid Play ButtonStyle (Physical Spring Give & Smooth Release)
 public struct ApplePlayButtonStyle: ButtonStyle {
     public var scale: CGFloat = 0.88
+    private let impact = UIImpactFeedbackGenerator(style: .medium)
 
     public init(scale: CGFloat = 0.88) {
         self.scale = scale
@@ -353,7 +354,153 @@ public struct ApplePlayButtonStyle: ButtonStyle {
     public func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .scaleEffect(configuration.isPressed ? scale : 1.0)
-            .animation(.spring(response: 0.22, dampingFraction: 0.65), value: configuration.isPressed)
+            .animation(.spring(response: 0.20, dampingFraction: 0.60), value: configuration.isPressed)
+            .onChange(of: configuration.isPressed) { isPressed in
+                if isPressed {
+                    impact.prepare()
+                    impact.impactOccurred()
+                }
+            }
+    }
+}
+
+// MARK: - Apple Podcasts Signature Expanding Play Capsule (With Animated Equalizer & Mini Progress Bar)
+public struct AppleExpandingPlayCapsule: View {
+    public var isPlaying: Bool
+    public var isCurrent: Bool
+    public var progress: Double
+    public var durationText: String
+    public var tintColor: Color
+    public var action: () -> Void
+
+    public init(
+        isPlaying: Bool,
+        isCurrent: Bool,
+        progress: Double = 0.0,
+        durationText: String,
+        tintColor: Color = AmberTheme.primaryAmber,
+        action: @escaping () -> Void
+    ) {
+        self.isPlaying = isPlaying
+        self.isCurrent = isCurrent
+        self.progress = progress
+        self.durationText = durationText
+        self.tintColor = tintColor
+        self.action = action
+    }
+
+    public var body: some View {
+        Button(action: action) {
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(spacing: 5) {
+                    if isPlaying {
+                        EqualizerWaveformView(isPlaying: true, color: tintColor, barCount: 4)
+                        Text("正在播放")
+                            .font(.system(size: 11.5, weight: .bold, design: .rounded))
+                            .foregroundStyle(tintColor)
+                    } else if isCurrent {
+                        Image(systemName: "pause.fill")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundStyle(tintColor)
+                        Text("继续收听")
+                            .font(.system(size: 11.5, weight: .semibold, design: .rounded))
+                            .foregroundStyle(tintColor)
+                    } else {
+                        Image(systemName: "play.fill")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundStyle(AmberTheme.labelPrimary)
+                        Text(durationText)
+                            .font(.system(size: 11.5, weight: .semibold, design: .rounded))
+                            .foregroundStyle(AmberTheme.labelPrimary)
+                    }
+                }
+                .padding(.horizontal, 11)
+                .padding(.vertical, 6)
+                .background(
+                    isPlaying
+                        ? tintColor.opacity(0.18)
+                        : (isCurrent ? tintColor.opacity(0.12) : Color.white.opacity(0.14)),
+                    in: Capsule()
+                )
+                .overlay(
+                    Capsule()
+                        .strokeBorder(isPlaying || isCurrent ? tintColor.opacity(0.35) : Color.clear, lineWidth: 1)
+                )
+
+                // Downward extending visualizer mini progress bar
+                if isCurrent || progress > 0 {
+                    ZStack(alignment: .leading) {
+                        Capsule()
+                            .fill(Color.white.opacity(0.15))
+                            .frame(height: 2.5)
+
+                        Capsule()
+                            .fill(tintColor)
+                            .frame(width: max(4, 75 * CGFloat(min(1.0, max(0.0, progress)))), height: 2.5)
+                    }
+                    .frame(width: 75, height: 2.5)
+                    .padding(.horizontal, 4)
+                    .padding(.top, 1)
+                    .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                }
+            }
+        }
+        .buttonStyle(ApplePlayButtonStyle(scale: 0.88))
+        .animation(.spring(response: 0.35, dampingFraction: 0.72), value: isPlaying)
+        .animation(.spring(response: 0.35, dampingFraction: 0.72), value: isCurrent)
+    }
+}
+
+// MARK: - Apple Podcasts Style Equalizer Waveform View (Animated Sound Bars)
+public struct EqualizerWaveformView: View {
+    public var isPlaying: Bool
+    public var color: Color
+    public var barCount: Int
+
+    public init(isPlaying: Bool = true, color: Color = AmberTheme.primaryAmber, barCount: Int = 3) {
+        self.isPlaying = isPlaying
+        self.color = color
+        self.barCount = barCount
+    }
+
+    @State private var phase: CGFloat = 0.0
+
+    public var body: some View {
+        HStack(alignment: .bottom, spacing: 2) {
+            ForEach(0..<barCount, id: \.self) { index in
+                bar(index: index)
+            }
+        }
+        .frame(height: 12)
+        .onAppear {
+            if isPlaying {
+                withAnimation(.easeInOut(duration: 0.55).repeatForever(autoreverses: true)) {
+                    phase = 1.0
+                }
+            }
+        }
+        .onChange(of: isPlaying) { playing in
+            if playing {
+                withAnimation(.easeInOut(duration: 0.55).repeatForever(autoreverses: true)) {
+                    phase = 1.0
+                }
+            } else {
+                withAnimation(.easeOut(duration: 0.2)) {
+                    phase = 0.0
+                }
+            }
+        }
+    }
+
+    private func bar(index: Int) -> some View {
+        let heights: [CGFloat] = [4, 10, 6, 8]
+        let baseHeight = heights[index % heights.count]
+        let dynamicHeight = isPlaying ? (baseHeight + (phase > 0.5 ? 4 : -2)) : 3.0
+
+        return RoundedRectangle(cornerRadius: 1, style: .continuous)
+            .fill(color)
+            .frame(width: 2.2, height: max(2.5, min(12, dynamicHeight)))
+            .animation(.easeInOut(duration: 0.25).repeatForever(autoreverses: true).delay(Double(index) * 0.12), value: phase)
     }
 }
 

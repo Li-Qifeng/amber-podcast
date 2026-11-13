@@ -170,24 +170,46 @@ public final class DualTrackAudioPlayer: ObservableObject {
         restoreProgress(episodeId: episode.id)
 
         if autoPlay {
-            self.isBuffering = true
             play()
         }
 
         updateNowPlayingInfo()
     }
 
-    // MARK: - Unified Play Entry
-    /// 统一播放入口：无条件尝试拉取双轨字幕映射，避免依赖过时的 status 缓存。
-    /// fetchArtifacts 返回空 full_mapping 时自然降级为原声播放。
+    // MARK: - Unified Play Entry (Optimistic Zero-Latency Immediate Play)
+    /// 统一播放入口：无延迟立即响应启动原声，后台并发拉取双轨产物与章节，彻底消除点击卡顿
     public func playNewEpisode(episode: Episode, feed: PodcastFeed) async {
-        var artifacts: EpisodeArtifacts? = nil
-        if let a = try? await AmberAPIClient.shared.fetchArtifacts(episodeId: episode.id) {
-            artifacts = a
-        }
+        // 1. 0ms 本地元数据极速起播
         await MainActor.run {
-            self.loadEpisode(episode: episode, feed: feed, artifacts: artifacts, autoPlay: true)
-            self.requestFullPlayer = true
+            self.loadEpisode(episode: episode, feed: feed, artifacts: nil, autoPlay: true)
+        }
+
+        // 2. 后台并发静默装载双轨、章节与精读产物
+        if let a = try? await AmberAPIClient.shared.fetchArtifacts(episodeId: episode.id) {
+            await MainActor.run {
+                guard self.currentEpisode?.id == episode.id else { return }
+                self.timingSegments = a.timingSync
+                self.fullMapping = a.fullMapping
+                self.chapters = a.chapters
+                self.articleMarkdown = a.articleMarkdown
+
+                if !self.timingSegments.isEmpty && self.chinesePlayer == nil {
+                    let streamEndpoint = a.streaming.streamEndpoint ?? "/api/v1/episodes/\(episode.id)/stream/chinese"
+                    let fullStreamUrlString: String
+                    if streamEndpoint.lowercased().hasPrefix("http://") || streamEndpoint.lowercased().hasPrefix("https://") {
+                        fullStreamUrlString = streamEndpoint
+                    } else {
+                        let base = AmberAPIClient.shared.serverBaseUrl.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+                        let endpoint = streamEndpoint.hasPrefix("/") ? streamEndpoint : "/\(streamEndpoint)"
+                        fullStreamUrlString = "\(base)\(endpoint)"
+                    }
+                    if let zhUrl = URL(string: fullStreamUrlString) {
+                        let item = AVPlayerItem(url: zhUrl)
+                        self.chinesePlayer = AVPlayer(playerItem: item)
+                        self.chinesePlayer?.automaticallyWaitsToMinimizeStalling = true
+                    }
+                }
+            }
         }
     }
 
@@ -205,7 +227,10 @@ public final class DualTrackAudioPlayer: ObservableObject {
 
     // MARK: - Playback Control
     public func play() {
-        try? AVAudioSession.sharedInstance().setActive(true)
+        Task.detached(priority: .userInitiated) {
+            try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .spokenAudio, options: [.allowAirPlay, .duckOthers])
+            try? AVAudioSession.sharedInstance().setActive(true)
+        }
         if activePlayer == nil, let episode = currentEpisode, let feed = currentFeed {
             let resumeTime = currentTime
             loadEpisode(episode: episode, feed: feed, autoPlay: true)
@@ -218,7 +243,6 @@ public final class DualTrackAudioPlayer: ObservableObject {
         player.play()
         player.rate = playbackRate
         isPlaying = true
-        hapticFeedback.impactOccurred()
         updateNowPlayingInfo()
         startProgressSync()
     }
@@ -228,7 +252,6 @@ public final class DualTrackAudioPlayer: ObservableObject {
         chinesePlayer?.pause()
         isPlaying = false
         isBuffering = false
-        hapticFeedback.impactOccurred()
         updateNowPlayingInfo()
         stopProgressSync()
         flushProgress()
