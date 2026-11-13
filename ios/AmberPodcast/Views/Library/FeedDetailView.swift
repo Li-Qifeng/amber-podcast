@@ -12,6 +12,7 @@ public struct FeedDetailView: View {
     @State private var newEpisodesCount: Int = 0
     @State private var pendingEpisodes: [Episode]? = nil
     @Environment(\.dismiss) private var dismiss
+    @ObservedObject private var player = DualTrackAudioPlayer.shared
     private let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
 
     public init(feed: PodcastFeed) {
@@ -25,13 +26,16 @@ public struct FeedDetailView: View {
 
     public var body: some View {
         ZStack {
-            AmberTheme.background.ignoresSafeArea()
+            // Apple channel-page tint: the show's own artwork, blurred, fills
+            // the whole page. A scrim keeps label contrast in both modes.
+            feedTintBackground.ignoresSafeArea()
 
             ScrollView(.vertical, showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 20) {
                     AmberScrollTopProbe()
 
-                    // 1. Forward-style Hero Banner
+                    // 1. Apple channel-style header: centred artwork, title,
+                    //    action bar and metadata over the tinted canvas.
                     feedHeader
 
                     // 2. Section Header: Episodes Count & Action
@@ -203,90 +207,153 @@ public struct FeedDetailView: View {
         }
     }
 
-    // MARK: - Forward / Rex Style Feed Header
+    // MARK: - Apple Channel-Style Feed Header
+    /// Whole-page tint from the show's artwork, scrimmed for legibility.
+    private var feedTintBackground: some View {
+        Group {
+            if let url = URL(string: feed.proxiedCoverUrl), !feed.proxiedCoverUrl.isEmpty {
+                AsyncImage(url: url) { image in
+                    image
+                        .resizable()
+                        .scaledToFill()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .clipped()
+                        .blur(radius: 60)
+                } placeholder: {
+                    AmberTheme.background
+                }
+            } else {
+                AmberTheme.background
+            }
+        }
+        .overlay(
+            Color(uiColor: UIColor { traits in
+                traits.userInterfaceStyle == .dark
+                    ? UIColor(red: 0, green: 0, blue: 0, alpha: 0.45)
+                    : UIColor(red: 1, green: 1, blue: 1, alpha: 0.55)
+            })
+        )
+        .animation(.easeInOut(duration: 0.35), value: feed.id)
+    }
+
     private var feedHeader: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .top, spacing: 16) {
-                // Large Squircle Cover Artwork with Drop Shadow
+        VStack(alignment: .leading, spacing: 16) {
+            // Centred hero artwork, no card frame — merges into the tint
+            Group {
                 if let url = URL(string: feed.proxiedCoverUrl), !feed.proxiedCoverUrl.isEmpty {
                     AsyncImage(url: url) { image in
                         image
                             .resizable()
                             .scaledToFill()
-                            .frame(width: 104, height: 104)
-                            .amberMediaCard(radius: AmberTheme.radiusCoverHero)
+                            .frame(width: 210, height: 210)
+                            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                            .shadow(color: .black.opacity(0.30), radius: 18, y: 8)
                     } placeholder: {
-                        coverPlaceholder(width: 104, height: 104)
+                        coverPlaceholder(width: 210, height: 210)
                     }
                 } else {
-                    coverPlaceholder(width: 104, height: 104)
+                    coverPlaceholder(width: 210, height: 210)
                 }
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.top, 12)
 
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(feed.title)
-                        .font(.system(size: 19, weight: .bold, design: .rounded))
-                        .foregroundStyle(AmberTheme.labelPrimary)
-                        .lineLimit(2)
+            VStack(alignment: .leading, spacing: 10) {
+                Text(feed.title)
+                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                    .foregroundStyle(AmberTheme.labelPrimary)
+                    .lineLimit(2)
 
-                    Text(feed.author)
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(AmberTheme.labelSecondary)
-                        .lineLimit(1)
+                // Action bar: play-latest capsule + subscription state
+                HStack(spacing: 10) {
+                    Button {
+                        impactFeedback.impactOccurred()
+                        if let first = episodes.first {
+                            // Same semantics as the row's play button: toggle
+                            // pause/resume for the current episode, otherwise start.
+                            if player.currentEpisode?.id == first.id {
+                                if player.isPlaying {
+                                    player.pause()
+                                } else if player.fullMapping.isEmpty {
+                                    Task { await player.playNewEpisode(episode: first, feed: feed) }
+                                } else {
+                                    player.play()
+                                }
+                            } else {
+                                Task { await player.playNewEpisode(episode: first, feed: feed) }
+                            }
+                        }
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: player.currentEpisode?.id == episodes.first?.id && player.isPlaying ? "pause.fill" : "play.fill")
+                                .font(.system(size: 12, weight: .bold))
+                            Text("最新单集")
+                                .font(.system(size: 14, weight: .bold, design: .rounded))
+                        }
+                        .foregroundStyle(Color.white)
+                        .padding(.horizontal, 18)
+                        .padding(.vertical, 10)
+                        .background(Color.black.opacity(0.82), in: Capsule())
+                    }
+                    .buttonStyle(TactileButtonStyle(scale: 0.95))
+                    .disabled(episodes.isEmpty)
 
-                    if !isSubscribed {
+                    if isSubscribed {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundStyle(AmberTheme.labelPrimary)
+                            .frame(width: 34, height: 34)
+                            .background(Color.white.opacity(0.22), in: Circle())
+                    } else {
                         Button {
                             impactFeedback.impactOccurred()
                             subscribeCurrentFeed()
                         } label: {
-                            HStack(spacing: 5) {
-                                Image(systemName: "plus.circle.fill")
-                                    .font(.system(size: 13))
-                                Text("一键订阅与全量转译")
-                                    .font(.system(size: 12, weight: .semibold, design: .rounded))
-                            }
-                            .foregroundStyle(Color.black)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(AmberTheme.primaryAmber, in: Capsule())
+                            Image(systemName: "plus")
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundStyle(AmberTheme.labelPrimary)
+                                .frame(width: 34, height: 34)
+                                .background(Color.white.opacity(0.22), in: Circle())
                         }
-                        .padding(.top, 4)
+                        .buttonStyle(TactileButtonStyle(scale: 0.92))
                         .disabled(isSubscribing)
-                    } else {
-                        HStack(spacing: 6) {
-                            Text(feed.sourceType == "xiaoyuzhou" ? "小宇宙" : "Apple 播客")
-                                .font(.system(size: 10.5, weight: .medium, design: .rounded))
-                                .foregroundStyle(AmberTheme.primaryAmber)
-                                .padding(.horizontal, 7)
-                                .padding(.vertical, 3)
-                                .background(AmberTheme.primaryAmber.opacity(0.12), in: RoundedRectangle(cornerRadius: 4, style: .continuous))
-
-                            if autoTranslate {
-                                Text("已开启自动双轨")
-                                    .font(.system(size: 10.5, weight: .medium, design: .rounded))
-                                    .foregroundStyle(AmberTheme.accentElectric)
-                                    .padding(.horizontal, 7)
-                                    .padding(.vertical, 3)
-                                    .background(AmberTheme.accentElectric.opacity(0.12), in: RoundedRectangle(cornerRadius: 4, style: .continuous))
-                            }
-                        }
-                        .padding(.top, 4)
                     }
+                }
+
+                // Metadata line: genre · episode count · source · auto-translate
+                HStack(spacing: 6) {
+                    if let g = feed.genre, !g.isEmpty {
+                        Text(g)
+                        metaDot
+                    }
+                    Text(isLoading ? "…" : "\(episodes.count) 集")
+                    metaDot
+                    Text(feed.sourceType == "xiaoyuzhou" ? "小宇宙" : "Apple 播客")
+                    if autoTranslate {
+                        metaDot
+                        Text("双轨")
+                    }
+                }
+                .font(.system(size: 12.5, weight: .regular))
+                .foregroundStyle(AmberTheme.labelSecondary)
+
+                if !feed.description.isEmpty {
+                    Text(feed.description)
+                        .font(.system(size: 13, weight: .regular))
+                        .foregroundStyle(AmberTheme.labelSecondary)
+                        .lineSpacing(4)
+                        .lineLimit(3)
                 }
             }
             .padding(.horizontal, 20)
-            .padding(.top, 10)
-
-            // Feed Description
-            if !feed.description.isEmpty {
-                Text(feed.description)
-                    .font(.system(size: 13, weight: .regular))
-                    .foregroundStyle(AmberTheme.labelTertiary)
-                    .lineSpacing(4)
-                    .lineLimit(3)
-                    .padding(.horizontal, 20)
-            }
         }
         .padding(.vertical, 6)
+    }
+
+    private var metaDot: some View {
+        Text("·")
+            .font(.system(size: 12.5, weight: .bold))
+            .foregroundStyle(AmberTheme.labelTertiary)
     }
 
     private func coverPlaceholder(width: CGFloat, height: CGFloat) -> some View {
