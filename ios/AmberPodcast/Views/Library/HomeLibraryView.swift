@@ -632,7 +632,7 @@ public struct HomeLibraryView: View {
             // Tapping artwork or title navigates to channel
             Group {
                 if let f = feed {
-                    NavigationLink(destination: FeedDetailView(feed: feed)) {
+                    NavigationLink(destination: FeedDetailView(feed: f)) {
                         missedRowLeftContent(episode: episode, feed: f, isCurrent: isCurrent)
                     }
                     .buttonStyle(.plain)
