@@ -59,7 +59,7 @@ public struct FeedDetailView: View {
 
                         Spacer()
                     }
-                    .padding(.horizontal, 20)
+                    .padding(.horizontal, 16)
 
                     if newEpisodesCount > 0 {
                         Button {
@@ -81,7 +81,7 @@ public struct FeedDetailView: View {
                             .liquidGlassCapsule()
                         }
                         .transition(.move(edge: .top).combined(with: .opacity))
-                        .padding(.horizontal, 20)
+                        .padding(.horizontal, 16)
                     }
 
                     // 3. Episode Cards Stack or Empty State
@@ -106,12 +106,13 @@ public struct FeedDetailView: View {
                                 if ep.id != episodes.last?.id {
                                     Divider()
                                         .background(AmberTheme.labelTertiary.opacity(0.25))
-                                        .padding(.leading, 100)
-                                        .padding(.horizontal, 16)
+                                        .padding(.leading, 16)
+                                        .padding(.trailing, 16)
                                 }
                             }
                         }
-                        .padding(.horizontal, 16)
+                        // Rows carry their own 16pt horizontal padding; no
+                        // extra inset here or text lands 32pt off the edge.
                     }
                 }
                 .padding(.bottom, 140) // Clearance for floating mini player & dock
@@ -119,6 +120,9 @@ public struct FeedDetailView: View {
             .scrollBounceBehavior(.always, axes: .vertical)
             .amberScrollObservable()
         }
+        // Hard clip: no child (blur halo, artwork shadow, oversized image)
+        // may paint outside the screen bounds on this page.
+        .clipped()
         .navigationBarTitleDisplayMode(.inline)
         // Custom back button: the parent tab uses an empty system title, so the
         // default back label would collapse into a "..." placeholder.
@@ -352,7 +356,7 @@ public struct FeedDetailView: View {
                         .lineLimit(3)
                 }
             }
-            .padding(.horizontal, 20)
+            .padding(.horizontal, 16)
         }
         .padding(.vertical, 6)
     }
