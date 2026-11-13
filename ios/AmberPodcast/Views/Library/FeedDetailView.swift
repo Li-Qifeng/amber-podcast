@@ -28,7 +28,7 @@ public struct FeedDetailView: View {
         ZStack {
             // Apple channel-page tint: the show's own artwork, blurred, fills
             // the whole page. A scrim keeps label contrast in both modes.
-            feedTintBackground.ignoresSafeArea()
+            feedTintBackground
 
             ScrollView(.vertical, showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 20) {
@@ -120,9 +120,6 @@ public struct FeedDetailView: View {
             .scrollBounceBehavior(.always, axes: .vertical)
             .amberScrollObservable()
         }
-        // Hard clip: no child (blur halo, artwork shadow, oversized image)
-        // may paint outside the screen bounds on this page.
-        .clipped()
         .navigationBarTitleDisplayMode(.inline)
         // Custom back button: the parent tab uses an empty system title, so the
         // default back label would collapse into a "..." placeholder.
@@ -219,38 +216,44 @@ public struct FeedDetailView: View {
 
     // MARK: - Apple Channel-Style Feed Header
     /// Whole-page tint from the show's artwork, scrimmed for legibility.
+    /// Constrained strictly by GeometryReader to the physical screen width/height,
+    /// preventing scaledToFill from expanding the parent ZStack horizontally.
     private var feedTintBackground: some View {
-        Group {
-            if let url = URL(string: feed.proxiedCoverUrl), !feed.proxiedCoverUrl.isEmpty {
-                CachedAsyncImage(url: url) { image in
-                    image
-                        .resizable()
-                        .scaledToFill()
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .clipped()
-                        .blur(radius: 60)
-                        .clipped()
-                } placeholder: {
+        GeometryReader { geo in
+            Group {
+                if let url = URL(string: feed.proxiedCoverUrl), !feed.proxiedCoverUrl.isEmpty {
+                    CachedAsyncImage(url: url) { image in
+                        image
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: geo.size.width, height: geo.size.height)
+                            .clipped()
+                            .blur(radius: 60)
+                    } placeholder: {
+                        AmberTheme.background
+                    }
+                } else {
                     AmberTheme.background
                 }
-            } else {
-                AmberTheme.background
             }
+            .frame(width: geo.size.width, height: geo.size.height)
+            .clipped()
+            .overlay(
+                Color(uiColor: UIColor { traits in
+                    traits.userInterfaceStyle == .dark
+                        ? UIColor(red: 0, green: 0, blue: 0, alpha: 0.52)
+                        : UIColor(red: 1, green: 1, blue: 1, alpha: 0.62)
+                })
+            )
         }
-        .overlay(
-            Color(uiColor: UIColor { traits in
-                traits.userInterfaceStyle == .dark
-                    ? UIColor(red: 0, green: 0, blue: 0, alpha: 0.52)
-                    : UIColor(red: 1, green: 1, blue: 1, alpha: 0.62)
-            })
-        )
+        .ignoresSafeArea()
         .animation(.easeInOut(duration: 0.35), value: feed.id)
     }
 
     private var feedHeader: some View {
         VStack(alignment: .leading, spacing: 16) {
             // Centred hero artwork, no card frame — merges into the tint
-            Group {
+            ZStack {
                 if let url = URL(string: feed.proxiedCoverUrl), !feed.proxiedCoverUrl.isEmpty {
                     CachedAsyncImage(url: url) { image in
                         image
