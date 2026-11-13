@@ -87,8 +87,24 @@ public struct HomeLibraryView: View {
                             subscribedChannelsShelf()
                                 .padding(.top, 28)
 
-                            // 4. 为你推荐
-                            forYouShelf()
+                            // 3. 你可能错过了 (Apple "You May Have Missed" paged group)
+                            youMayHaveMissedShelf()
+                                .padding(.top, 28)
+
+                            // 4. 我的播客
+                            subscribedChannelsShelf()
+                                .padding(.top, 28)
+
+                            // 5. 新节目推荐 (Apple "New Shows for You" adaptive tint card)
+                            newShowsForYouShelf()
+                                .padding(.top, 28)
+
+                            // 6. 试试这些频道 (Apple "Channels to Try" tall card)
+                            channelsToTryShelf()
+                                .padding(.top, 28)
+
+                            // 7. 探索更多 (Apple "More to Discover" dual-row grid)
+                            moreToDiscoverShelf()
                                 .padding(.top, 28)
 
                             // Bottom Clearance for floating Dock & MiniPlayer
@@ -162,7 +178,7 @@ public struct HomeLibraryView: View {
         // play capsule + ellipsis action bar.
         let isPlayingThis = player.currentEpisode?.id == episode.id
         let artworkHeight = cardWidth * 0.62
-        let synopsis = stripHTML(episode.shownotes ?? "")
+        let synopsis = stripHTML(episode.shownotes)
 
         return Button {
             playEpisode(episode, feed: feed)
@@ -503,59 +519,174 @@ public struct HomeLibraryView: View {
         return recommended
     }
 
-    @ViewBuilder
-    private func forYouShelf() -> some View {
-        let recommended = forYouRecommendations
-        if !recommended.isEmpty {
-            // Shelf title: use first subscribed feed with a non-nil genre.
-            // Single expressions only — ViewBuilder turns if/else assignment
-            // branches into Void, which does not conform to View.
-            let firstGenreFeed = feeds.first(where: { $0.genre != nil && !($0.genre!.isEmpty) })
-            let shelfTitle = firstGenreFeed.map { "因为你收听《\($0.title)》" } ?? "为你推荐"
+    /// Apple "You May Have Missed": followed shows, not yet finished.
+    private var missedEpisodes: [Episode] {
+        Array(recentEpisodes.filter { $0.progress < 100 }.prefix(15))
+    }
 
-            let cardSize: CGFloat = 132.0
+    /// Apple "New Shows for You": the head of the genre-matched pool.
+    private var newShowsForYou: [PodcastFeed] {
+        Array(forYouRecommendations.prefix(6))
+    }
+
+    /// Apple "More to Discover": the rest of the pool (dual-row grid).
+    private var moreToDiscover: [PodcastFeed] {
+        Array(forYouRecommendations.dropFirst(6).prefix(12))
+    }
+
+    /// Apple "Channels to Try": editorial features not yet subscribed.
+    private var channelsToTry: [PodcastFeed] {
+        guard let discover = discoverFeed else { return [] }
+        let subscribedTitles = Set(feeds.map { $0.title.lowercased() })
+        var seen = Set<String>()
+        var result: [PodcastFeed] = []
+        for item in discover.featured {
+            let key = item.title.lowercased()
+            if seen.contains(key) || subscribedTitles.contains(key) { continue }
+            seen.insert(key)
+            result.append(item)
+            if result.count >= 8 { break }
+        }
+        return result
+    }
+
+    // MARK: - 3. 你可能错过了 (Apple "You May Have Missed" paged group)
+    @ViewBuilder
+    private func youMayHaveMissedShelf() -> some View {
+        let missed = missedEpisodes
+        if !missed.isEmpty {
+            let pages = stride(from: 0, to: missed.count, by: 3).map {
+                Array(missed[$0..<min($0 + 3, missed.count)])
+            }
 
             VStack(alignment: .leading, spacing: 16) {
-                Text(shelfTitle)
-                    .font(.system(size: 24, weight: .bold, design: .rounded))
+                VStack(alignment: .leading, spacing: 3) {
+                    sectionTitle("你可能错过了")
+                    Text("来自你关注的节目")
+                        .font(.system(size: 12, weight: .regular))
+                        .foregroundStyle(AmberTheme.labelTertiary)
+                }
+                .padding(.horizontal, AmberTheme.pageMargin)
+
+                // Horizontal paged group: 3 episode rows per page (Apple pattern)
+                TabView {
+                    ForEach(pages.indices, id: \.self) { pi in
+                        VStack(spacing: 0) {
+                            ForEach(pages[pi].indices, id: \.self) { ei in
+                                missedRow(episode: pages[pi][ei])
+                                if ei < pages[pi].count - 1 {
+                                    Divider()
+                                        .background(Color.white.opacity(0.08))
+                                        .padding(.leading, 88)
+                                }
+                            }
+                        }
+                        .padding(.horizontal, AmberTheme.pageMargin)
+                    }
+                }
+                .tabViewStyle(.page(indexDisplayMode: .never))
+                .frame(height: 3 * 88)
+            }
+        }
+    }
+
+    private func missedRow(episode: Episode) -> some View {
+        let feed = feeds.first(where: { $0.id == episode.feedId })
+        let isPlayingThis = player.currentEpisode?.id == episode.id
+        let remaining = episode.progress > 0
+            ? Double(episode.duration) * (1.0 - Double(episode.progress) / 100.0)
+            : Double(episode.duration)
+
+        return Button {
+            if let f = feed { playEpisode(episode, feed: f) }
+        } label: {
+            HStack(spacing: 12) {
+                // Square artwork
+                ZStack(alignment: .bottom) {
+                    if let f = feed, let url = URL(string: f.proxiedCoverUrl), !f.proxiedCoverUrl.isEmpty {
+                        CachedAsyncImage(url: url) { img in
+                            img
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 64, height: 64)
+                                .clipped()
+                        } placeholder: {
+                            coverPlaceholder(width: 64, height: 64, title: f.title)
+                        }
+                    } else {
+                        coverPlaceholder(width: 64, height: 64, title: feed?.title ?? "")
+                    }
+
+                    if episode.progress > 0 {
+                        GeometryReader { pGeo in
+                            ZStack(alignment: .leading) {
+                                Rectangle().fill(Color.white.opacity(0.12))
+                                Rectangle()
+                                    .fill(AmberTheme.primaryAmber)
+                                    .frame(width: pGeo.size.width * CGFloat(Double(episode.progress) / 100.0))
+                            }
+                        }
+                        .frame(height: 3)
+                    }
+                }
+                .frame(width: 64, height: 64)
+                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+
+                VStack(alignment: .leading, spacing: 3) {
+                    // Date line
+                    Text(episode.pubDate)
+                        .font(.system(size: 10.5, weight: .regular))
+                        .foregroundStyle(AmberTheme.labelTertiary)
+
+                    // Episode title (fixed 2 lines)
+                    Text(episode.title)
+                        .font(.system(size: 13.5, weight: .bold))
+                        .foregroundStyle(isPlayingThis ? AmberTheme.primaryAmber : AmberTheme.labelPrimary)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
+
+                    // Play capsule
+                    HStack(spacing: 4) {
+                        Image(systemName: isPlayingThis ? "pause.fill" : "play.fill")
+                            .font(.system(size: 8.5, weight: .bold))
+                        Text(formatDuration(remaining))
+                            .font(.system(size: 10.5, weight: .semibold))
+                    }
                     .foregroundStyle(AmberTheme.labelPrimary)
-                    .padding(.horizontal, AmberTheme.pageMargin)
+                    .padding(.horizontal, 9)
+                    .padding(.vertical, 4)
+                    .background(Color.white.opacity(0.10), in: Capsule())
+                    .padding(.top, 1)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(TactileButtonStyle(scale: 0.98))
+        .frame(height: 88)
+    }
+
+    // MARK: - 5. 新节目推荐 (Apple "New Shows for You" adaptive tint card)
+    @ViewBuilder
+    private func newShowsForYouShelf() -> some View {
+        let shows = newShowsForYou
+        if !shows.isEmpty {
+            let cardWidth = screenWidth * 0.70
+
+            VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: 3) {
+                    sectionTitle("新节目推荐")
+                    Text("根据你的收听偏好")
+                        .font(.system(size: 12, weight: .regular))
+                        .foregroundStyle(AmberTheme.labelTertiary)
+                }
+                .padding(.horizontal, AmberTheme.pageMargin)
 
                 ScrollView(.horizontal, showsIndicators: false) {
-                    LazyHStack(spacing: 12) {
-                        ForEach(recommended) { feed in
+                    LazyHStack(spacing: AmberTheme.cardGap) {
+                        ForEach(shows) { feed in
                             NavigationLink(destination: FeedDetailView(feed: feed)) {
-                                VStack(alignment: .leading, spacing: 6) {
-                                    Group {
-                                        if let url = URL(string: feed.proxiedCoverUrl), !feed.proxiedCoverUrl.isEmpty {
-                                            CachedAsyncImage(url: url) { img in
-                                                img
-                                                    .resizable()
-                                                    .scaledToFill()
-                                                    .frame(width: cardSize, height: cardSize)
-                                                    .clipped()
-                                            } placeholder: {
-                                                coverPlaceholder(width: cardSize, height: cardSize, title: feed.title)
-                                            }
-                                        } else {
-                                            coverPlaceholder(width: cardSize, height: cardSize, title: feed.title)
-                                        }
-                                    }
-                                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-
-                                    // Apple order: show name first, then genre/author
-                                    Text(feed.title)
-                                        .font(.system(size: 13, weight: .medium))
-                                        .foregroundStyle(AmberTheme.labelPrimary)
-                                        .lineLimit(1)
-                                        .frame(width: cardSize, alignment: .leading)
-
-                                    Text(podcastSubtitle(feed))
-                                        .font(.system(size: 11, weight: .regular))
-                                        .foregroundStyle(AmberTheme.labelTertiary)
-                                        .lineLimit(1)
-                                        .frame(width: cardSize, alignment: .leading)
-                                }
+                                newShowCard(feed: feed, cardWidth: cardWidth)
                             }
                             .buttonStyle(TactileButtonStyle(scale: 0.97))
                         }
@@ -567,6 +698,237 @@ public struct HomeLibraryView: View {
                 .scrollClipDisabled()
             }
         }
+    }
+
+    private func newShowCard(feed: PodcastFeed, cardWidth: CGFloat) -> some View {
+        // Apple "New Shows for You": card background takes the show's own tint.
+        // We approximate the adaptive tint by blurring the artwork itself.
+        let cardHeight = cardWidth * 1.15
+        let synopsis = stripHTML(feed.description)
+        let artworkSize = cardWidth * 0.50
+
+        return ZStack {
+            // Adaptive tint base
+            if let url = URL(string: feed.proxiedCoverUrl), !feed.proxiedCoverUrl.isEmpty {
+                CachedAsyncImage(url: url) { img in
+                    img
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: cardWidth, height: cardHeight)
+                        .clipped()
+                        .blur(radius: 44)
+                        .overlay(Color.black.opacity(0.38))
+                } placeholder: {
+                    AmberTheme.surfaceRaised
+                }
+            } else {
+                AmberTheme.surfaceRaised
+            }
+
+            VStack(alignment: .leading, spacing: 12) {
+                // Inset square artwork
+                if let url = URL(string: feed.proxiedCoverUrl), !feed.proxiedCoverUrl.isEmpty {
+                    CachedAsyncImage(url: url) { img in
+                        img
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: artworkSize, height: artworkSize)
+                            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                            .shadow(color: .black.opacity(0.35), radius: 14, y: 6)
+                    } placeholder: {
+                        coverPlaceholder(width: artworkSize, height: artworkSize, title: feed.title)
+                            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    }
+                } else {
+                    coverPlaceholder(width: artworkSize, height: artworkSize, title: feed.title)
+                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                }
+
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(feed.title)
+                        .font(.system(size: 15, weight: .bold))
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
+
+                    if !synopsis.isEmpty {
+                        Text(synopsis)
+                            .font(.system(size: 11.5, weight: .regular))
+                            .opacity(0.85)
+                            .lineLimit(3)
+                            .multilineTextAlignment(.leading)
+                    }
+                }
+
+                Spacer(minLength: 0)
+
+                // Bottom: genre line + subscribe affordance
+                HStack {
+                    Text(podcastSubtitle(feed))
+                        .font(.system(size: 11, weight: .regular))
+                        .opacity(0.75)
+                        .lineLimit(1)
+                    Spacer()
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 18, weight: .regular))
+                        .opacity(0.9)
+                }
+            }
+            .padding(16)
+            .foregroundStyle(Color.white)
+        }
+        .frame(width: cardWidth, height: cardHeight)
+        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .contentShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+    }
+
+    // MARK: - 6. 试试这些频道 (Apple "Channels to Try" tall card)
+    @ViewBuilder
+    private func channelsToTryShelf() -> some View {
+        let channels = channelsToTry
+        if !channels.isEmpty {
+            let cardWidth = screenWidth * 0.55
+            let cardHeight = cardWidth * 1.3
+
+            VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: 3) {
+                    sectionTitle("试试这些频道")
+                    Text("编辑精选")
+                        .font(.system(size: 12, weight: .regular))
+                        .foregroundStyle(AmberTheme.labelTertiary)
+                }
+                .padding(.horizontal, AmberTheme.pageMargin)
+
+                ScrollView(.horizontal, showsIndicators: false) {
+                    LazyHStack(spacing: 12) {
+                        ForEach(channels) { feed in
+                            NavigationLink(destination: FeedDetailView(feed: feed)) {
+                                channelCard(feed: feed, width: cardWidth, height: cardHeight)
+                            }
+                            .buttonStyle(TactileButtonStyle(scale: 0.97))
+                        }
+                    }
+                    .padding(.horizontal, AmberTheme.pageMargin)
+                    .scrollTargetLayout()
+                }
+                .scrollTargetBehavior(.viewAligned)
+                .scrollClipDisabled()
+            }
+        }
+    }
+
+    private func channelCard(feed: PodcastFeed, width: CGFloat, height: CGFloat) -> some View {
+        // Apple "Channels to Try": tall poster card — artwork with the channel
+        // name over a gradient, then an info strip with the description.
+        let infoHeight = height * 0.30
+
+        return VStack(spacing: 0) {
+            // Poster zone
+            ZStack(alignment: .bottomLeading) {
+                if let url = URL(string: feed.proxiedCoverUrl), !feed.proxiedCoverUrl.isEmpty {
+                    CachedAsyncImage(url: url) { img in
+                        img
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: width, height: height - infoHeight)
+                            .clipped()
+                    } placeholder: {
+                        coverPlaceholder(width: width, height: height - infoHeight, title: feed.title)
+                    }
+                } else {
+                    coverPlaceholder(width: width, height: height - infoHeight, title: feed.title)
+                }
+
+                LinearGradient(colors: [.clear, .black.opacity(0.55)], startPoint: .center, endPoint: .bottom)
+
+                Text(feed.title)
+                    .font(.system(size: 17, weight: .bold))
+                    .foregroundStyle(Color.white)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+                    .padding(12)
+            }
+            .frame(width: width, height: height - infoHeight)
+            .clipped()
+
+            // Info strip
+            Text(stripHTML(feed.description))
+                .font(.system(size: 11.5, weight: .regular))
+                .foregroundStyle(AmberTheme.labelSecondary)
+                .lineLimit(3)
+                .multilineTextAlignment(.leading)
+                .padding(10)
+                .frame(width: width, height: infoHeight, alignment: .topLeading)
+                .background(AmberTheme.surfaceRaised)
+        }
+        .frame(width: width, height: height)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+    }
+
+    // MARK: - 7. 探索更多 (Apple "More to Discover" dual-row grid)
+    @ViewBuilder
+    private func moreToDiscoverShelf() -> some View {
+        let items = moreToDiscover
+        if items.count >= 2 {
+            VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: 3) {
+                    sectionTitle("探索更多")
+                    Text("根据你的收听偏好")
+                        .font(.system(size: 12, weight: .regular))
+                        .foregroundStyle(AmberTheme.labelTertiary)
+                }
+                .padding(.horizontal, AmberTheme.pageMargin)
+
+                ScrollView(.horizontal, showsIndicators: false) {
+                    LazyHGrid(rows: [GridItem(.fixed(64), spacing: 10), GridItem(.fixed(64))], spacing: 12) {
+                        ForEach(items) { feed in
+                            miniPodcastRow(feed: feed)
+                        }
+                    }
+                    .padding(.horizontal, AmberTheme.pageMargin)
+                    .scrollTargetLayout()
+                }
+                .scrollTargetBehavior(.viewAligned)
+                .scrollClipDisabled()
+                .frame(height: 2 * 64 + 10)
+            }
+        }
+    }
+
+    private func miniPodcastRow(feed: PodcastFeed) -> some View {
+        NavigationLink(destination: FeedDetailView(feed: feed)) {
+            HStack(spacing: 10) {
+                if let url = URL(string: feed.proxiedCoverUrl), !feed.proxiedCoverUrl.isEmpty {
+                    CachedAsyncImage(url: url) { img in
+                        img
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 56, height: 56)
+                            .clipped()
+                    } placeholder: {
+                        coverPlaceholder(width: 56, height: 56, title: feed.title)
+                    }
+                } else {
+                    coverPlaceholder(width: 56, height: 56, title: feed.title)
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(feed.title)
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(AmberTheme.labelPrimary)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
+                    Text(podcastSubtitle(feed))
+                        .font(.system(size: 10.5, weight: .regular))
+                        .foregroundStyle(AmberTheme.labelTertiary)
+                        .lineLimit(1)
+                }
+            }
+            .frame(width: 210, alignment: .leading)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(TactileButtonStyle(scale: 0.97))
     }
 
     // MARK: - Empty State: recommendation shelves
