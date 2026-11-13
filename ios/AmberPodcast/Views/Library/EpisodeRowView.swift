@@ -210,8 +210,6 @@ public struct EpisodeRowView: View {
         if isCurrentPlaying {
             if player.isPlaying {
                 player.pause()
-            } else if player.fullMapping.isEmpty {
-                Task { await player.playNewEpisode(episode: episode, feed: feed) }
             } else {
                 player.play()
             }

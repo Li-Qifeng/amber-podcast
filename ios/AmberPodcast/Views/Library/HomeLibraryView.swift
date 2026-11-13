@@ -174,7 +174,8 @@ public struct HomeLibraryView: View {
         // Apple "New Episodes" pattern: a self-contained dark container card —
         // wide artwork flush to the top edge, then date / title / synopsis and a
         // play capsule + ellipsis action bar.
-        let isPlayingThis = player.currentEpisode?.id == episode.id
+        let isCurrent = player.currentEpisode?.id == episode.id
+        let isPlayingThis = isCurrent && player.isPlaying
         let artworkHeight = cardWidth * 0.68
         let synopsis = stripHTML(episode.shownotes)
 
@@ -223,7 +224,7 @@ public struct HomeLibraryView: View {
                     // Episode title (fixed 2 lines)
                     Text(episode.title)
                         .font(.system(size: 15, weight: .bold))
-                        .foregroundStyle(isPlayingThis ? AmberTheme.primaryAmber : AmberTheme.labelPrimary)
+                        .foregroundStyle(isCurrent ? AmberTheme.primaryAmber : AmberTheme.labelPrimary)
                         .lineLimit(2)
                         .multilineTextAlignment(.leading)
 
@@ -240,7 +241,7 @@ public struct HomeLibraryView: View {
                         HStack(spacing: 5) {
                             Image(systemName: isPlayingThis ? "pause.fill" : "play.fill")
                                 .font(.system(size: 10, weight: .bold))
-                            Text(isPlayingThis ? "正在播放" : "立即播放")
+                            Text(isPlayingThis ? "正在播放" : (isCurrent ? "继续收听" : "立即播放"))
                                 .font(.system(size: 12, weight: .semibold))
                         }
                         .foregroundStyle(AmberTheme.labelPrimary)
@@ -528,7 +529,8 @@ public struct HomeLibraryView: View {
 
     private func missedRow(episode: Episode) -> some View {
         let feed = feeds.first(where: { $0.id == episode.feedId })
-        let isPlayingThis = player.currentEpisode?.id == episode.id
+        let isCurrent = player.currentEpisode?.id == episode.id
+        let isPlayingThis = isCurrent && player.isPlaying
         let remaining = episode.progress > 0
             ? Double(episode.duration) * (1.0 - Double(episode.progress) / 100.0)
             : Double(episode.duration)
@@ -577,7 +579,7 @@ public struct HomeLibraryView: View {
                     // Episode title (fixed 2 lines)
                     Text(episode.title)
                         .font(.system(size: 15, weight: .bold))
-                        .foregroundStyle(isPlayingThis ? AmberTheme.primaryAmber : AmberTheme.labelPrimary)
+                        .foregroundStyle(isCurrent ? AmberTheme.primaryAmber : AmberTheme.labelPrimary)
                         .lineLimit(2)
                         .multilineTextAlignment(.leading)
                 }
@@ -1244,8 +1246,6 @@ public struct HomeLibraryView: View {
         if player.currentEpisode?.id == episode.id {
             if player.isPlaying {
                 player.pause()
-            } else if player.fullMapping.isEmpty {
-                Task { await player.playNewEpisode(episode: episode, feed: feed) }
             } else {
                 player.play()
             }

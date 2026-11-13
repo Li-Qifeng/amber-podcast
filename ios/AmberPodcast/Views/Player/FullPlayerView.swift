@@ -156,44 +156,13 @@ public struct FullPlayerView: View {
 
                 Spacer()
 
-                // Liquid Glass Switcher Tabs: Artwork / Subtitles / Shownotes
-                AmberGlassContainer(spacing: 6) {
-                    HStack(spacing: 4) {
-                        tabPillButton(icon: "music.note", tag: 0)
-                        tabPillButton(icon: "quote.bubble.fill", tag: 1)
-                        tabPillButton(icon: "text.alignleft", tag: 2)
-                    }
-                    .padding(3)
-                    .amberGlass(.capsule, isInteractive: true)
-                }
+                // Right balance spacer matching left dismiss button width
+                Color.clear
+                    .frame(width: 36, height: 36)
             }
             .padding(.horizontal, 20)
             .padding(.top, 6)
         }
-    }
-
-    private func tabPillButton(icon: String, tag: Int) -> some View {
-        Button {
-            impactFeedback.impactOccurred()
-            withAnimation(ForwardMotion.snapSpring) {
-                currentCenterTab = tag
-            }
-        } label: {
-            Image(systemName: icon)
-                .font(.system(size: 12.5, weight: currentCenterTab == tag ? .bold : .medium))
-                .foregroundStyle(currentCenterTab == tag ? AmberTheme.labelPrimary : AmberTheme.labelTertiary)
-                .frame(width: 32, height: 28)
-                .background(
-                    ZStack {
-                        if currentCenterTab == tag {
-                            Capsule()
-                                .fill(Color.white.opacity(0.20))
-                                .matchedGeometryEffect(id: "CenterTabCapsule", in: centerTabNamespace)
-                        }
-                    }
-                )
-        }
-        .buttonStyle(.plain)
     }
 
     // MARK: - Center Content
@@ -317,6 +286,17 @@ public struct FullPlayerView: View {
                         .fill(player.trackMode == .chinese ? AmberTheme.primaryAmber : Color.white)
                         .frame(width: max(0, min(barGeo.size.width, barGeo.size.width * CGFloat(progress))), height: isScrubbing ? 7 : 4)
 
+                    // Apple Podcasts Style Chapter Marks (crisp vertical tick lines)
+                    if !player.chapters.isEmpty && effectiveDuration > 0 {
+                        ForEach(player.chapters.filter { $0.startSec > 1.0 && $0.startSec < effectiveDuration }) { ch in
+                            let ratio = CGFloat(ch.startSec / effectiveDuration)
+                            Rectangle()
+                                .fill(Color.black.opacity(0.70))
+                                .frame(width: 1.5, height: isScrubbing ? 7 : 4)
+                                .offset(x: barGeo.size.width * ratio - 0.75)
+                        }
+                    }
+
                     // Scrubber Thumb
                     Circle()
                         .fill(Color.white)
@@ -343,11 +323,21 @@ public struct FullPlayerView: View {
             }
             .frame(height: 18)
 
-            // Monospaced Time Labels
+            // Monospaced Time Labels + Current Chapter
             HStack {
                 Text(formatDuration(effectiveTime))
                     .font(.system(size: 11, weight: .regular, design: .monospaced))
                     .foregroundStyle(AmberTheme.labelTertiary)
+
+                Spacer()
+
+                if let ch = player.chapters.last(where: { effectiveTime >= $0.startSec }),
+                   !ch.title.isEmpty, ch.title != "完整节目" {
+                    Text(ch.title)
+                        .font(.system(size: 11, weight: .semibold, design: .rounded))
+                        .foregroundStyle(AmberTheme.primaryAmber)
+                        .lineLimit(1)
+                }
 
                 Spacer()
 
@@ -394,12 +384,11 @@ public struct FullPlayerView: View {
                     // Play / Pause Button with Buffering Indicator
                     Button {
                         player.togglePlayPause()
-                        impactFeedback.impactOccurred()
                     } label: {
                         ZStack {
                             Circle()
                                 .fill(Color.white)
-                                .frame(width: 70, height: 70)
+                                .frame(width: 72, height: 72)
                                 .shadow(color: Color.black.opacity(0.35), radius: 8, y: 4)
 
                             if player.isBuffering {
@@ -410,11 +399,11 @@ public struct FullPlayerView: View {
                                 Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
                                     .font(.system(size: 28, weight: .bold))
                                     .foregroundStyle(Color.black)
-                                    .offset(x: player.isPlaying ? 0 : 2)
+                                    .contentTransition(.symbolEffect(.replace))
                             }
                         }
                     }
-                    .buttonStyle(TactileButtonStyle(scale: 0.94))
+                    .buttonStyle(ApplePlayButtonStyle(scale: 0.88))
 
                     // Skip forward 30s
                     Button {
@@ -433,18 +422,65 @@ public struct FullPlayerView: View {
         }
     }
 
-    // MARK: - Bottom Utility Bar
+    // MARK: - Bottom Utility Bar (Apple Podcasts Quick Actions: Subtitle | Speed | AirPlay | List)
     private var bottomUtilityBar: some View {
-        HStack {
-            // Apple Podcasts Style Speed Button
+        HStack(spacing: 16) {
+            // 1. Subtitles / Lyrics Quick Toggle (Apple Podcasts style quote bubble)
+            Button {
+                impactFeedback.impactOccurred()
+                withAnimation(ForwardMotion.snapSpring) {
+                    currentCenterTab = (currentCenterTab == 1) ? 0 : 1
+                }
+            } label: {
+                Image(systemName: currentCenterTab == 1 ? "quote.bubble.fill" : "quote.bubble")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(currentCenterTab == 1 ? AmberTheme.primaryAmber : AmberTheme.labelSecondary)
+                    .frame(width: 44, height: 44)
+                    .background(
+                        Group {
+                            if currentCenterTab == 1 {
+                                Circle().fill(AmberTheme.primaryAmber.opacity(0.18))
+                            }
+                        }
+                    )
+            }
+            .buttonStyle(TactileButtonStyle(scale: 0.92))
+
+            Spacer()
+
+            // 2. Apple Podcasts Style Speed Button
             speedButton
 
             Spacer()
 
-            // Real route picker
+            // 3. Real route picker
             AirPlayRoutePicker()
                 .frame(width: 26, height: 26)
+
+            Spacer()
+
+            // 4. Playlist / Chapters / Notes Quick Toggle (Apple Podcasts style list button)
+            Button {
+                impactFeedback.impactOccurred()
+                withAnimation(ForwardMotion.snapSpring) {
+                    currentCenterTab = (currentCenterTab == 2) ? 0 : 2
+                }
+            } label: {
+                Image(systemName: currentCenterTab == 2 ? "list.bullet.rectangle.fill" : "list.bullet")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(currentCenterTab == 2 ? AmberTheme.primaryAmber : AmberTheme.labelSecondary)
+                    .frame(width: 44, height: 44)
+                    .background(
+                        Group {
+                            if currentCenterTab == 2 {
+                                Circle().fill(AmberTheme.primaryAmber.opacity(0.18))
+                            }
+                        }
+                    )
+            }
+            .buttonStyle(TactileButtonStyle(scale: 0.92))
         }
+        .padding(.horizontal, 14)
     }
 
     // MARK: - Apple Podcasts Style Speed Button

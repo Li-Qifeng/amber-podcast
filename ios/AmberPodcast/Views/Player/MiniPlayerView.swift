@@ -46,7 +46,6 @@ public struct MiniPlayerView: View {
                 // 3. Play / Pause Button: Anchored firmly at trailing edge (32x32)
                 Button {
                     player.togglePlayPause()
-                    impactFeedback.impactOccurred()
                 } label: {
                     ZStack {
                         Circle()
@@ -62,11 +61,11 @@ public struct MiniPlayerView: View {
                             Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
                                 .font(.system(size: 13, weight: .bold))
                                 .foregroundStyle(Color.black)
-                                .offset(x: player.isPlaying ? 0 : 1)
+                                .contentTransition(.symbolEffect(.replace))
                         }
                     }
                 }
-                .buttonStyle(TactileButtonStyle(scale: 0.94))
+                .buttonStyle(ApplePlayButtonStyle(scale: 0.90))
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 7)

@@ -342,6 +342,21 @@ public struct LiquidGlassCapsule<Content: View>: View {
     }
 }
 
+// MARK: - Apple Podcasts Signature Fluid Play ButtonStyle (Physical Spring Give & Smooth Release)
+public struct ApplePlayButtonStyle: ButtonStyle {
+    public var scale: CGFloat = 0.88
+
+    public init(scale: CGFloat = 0.88) {
+        self.scale = scale
+    }
+
+    public func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? scale : 1.0)
+            .animation(.spring(response: 0.22, dampingFraction: 0.65), value: configuration.isPressed)
+    }
+}
+
 // MARK: - Native Tactile ButtonStyle (Subtle 0.97 Press Scale, No Overshoot)
 public struct TactileButtonStyle: ButtonStyle {
     public var scale: CGFloat = 0.97

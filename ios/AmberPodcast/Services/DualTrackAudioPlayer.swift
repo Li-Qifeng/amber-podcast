@@ -52,6 +52,7 @@ public final class DualTrackAudioPlayer: ObservableObject {
     private init() {
         configureAudioSession()
         setupRemoteCommands()
+        setupAudioNotifications()
         restorePlaybackState()
     }
 
@@ -181,8 +182,7 @@ public final class DualTrackAudioPlayer: ObservableObject {
     /// fetchArtifacts 返回空 full_mapping 时自然降级为原声播放。
     public func playNewEpisode(episode: Episode, feed: PodcastFeed) async {
         var artifacts: EpisodeArtifacts? = nil
-        if let a = try? await AmberAPIClient.shared.fetchArtifacts(episodeId: episode.id),
-           !a.fullMapping.isEmpty {
+        if let a = try? await AmberAPIClient.shared.fetchArtifacts(episodeId: episode.id) {
             artifacts = a
         }
         await MainActor.run {
@@ -215,9 +215,6 @@ public final class DualTrackAudioPlayer: ObservableObject {
             return
         }
         guard let player = activePlayer else { return }
-        if player.timeControlStatus != .playing {
-            isBuffering = true
-        }
         player.play()
         player.rate = playbackRate
         isPlaying = true
@@ -469,6 +466,10 @@ public final class DualTrackAudioPlayer: ObservableObject {
                         self.chinesePlayer?.pause()
                         self.originalPlayer?.seek(to: CMTime(seconds: nextSeg.en.start, preferredTimescale: 600), toleranceBefore: .zero, toleranceAfter: .zero)
                         self.originalPlayer?.rate = self.playbackRate
+                    } else {
+                        self.pause()
+                        self.seek(to: 0)
+                        self.flushProgress(finished: true)
                     }
                 }
             }
@@ -477,10 +478,24 @@ public final class DualTrackAudioPlayer: ObservableObject {
 
     private func updateBufferingState(for player: AVPlayer) {
         Task { @MainActor in
-            if player.timeControlStatus == .waitingToPlayAtSpecifiedRate && self.isPlaying {
-                self.isBuffering = true
-            } else if player.timeControlStatus == .playing {
+            switch player.timeControlStatus {
+            case .playing:
                 self.isBuffering = false
+                if !self.isPlaying {
+                    self.isPlaying = true
+                }
+            case .waitingToPlayAtSpecifiedRate:
+                if self.isPlaying {
+                    self.isBuffering = true
+                }
+            case .paused:
+                self.isBuffering = false
+                // Only sync paused if not in optimistic seek lock
+                if !self.isSeekingOptimisticLock && self.isPlaying {
+                    self.isPlaying = false
+                }
+            @unknown default:
+                break
             }
         }
     }
@@ -569,5 +584,54 @@ public final class DualTrackAudioPlayer: ObservableObject {
         }
 
         MPNowPlayingInfoCenter.default().nowPlayingInfo = info
+    }
+
+    // MARK: - Audio Interruptions & Route Changes
+    private func setupAudioNotifications() {
+        NotificationCenter.default.addObserver(
+            forName: .AVPlayerItemDidPlayToEndTime,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            guard let self = self else { return }
+            self.pause()
+            self.seek(to: 0)
+            self.flushProgress(finished: true)
+        }
+
+        NotificationCenter.default.addObserver(
+            forName: AVAudioSession.interruptionNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            guard let self = self,
+                  let info = notification.userInfo,
+                  let typeValue = info[AVAudioSessionInterruptionTypeKey] as? UInt,
+                  let type = AVAudioSession.InterruptionType(rawValue: typeValue) else { return }
+            if type == .began {
+                self.pause()
+            } else if type == .ended {
+                if let optionsValue = info[AVAudioSessionInterruptionOptionKey] as? UInt {
+                    let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
+                    if options.contains(.shouldResume) {
+                        self.play()
+                    }
+                }
+            }
+        }
+
+        NotificationCenter.default.addObserver(
+            forName: AVAudioSession.routeChangeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            guard let self = self,
+                  let info = notification.userInfo,
+                  let reasonValue = info[AVAudioSessionRouteChangeReasonKey] as? UInt,
+                  let reason = AVAudioSession.RouteChangeReason(rawValue: reasonValue) else { return }
+            if reason == .oldDeviceUnavailable {
+                self.pause()
+            }
+        }
     }
 }

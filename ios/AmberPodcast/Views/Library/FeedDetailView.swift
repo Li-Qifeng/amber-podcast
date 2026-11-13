@@ -288,8 +288,6 @@ public struct FeedDetailView: View {
                             if player.currentEpisode?.id == first.id {
                                 if player.isPlaying {
                                     player.pause()
-                                } else if player.fullMapping.isEmpty {
-                                    Task { await player.playNewEpisode(episode: first, feed: feed) }
                                 } else {
                                     player.play()
                                 }
