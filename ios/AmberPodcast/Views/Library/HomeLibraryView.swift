@@ -908,10 +908,11 @@ public struct HomeLibraryView: View {
                     } placeholder: {
                         coverPlaceholder(width: 56, height: 56, title: feed.title)
                     }
+                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                 } else {
                     coverPlaceholder(width: 56, height: 56, title: feed.title)
+                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                 }
-                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text(feed.title)
