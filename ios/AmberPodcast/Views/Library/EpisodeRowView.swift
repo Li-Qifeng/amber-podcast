@@ -3,6 +3,9 @@ import SwiftUI
 public struct EpisodeRowView: View {
     public let episode: Episode
     public let feed: PodcastFeed
+    /// false = transparent row for tinted channel pages (no plate, hairline
+    /// separators provided by the parent).
+    public var showsPlate: Bool = true
     @ObservedObject var player = DualTrackAudioPlayer.shared
     @State private var isTriggering: Bool = false
     @State private var currentStatus: String
@@ -10,14 +13,24 @@ public struct EpisodeRowView: View {
 
     private let impactFeedback = UIImpactFeedbackGenerator(style: .light)
 
-    public init(episode: Episode, feed: PodcastFeed) {
+    public init(episode: Episode, feed: PodcastFeed, showsPlate: Bool = true) {
         self.episode = episode
         self.feed = feed
+        self.showsPlate = showsPlate
         self._currentStatus = State(initialValue: episode.status)
         self._currentProgress = State(initialValue: episode.progress)
     }
 
     public var body: some View {
+        if showsPlate {
+            rowContent
+                .amberPlate(radius: AmberTheme.radiusCardRow, isActive: isCurrentPlaying)
+        } else {
+            rowContent
+        }
+    }
+
+    private var rowContent: some View {
         VStack(alignment: .leading, spacing: 10) {
             // 1. Metadata Line (Date · Duration · Status Badge)
             HStack(spacing: 8) {
@@ -90,7 +103,7 @@ public struct EpisodeRowView: View {
                     .background(
                         isCurrentPlaying ?
                         AmberTheme.primaryAmber :
-                        AmberTheme.surfaceRaised,
+                        (showsPlate ? AmberTheme.surfaceRaised : Color.primary.opacity(0.10)),
                         in: RoundedRectangle(cornerRadius: 6, style: .continuous)
                     )
                     .overlay(
@@ -119,7 +132,7 @@ public struct EpisodeRowView: View {
                         }
                         .padding(.horizontal, 10)
                         .padding(.vertical, 5.5)
-                        .background(AmberTheme.surfaceRaised, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+                        .background(showsPlate ? AmberTheme.surfaceRaised : Color.primary.opacity(0.10), in: RoundedRectangle(cornerRadius: 6, style: .continuous))
                         .overlay(
                             RoundedRectangle(cornerRadius: 6, style: .continuous)
                                 .strokeBorder(AmberTheme.borderHairline, lineWidth: 0.5)
@@ -136,7 +149,6 @@ public struct EpisodeRowView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 14)
-        .amberPlate(radius: AmberTheme.radiusCardRow, isActive: isCurrentPlaying)
         .contentShape(Rectangle())
         .onTapGesture {
             playEpisode()

@@ -100,9 +100,15 @@ public struct FeedDetailView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 50)
                     } else {
-                        LazyVStack(spacing: 12) {
+                        LazyVStack(spacing: 0) {
                             ForEach(episodes) { ep in
-                                EpisodeRowView(episode: ep, feed: feed)
+                                EpisodeRowView(episode: ep, feed: feed, showsPlate: false)
+                                if ep.id != episodes.last?.id {
+                                    Divider()
+                                        .background(AmberTheme.labelTertiary.opacity(0.25))
+                                        .padding(.leading, 100)
+                                        .padding(.horizontal, 16)
+                                }
                             }
                         }
                         .padding(.horizontal, 16)
@@ -212,7 +218,7 @@ public struct FeedDetailView: View {
     private var feedTintBackground: some View {
         Group {
             if let url = URL(string: feed.proxiedCoverUrl), !feed.proxiedCoverUrl.isEmpty {
-                AsyncImage(url: url) { image in
+                CachedAsyncImage(url: url) { image in
                     image
                         .resizable()
                         .scaledToFill()
@@ -229,8 +235,8 @@ public struct FeedDetailView: View {
         .overlay(
             Color(uiColor: UIColor { traits in
                 traits.userInterfaceStyle == .dark
-                    ? UIColor(red: 0, green: 0, blue: 0, alpha: 0.45)
-                    : UIColor(red: 1, green: 1, blue: 1, alpha: 0.55)
+                    ? UIColor(red: 0, green: 0, blue: 0, alpha: 0.52)
+                    : UIColor(red: 1, green: 1, blue: 1, alpha: 0.62)
             })
         )
         .animation(.easeInOut(duration: 0.35), value: feed.id)
@@ -241,7 +247,7 @@ public struct FeedDetailView: View {
             // Centred hero artwork, no card frame — merges into the tint
             Group {
                 if let url = URL(string: feed.proxiedCoverUrl), !feed.proxiedCoverUrl.isEmpty {
-                    AsyncImage(url: url) { image in
+                    CachedAsyncImage(url: url) { image in
                         image
                             .resizable()
                             .scaledToFill()
