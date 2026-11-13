@@ -83,10 +83,6 @@ public struct HomeLibraryView: View {
                             continueListeningShelf()
                                 .padding(.top, heroEpisode != nil ? 20 : 8)
 
-                            // 3. 我的播客
-                            subscribedChannelsShelf()
-                                .padding(.top, 28)
-
                             // 3. 你可能错过了 (Apple "You May Have Missed" paged group)
                             youMayHaveMissedShelf()
                                 .padding(.top, 28)
@@ -406,7 +402,7 @@ public struct HomeLibraryView: View {
     // MARK: - 3. 我的播客 (Apple square cover shelf)
     @ViewBuilder
     private func subscribedChannelsShelf() -> some View {
-        let posterSize: CGFloat = 132.0
+        let posterSize: CGFloat = 148.0
 
         VStack(alignment: .leading, spacing: 16) {
             HStack(alignment: .firstTextBaseline) {
@@ -534,13 +530,15 @@ public struct HomeLibraryView: View {
         Array(forYouRecommendations.dropFirst(6).prefix(12))
     }
 
-    /// Apple "Channels to Try": editorial features not yet subscribed.
+    /// Apple "Channels to Try": editorial features not yet subscribed. The
+    /// featured pool is tiny (4), so top_global and top_chinese top up the mix
+    /// — otherwise the shelf can end up empty (or coverless) for active users.
     private var channelsToTry: [PodcastFeed] {
         guard let discover = discoverFeed else { return [] }
         let subscribedTitles = Set(feeds.map { $0.title.lowercased() })
         var seen = Set<String>()
         var result: [PodcastFeed] = []
-        for item in discover.featured {
+        for item in discover.featured + discover.topGlobal + discover.topChinese {
             let key = item.title.lowercased()
             if seen.contains(key) || subscribedTitles.contains(key) { continue }
             seen.insert(key)
@@ -558,6 +556,9 @@ public struct HomeLibraryView: View {
             let pages = stride(from: 0, to: missed.count, by: 3).map {
                 Array(missed[$0..<min($0 + 3, missed.count)])
             }
+            // Page slightly narrower than the viewport so the next column peeks
+            // in and advertises the horizontal swipe.
+            let pageWidth = screenWidth * 0.86
 
             VStack(alignment: .leading, spacing: 16) {
                 VStack(alignment: .leading, spacing: 3) {
@@ -568,24 +569,28 @@ public struct HomeLibraryView: View {
                 }
                 .padding(.horizontal, AmberTheme.pageMargin)
 
-                // Horizontal paged group: 3 episode rows per page (Apple pattern)
-                TabView {
-                    ForEach(pages.indices, id: \.self) { pi in
-                        VStack(spacing: 0) {
-                            ForEach(pages[pi].indices, id: \.self) { ei in
-                                missedRow(episode: pages[pi][ei])
-                                if ei < pages[pi].count - 1 {
-                                    Divider()
-                                        .background(Color.white.opacity(0.08))
-                                        .padding(.leading, 88)
+                ScrollView(.horizontal, showsIndicators: false) {
+                    LazyHStack(spacing: 14) {
+                        ForEach(pages.indices, id: \.self) { pi in
+                            VStack(spacing: 0) {
+                                ForEach(pages[pi].indices, id: \.self) { ei in
+                                    missedRow(episode: pages[pi][ei])
+                                    if ei < pages[pi].count - 1 {
+                                        Divider()
+                                            .background(Color.white.opacity(0.10))
+                                            .padding(.leading, 104)
+                                    }
                                 }
                             }
+                            .frame(width: pageWidth)
                         }
-                        .padding(.horizontal, AmberTheme.pageMargin)
                     }
+                    .padding(.horizontal, AmberTheme.pageMargin)
+                    .scrollTargetLayout()
                 }
-                .tabViewStyle(.page(indexDisplayMode: .never))
-                .frame(height: 3 * 88)
+                .scrollTargetBehavior(.viewAligned)
+                .scrollClipDisabled()
+                .frame(height: 3 * 100)
             }
         }
     }
@@ -600,7 +605,7 @@ public struct HomeLibraryView: View {
         return Button {
             if let f = feed { playEpisode(episode, feed: f) }
         } label: {
-            HStack(spacing: 12) {
+            HStack(spacing: 14) {
                 // Square artwork
                 ZStack(alignment: .bottom) {
                     if let f = feed, let url = URL(string: f.proxiedCoverUrl), !f.proxiedCoverUrl.isEmpty {
@@ -608,13 +613,13 @@ public struct HomeLibraryView: View {
                             img
                                 .resizable()
                                 .scaledToFill()
-                                .frame(width: 64, height: 64)
+                                .frame(width: 80, height: 80)
                                 .clipped()
                         } placeholder: {
-                            coverPlaceholder(width: 64, height: 64, title: f.title)
+                            coverPlaceholder(width: 80, height: 80, title: f.title)
                         }
                     } else {
-                        coverPlaceholder(width: 64, height: 64, title: feed?.title ?? "")
+                        coverPlaceholder(width: 80, height: 80, title: feed?.title ?? "")
                     }
 
                     if episode.progress > 0 {
@@ -629,41 +634,59 @@ public struct HomeLibraryView: View {
                         .frame(height: 3)
                     }
                 }
-                .frame(width: 64, height: 64)
-                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .frame(width: 80, height: 80)
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
 
-                VStack(alignment: .leading, spacing: 3) {
-                    // Date line
-                    Text(episode.pubDate)
-                        .font(.system(size: 10.5, weight: .regular))
+                VStack(alignment: .leading, spacing: 4) {
+                    // Localized date line (e.g. 11月12日)
+                    Text(Self.localizedDate(episode.pubDate))
+                        .font(.system(size: 11, weight: .regular))
                         .foregroundStyle(AmberTheme.labelTertiary)
 
                     // Episode title (fixed 2 lines)
                     Text(episode.title)
-                        .font(.system(size: 13.5, weight: .bold))
+                        .font(.system(size: 15, weight: .bold))
                         .foregroundStyle(isPlayingThis ? AmberTheme.primaryAmber : AmberTheme.labelPrimary)
                         .lineLimit(2)
                         .multilineTextAlignment(.leading)
-
-                    // Play capsule
-                    HStack(spacing: 4) {
-                        Image(systemName: isPlayingThis ? "pause.fill" : "play.fill")
-                            .font(.system(size: 8.5, weight: .bold))
-                        Text(formatDuration(remaining))
-                            .font(.system(size: 10.5, weight: .semibold))
-                    }
-                    .foregroundStyle(AmberTheme.labelPrimary)
-                    .padding(.horizontal, 9)
-                    .padding(.vertical, 4)
-                    .background(Color.white.opacity(0.10), in: Capsule())
-                    .padding(.top, 1)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
+
+                // Bottom-right: play capsule + more menu
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack(spacing: 5) {
+                        Image(systemName: isPlayingThis ? "pause.fill" : "play.fill")
+                            .font(.system(size: 11, weight: .bold))
+                        Text(formatDuration(remaining))
+                            .font(.system(size: 12.5, weight: .semibold))
+                    }
+                    .foregroundStyle(AmberTheme.labelPrimary)
+                    .padding(.horizontal, 13)
+                    .padding(.vertical, 7)
+                    .background(Color.white.opacity(0.14), in: Capsule())
+
+                    Menu {
+                        Button {
+                            if let f = feed { UIPasteboard.general.string = f.feedUrl }
+                        } label: {
+                            Label("复制节目链接", systemImage: "link")
+                        }
+                        ShareLink(item: episode.audioUrl) {
+                            Label("分享单集音频", systemImage: "square.and.arrow.up")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(AmberTheme.labelTertiary)
+                            .frame(width: 30, height: 30)
+                            .contentShape(Rectangle())
+                    }
+                }
             }
             .contentShape(Rectangle())
         }
         .buttonStyle(TactileButtonStyle(scale: 0.98))
-        .frame(height: 88)
+        .frame(height: 100)
     }
 
     // MARK: - 5. 新节目推荐 (Apple "New Shows for You" adaptive tint card)
@@ -702,10 +725,11 @@ public struct HomeLibraryView: View {
 
     private func newShowCard(feed: PodcastFeed, cardWidth: CGFloat) -> some View {
         // Apple "New Shows for You": card background takes the show's own tint.
-        // We approximate the adaptive tint by blurring the artwork itself.
+        // We approximate the adaptive tint by blurring the artwork itself; the
+        // cover sits centred above the copy so the lower half never reads empty.
         let cardHeight = cardWidth * 1.15
         let synopsis = stripHTML(feed.description)
-        let artworkSize = cardWidth * 0.50
+        let artworkSize = cardWidth * 0.58
 
         return ZStack {
             // Adaptive tint base
@@ -725,52 +749,64 @@ public struct HomeLibraryView: View {
                 AmberTheme.surfaceRaised
             }
 
-            VStack(alignment: .leading, spacing: 12) {
-                // Inset square artwork
-                if let url = URL(string: feed.proxiedCoverUrl), !feed.proxiedCoverUrl.isEmpty {
-                    CachedAsyncImage(url: url) { img in
-                        img
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: artworkSize, height: artworkSize)
-                            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                            .shadow(color: .black.opacity(0.35), radius: 14, y: 6)
-                    } placeholder: {
+            VStack(spacing: 12) {
+                // Centred square artwork
+                Group {
+                    if let url = URL(string: feed.proxiedCoverUrl), !feed.proxiedCoverUrl.isEmpty {
+                        CachedAsyncImage(url: url) { img in
+                            img
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: artworkSize, height: artworkSize)
+                                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                                .shadow(color: .black.opacity(0.35), radius: 14, y: 6)
+                        } placeholder: {
+                            coverPlaceholder(width: artworkSize, height: artworkSize, title: feed.title)
+                                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        }
+                    } else {
                         coverPlaceholder(width: artworkSize, height: artworkSize, title: feed.title)
                             .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                     }
-                } else {
-                    coverPlaceholder(width: artworkSize, height: artworkSize, title: feed.title)
-                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                 }
+                .frame(maxWidth: .infinity)
 
-                VStack(alignment: .leading, spacing: 5) {
+                VStack(alignment: .leading, spacing: 6) {
                     Text(feed.title)
-                        .font(.system(size: 15, weight: .bold))
+                        .font(.system(size: 16, weight: .bold))
                         .lineLimit(2)
                         .multilineTextAlignment(.leading)
+                        .frame(maxWidth: .infinity, alignment: .leading)
 
                     if !synopsis.isEmpty {
                         Text(synopsis)
-                            .font(.system(size: 11.5, weight: .regular))
+                            .font(.system(size: 12, weight: .regular))
                             .opacity(0.85)
                             .lineLimit(3)
                             .multilineTextAlignment(.leading)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                     }
                 }
 
                 Spacer(minLength: 0)
 
-                // Bottom: genre line + subscribe affordance
+                // Bottom bar: genre line + view affordance — fills the card base
                 HStack {
                     Text(podcastSubtitle(feed))
-                        .font(.system(size: 11, weight: .regular))
+                        .font(.system(size: 11.5, weight: .regular))
                         .opacity(0.75)
                         .lineLimit(1)
                     Spacer()
-                    Image(systemName: "plus.circle.fill")
-                        .font(.system(size: 18, weight: .regular))
-                        .opacity(0.9)
+                    HStack(spacing: 5) {
+                        Image(systemName: "play.fill")
+                            .font(.system(size: 10, weight: .bold))
+                        Text("查看节目")
+                            .font(.system(size: 12, weight: .semibold))
+                    }
+                    .foregroundStyle(Color.white)
+                    .padding(.horizontal, 13)
+                    .padding(.vertical, 7)
+                    .background(Color.white.opacity(0.18), in: Capsule())
                 }
             }
             .padding(16)
@@ -865,11 +901,11 @@ public struct HomeLibraryView: View {
         .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 
-    // MARK: - 7. 探索更多 (Apple "More to Discover" dual-row grid)
+    // MARK: - 7. 探索更多 (Apple "More to Discover" grid — same row language as 你可能错过了)
     @ViewBuilder
     private func moreToDiscoverShelf() -> some View {
         let items = moreToDiscover
-        if items.count >= 2 {
+        if items.count >= 3 {
             VStack(alignment: .leading, spacing: 16) {
                 VStack(alignment: .leading, spacing: 3) {
                     sectionTitle("探索更多")
@@ -880,7 +916,11 @@ public struct HomeLibraryView: View {
                 .padding(.horizontal, AmberTheme.pageMargin)
 
                 ScrollView(.horizontal, showsIndicators: false) {
-                    LazyHGrid(rows: [GridItem(.fixed(64), spacing: 10), GridItem(.fixed(64))], spacing: 12) {
+                    LazyHGrid(rows: [
+                        GridItem(.fixed(70), spacing: 10),
+                        GridItem(.fixed(70), spacing: 10),
+                        GridItem(.fixed(70)),
+                    ], spacing: 12) {
                         ForEach(items) { feed in
                             miniPodcastRow(feed: feed)
                         }
@@ -890,14 +930,14 @@ public struct HomeLibraryView: View {
                 }
                 .scrollTargetBehavior(.viewAligned)
                 .scrollClipDisabled()
-                .frame(height: 2 * 64 + 10)
+                .frame(height: 3 * 70 + 20)
             }
         }
     }
 
     private func miniPodcastRow(feed: PodcastFeed) -> some View {
         NavigationLink(destination: FeedDetailView(feed: feed)) {
-            HStack(spacing: 10) {
+            HStack(spacing: 14) {
                 if let url = URL(string: feed.proxiedCoverUrl), !feed.proxiedCoverUrl.isEmpty {
                     CachedAsyncImage(url: url) { img in
                         img
@@ -916,17 +956,32 @@ public struct HomeLibraryView: View {
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text(feed.title)
-                        .font(.system(size: 13, weight: .semibold))
+                        .font(.system(size: 13.5, weight: .semibold))
                         .foregroundStyle(AmberTheme.labelPrimary)
                         .lineLimit(2)
                         .multilineTextAlignment(.leading)
                     Text(podcastSubtitle(feed))
-                        .font(.system(size: 10.5, weight: .regular))
+                        .font(.system(size: 11, weight: .regular))
                         .foregroundStyle(AmberTheme.labelTertiary)
                         .lineLimit(1)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+                Menu {
+                    Button {
+                        UIPasteboard.general.string = feed.feedUrl
+                    } label: {
+                        Label("复制节目链接", systemImage: "link")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(AmberTheme.labelTertiary)
+                        .frame(width: 28, height: 28)
+                        .contentShape(Rectangle())
+                }
             }
-            .frame(width: 210, alignment: .leading)
+            .frame(width: 240, alignment: .leading)
             .contentShape(Rectangle())
         }
         .buttonStyle(TactileButtonStyle(scale: 0.97))
@@ -1315,6 +1370,22 @@ public struct HomeLibraryView: View {
     private func stripHTML(_ text: String) -> String {
         text.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
             .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    /// "2026-11-12" → "11月12日" (locale-following via date template).
+    private static let isoDayFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd"
+        f.locale = Locale(identifier: "en_US_POSIX")
+        return f
+    }()
+
+    private static func localizedDate(_ s: String) -> String {
+        guard let d = isoDayFormatter.date(from: s) else { return s }
+        let out = DateFormatter()
+        out.setLocalizedDateFormatFromTemplate("MMMd")
+        out.locale = Locale(identifier: "zh_CN")
+        return out.string(from: d)
     }
 
     /// Apple card second line: genre when known, else the author, else nothing.

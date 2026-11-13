@@ -17,6 +17,7 @@ public struct SearchView: View {
     @State private var featuredShows: [PodcastFeed] = []
     @State private var topChineseShows: [PodcastFeed] = []
     @State private var topGlobalShows: [PodcastFeed] = []
+    @State private var categoryShelves: [AmberAPIClient.DiscoverCategory] = []
     @State private var searchDebounceTask: Task<Void, Never>? = nil
     @State private var isDiscoverLoading: Bool = false
 
@@ -244,13 +245,13 @@ public struct SearchView: View {
     // MARK: - Section 1: Featured Carousel
     private var featuredCarouselSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 6) {
-                Image(systemName: "star.fill")
-                    .font(.system(size: 11))
-                    .foregroundStyle(AmberTheme.primaryAmber)
+            HStack(alignment: .firstTextBaseline) {
                 Text("精彩聚焦")
-                    .font(.system(size: 13, weight: .semibold, design: .rounded))
-                    .foregroundStyle(AmberTheme.labelSecondary)
+                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                    .foregroundStyle(AmberTheme.labelPrimary)
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(AmberTheme.labelTertiary)
             }
             .padding(.horizontal, 20)
 
@@ -395,17 +396,19 @@ public struct SearchView: View {
     // MARK: - Section 3: Top Chinese Shows
     private var topChineseSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 6) {
-                Image(systemName: "flame.fill")
-                    .font(.system(size: 12))
-                    .foregroundStyle(Color.orange)
+            HStack(alignment: .firstTextBaseline) {
                 Text("中文热门精选")
-                    .font(.system(size: 15, weight: .bold, design: .rounded))
+                    .font(.system(size: 22, weight: .bold, design: .rounded))
                     .foregroundStyle(AmberTheme.labelPrimary)
-                Spacer()
-                Text("TOP \(min(topChineseShows.count, 8))")
-                    .font(.system(size: 10, weight: .bold, design: .rounded))
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(AmberTheme.labelTertiary)
+                Spacer()
+                NavigationLink(destination: CategoryGridView(title: "中文热门精选", items: topChineseShows)) {
+                    Text("全部")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(AmberTheme.labelSecondary)
+                }
             }
             .padding(.horizontal, 20)
 
@@ -424,13 +427,13 @@ public struct SearchView: View {
     // MARK: - Section 4: Top Global Dual-Track Shows
     private var topGlobalSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 6) {
-                Image(systemName: "globe.asia.australia.fill")
-                    .font(.system(size: 12))
-                    .foregroundStyle(AmberTheme.accentElectric)
+            HStack(alignment: .firstTextBaseline) {
                 Text("全球双语焦点")
-                    .font(.system(size: 15, weight: .bold, design: .rounded))
+                    .font(.system(size: 22, weight: .bold, design: .rounded))
                     .foregroundStyle(AmberTheme.labelPrimary)
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(AmberTheme.labelTertiary)
 
                 Text("双轨译制")
                     .font(.system(size: 10, weight: .bold, design: .rounded))
@@ -440,9 +443,11 @@ public struct SearchView: View {
                     .background(AmberTheme.accentElectric.opacity(0.12), in: Capsule())
 
                 Spacer()
-                Text("TOP \(min(topGlobalShows.count, 8))")
-                    .font(.system(size: 10, weight: .bold, design: .rounded))
-                    .foregroundStyle(AmberTheme.labelTertiary)
+                NavigationLink(destination: CategoryGridView(title: "全球双语焦点", items: topGlobalShows)) {
+                    Text("全部")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(AmberTheme.labelSecondary)
+                }
             }
             .padding(.horizontal, 20)
 
@@ -513,48 +518,50 @@ public struct SearchView: View {
     private var categoryChipsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("热门分类专题")
-                .font(.system(size: 15, weight: .bold, design: .rounded))
+                .font(.system(size: 22, weight: .bold, design: .rounded))
                 .foregroundStyle(AmberTheme.labelPrimary)
                 .padding(.horizontal, 20)
 
             LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
-                categoryCard(icon: "bubble.left.and.bubble.right.fill", title: "深度对谈", color: Color.orange, queryText: "声东击西")
-                categoryCard(icon: "cpu.fill", title: "科技前沿", color: Color.cyan, queryText: "机核")
-                categoryCard(icon: "chart.line.uptrend.xyaxis", title: "商业财经", color: Color.green, queryText: "Acquired")
-                categoryCard(icon: "book.fill", title: "文学艺术", color: Color.purple, queryText: "跳岛 FM")
-                categoryCard(icon: "heart.fill", title: "健康科学", color: Color.pink, queryText: "Huberman Lab")
-                categoryCard(icon: "brain.head.profile", title: "人工智能", color: Color.blue, queryText: "Lex Fridman")
+                ForEach(categoryShelves) { shelf in
+                    NavigationLink(destination: CategoryGridView(title: shelf.name, items: shelf.items)) {
+                        categoryRow(shelf: shelf)
+                    }
+                    .buttonStyle(TactileButtonStyle(scale: 0.96))
+                }
             }
             .padding(.horizontal, 20)
         }
     }
 
-    private func categoryCard(icon: String, title: String, color: Color, queryText: String) -> some View {
-        Button {
-            query = queryText
-            performSearch()
-        } label: {
-            HStack(spacing: 10) {
-                Image(systemName: icon)
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(color)
-                    .frame(width: 32, height: 32)
-                    .background(color.opacity(0.12), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+    /// One real Apple category — tapping opens the full genre listing, never a
+    /// fake keyword search.
+    private func categoryRow(shelf: AmberAPIClient.DiscoverCategory) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: "square.grid.2x2.fill")
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(AmberTheme.primaryAmber)
+                .frame(width: 32, height: 32)
+                .background(AmberTheme.primaryAmber.opacity(0.12), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
 
-                Text(title)
-                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+            VStack(alignment: .leading, spacing: 2) {
+                Text(shelf.name)
+                    .font(.system(size: 14, weight: .semibold, design: .rounded))
                     .foregroundStyle(AmberTheme.labelPrimary)
-
-                Spacer()
-
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 10, weight: .semibold))
+                Text("\(shelf.items.count) 档节目")
+                    .font(.system(size: 10.5))
                     .foregroundStyle(AmberTheme.labelTertiary)
             }
-            .padding(12)
-            .amberPlate(radius: 12)
+
+            Spacer()
+
+            Image(systemName: "chevron.right")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(AmberTheme.labelTertiary)
         }
-        .buttonStyle(TactileButtonStyle(scale: 0.96))
+        .padding(12)
+        .amberPlate(radius: 12)
+        .contentShape(Rectangle())
     }
 
     // MARK: - Search Result Card
@@ -697,6 +704,7 @@ public struct SearchView: View {
         self.featuredShows = res.featured
         self.topChineseShows = res.topChinese
         self.topGlobalShows = res.topGlobal
+        self.categoryShelves = res.categories ?? []
         self.isDiscoverLoading = false
     }
 
@@ -720,6 +728,7 @@ public struct SearchView: View {
                 self.featuredShows = res.featured
                 self.topChineseShows = res.topChinese
                 self.topGlobalShows = res.topGlobal
+                self.categoryShelves = res.categories ?? []
                 self.isDiscoverLoading = false
                 self.saveDiscoverToCache(res: res)
             }

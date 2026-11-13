@@ -10,7 +10,7 @@ public enum AmberTheme {
     public static let background = Color(uiColor: UIColor { traits in
         traits.userInterfaceStyle == .dark
             ? UIColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 1.0)
-            : UIColor(red: 0.95, green: 0.95, blue: 0.97, alpha: 1.0)
+            : UIColor(red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0)  // Apple-white canvas
     })
     public static let surfaceDeep = Color(uiColor: UIColor { traits in
         traits.userInterfaceStyle == .dark
