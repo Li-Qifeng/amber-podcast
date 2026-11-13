@@ -225,6 +225,7 @@ public struct FeedDetailView: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .clipped()
                         .blur(radius: 60)
+                        .clipped()
                 } placeholder: {
                     AmberTheme.background
                 }

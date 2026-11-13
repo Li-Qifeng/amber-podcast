@@ -149,7 +149,9 @@ public struct HomeLibraryView: View {
     @ViewBuilder
     private func latestEpisodesShelf() -> some View {
         if let ep = heroEpisode, let feed = heroFeed {
-            let cardWidth = screenWidth * 0.82
+            // ~1.3 cards visible: card fills ~70% of the viewport and the next
+            // card peeks in from the trailing edge.
+            let cardWidth = screenWidth * 0.70
 
             VStack(alignment: .leading, spacing: 16) {
                 sectionTitle("最新单集")
@@ -173,7 +175,7 @@ public struct HomeLibraryView: View {
         // wide artwork flush to the top edge, then date / title / synopsis and a
         // play capsule + ellipsis action bar.
         let isPlayingThis = player.currentEpisode?.id == episode.id
-        let artworkHeight = cardWidth * 0.62
+        let artworkHeight = cardWidth * 0.68
         let synopsis = stripHTML(episode.shownotes)
 
         return Button {
@@ -214,7 +216,7 @@ public struct HomeLibraryView: View {
 
                 VStack(alignment: .leading, spacing: 6) {
                     // Published date
-                    Text(episode.pubDate)
+                    Text(AmberDate.short(episode.pubDate))
                         .font(.system(size: 11, weight: .regular))
                         .foregroundStyle(AmberTheme.labelTertiary)
 
@@ -266,11 +268,19 @@ public struct HomeLibraryView: View {
     }
 
     private func coverPlaceholder(width: CGFloat, height: CGFloat, title: String) -> some View {
+        // Soft brand-grey "loading" plate — a near-black block reads as a
+        // missing image on tinted pages, so keep it light and quiet.
         ZStack {
-            Color(red: 0.10, green: 0.10, blue: 0.12)
+            RoundedRectangle(cornerRadius: 0, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [AmberTheme.surfaceRaised, AmberTheme.surfaceRaised.opacity(0.72)],
+                        startPoint: .topLeading, endPoint: .bottomTrailing
+                    )
+                )
             VStack(spacing: 6) {
-                Image(systemName: "headphones")
-                    .font(.system(size: min(width, height) * 0.24, weight: .light))
+                Image(systemName: "waveform")
+                    .font(.system(size: min(width, height) * 0.22, weight: .light))
                     .foregroundStyle(AmberTheme.labelTertiary)
                 Text(title)
                     .font(.system(size: 11, weight: .medium))
@@ -282,121 +292,42 @@ public struct HomeLibraryView: View {
         .frame(width: width, height: height)
     }
 
-    // MARK: - 2. 继续收听 (Apple "Continue Playing" row card style)
+    // MARK: - 2. 继续收听 (same transparent row language as 你可能错过了)
     @ViewBuilder
     private func continueListeningShelf() -> some View {
-        let cardWidth = screenWidth * 0.78
+        let rows = recentEpisodes
+        if !rows.isEmpty {
+            let pageWidth = screenWidth * 0.86
 
-        VStack(alignment: .leading, spacing: 16) {
-            // Section Header
-            HStack(alignment: .firstTextBaseline) {
-                sectionTitle("继续收听")
+            VStack(alignment: .leading, spacing: 16) {
+                HStack(alignment: .firstTextBaseline) {
+                    sectionTitle("继续收听")
 
-                Spacer()
+                    Spacer()
 
-                Text("最新 \(recentEpisodes.count)")
-                    .font(.system(size: 11, weight: .medium, design: .monospaced))
-                    .foregroundStyle(AmberTheme.labelTertiary)
-            }
-            .padding(.horizontal, AmberTheme.pageMargin)
-
-            // Horizontal Scroll Carousel with Magnetic Snapping
-            ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(spacing: AmberTheme.cardGap) {
-                    ForEach(recentEpisodes) { ep in
-                        if let feed = feeds.first(where: { $0.id == ep.feedId }) ?? heroFeed {
-                            episodeCard(episode: ep, feed: feed, width: cardWidth)
-                        }
-                    }
+                    Text("最新 \(rows.count)")
+                        .font(.system(size: 11, weight: .medium, design: .monospaced))
+                        .foregroundStyle(AmberTheme.labelTertiary)
                 }
                 .padding(.horizontal, AmberTheme.pageMargin)
-                .scrollTargetLayout()
-            }
-            .scrollTargetBehavior(.viewAligned)
-            .scrollClipDisabled()
-        }
-    }
 
-    private func episodeCard(episode: Episode, feed: PodcastFeed, width: CGFloat) -> some View {
-        // Apple "Continue Playing" pattern: horizontal row card — square artwork
-        // on the left, show name / episode title / play capsule on the right.
-        let isPlayingThis = player.currentEpisode?.id == episode.id
-        let remaining = episode.progress > 0
-            ? Double(episode.duration) * (1.0 - Double(episode.progress) / 100.0)
-            : Double(episode.duration)
-
-        return Button {
-            playEpisode(episode, feed: feed)
-        } label: {
-            HStack(spacing: 12) {
-                // Square artwork with progress bar overlay
-                ZStack(alignment: .bottom) {
-                    if let url = URL(string: feed.proxiedCoverUrl), !feed.proxiedCoverUrl.isEmpty {
-                        CachedAsyncImage(url: url) { img in
-                            img
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 76, height: 76)
-                                .clipped()
-                        } placeholder: {
-                            coverPlaceholder(width: 76, height: 76, title: feed.title)
+                // One row per page, horizontally paged — same row component
+                // and peek behaviour as the "You May Have Missed" group.
+                ScrollView(.horizontal, showsIndicators: false) {
+                    LazyHStack(spacing: 14) {
+                        ForEach(rows) { ep in
+                            missedRow(episode: ep)
+                                .frame(width: pageWidth)
                         }
-                    } else {
-                        coverPlaceholder(width: 76, height: 76, title: feed.title)
                     }
-
-                    // Progress bar at bottom
-                    if episode.progress > 0 {
-                        GeometryReader { pGeo in
-                            ZStack(alignment: .leading) {
-                                Rectangle().fill(Color.white.opacity(0.12))
-                                Rectangle()
-                                    .fill(AmberTheme.primaryAmber)
-                                    .frame(width: pGeo.size.width * CGFloat(Double(episode.progress) / 100.0))
-                            }
-                        }
-                        .frame(height: 3)
-                    }
+                    .padding(.horizontal, AmberTheme.pageMargin)
+                    .scrollTargetLayout()
                 }
-                .frame(width: 76, height: 76)
-                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-
-                // Info & control stack
-                VStack(alignment: .leading, spacing: 4) {
-                    // Show name
-                    Text(feed.title)
-                        .font(.system(size: 11, weight: .regular))
-                        .foregroundStyle(AmberTheme.labelTertiary)
-                        .lineLimit(1)
-
-                    // Episode title (fixed 2 lines, highlighted when playing)
-                    Text(episode.title)
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(isPlayingThis ? AmberTheme.primaryAmber : AmberTheme.labelPrimary)
-                        .lineLimit(2)
-                        .multilineTextAlignment(.leading)
-
-                    // Play capsule with remaining time
-                    HStack(spacing: 5) {
-                        Image(systemName: isPlayingThis ? "pause.fill" : "play.fill")
-                            .font(.system(size: 9.5, weight: .bold))
-                        Text(formatDuration(remaining))
-                            .font(.system(size: 11.5, weight: .semibold))
-                    }
-                    .foregroundStyle(AmberTheme.labelPrimary)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
-                    .background(Color.white.opacity(0.10), in: Capsule())
-                    .padding(.top, 2)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .scrollTargetBehavior(.viewAligned)
+                .scrollClipDisabled()
+                .frame(height: 100)
             }
-            .padding(12)
-            .background(AmberTheme.surfaceRaised, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .frame(width: width)
         }
-        .buttonStyle(TactileButtonStyle(scale: 0.97))
     }
 
     // MARK: - 3. 我的播客 (Apple square cover shelf)
@@ -564,7 +495,7 @@ public struct HomeLibraryView: View {
                 VStack(alignment: .leading, spacing: 3) {
                     sectionTitle("你可能错过了")
                     Text("来自你关注的节目")
-                        .font(.system(size: 12, weight: .regular))
+                        .font(.system(size: 13.5, weight: .regular))
                         .foregroundStyle(AmberTheme.labelTertiary)
                 }
                 .padding(.horizontal, AmberTheme.pageMargin)
@@ -700,7 +631,7 @@ public struct HomeLibraryView: View {
                 VStack(alignment: .leading, spacing: 3) {
                     sectionTitle("新节目推荐")
                     Text("根据你的收听偏好")
-                        .font(.system(size: 12, weight: .regular))
+                        .font(.system(size: 13.5, weight: .regular))
                         .foregroundStyle(AmberTheme.labelTertiary)
                 }
                 .padding(.horizontal, AmberTheme.pageMargin)
@@ -726,93 +657,92 @@ public struct HomeLibraryView: View {
     private func newShowCard(feed: PodcastFeed, cardWidth: CGFloat) -> some View {
         // Apple "New Shows for You": card background takes the show's own tint.
         // We approximate the adaptive tint by blurring the artwork itself; the
-        // cover sits centred above the copy so the lower half never reads empty.
-        let cardHeight = cardWidth * 1.15
+        // card height follows its content so no dead space is left between the
+        // copy and the bottom action bar.
         let synopsis = stripHTML(feed.description)
         let artworkSize = cardWidth * 0.58
 
-        return ZStack {
-            // Adaptive tint base
-            if let url = URL(string: feed.proxiedCoverUrl), !feed.proxiedCoverUrl.isEmpty {
-                CachedAsyncImage(url: url) { img in
-                    img
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: cardWidth, height: cardHeight)
-                        .clipped()
-                        .blur(radius: 44)
-                        .overlay(Color.black.opacity(0.38))
-                } placeholder: {
-                    AmberTheme.surfaceRaised
-                }
-            } else {
-                AmberTheme.surfaceRaised
-            }
-
-            VStack(spacing: 12) {
-                // Centred square artwork
-                Group {
-                    if let url = URL(string: feed.proxiedCoverUrl), !feed.proxiedCoverUrl.isEmpty {
-                        CachedAsyncImage(url: url) { img in
-                            img
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: artworkSize, height: artworkSize)
-                                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                                .shadow(color: .black.opacity(0.35), radius: 14, y: 6)
-                        } placeholder: {
-                            coverPlaceholder(width: artworkSize, height: artworkSize, title: feed.title)
-                                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                        }
-                    } else {
+        return VStack(spacing: 12) {
+            // Centred square artwork
+            Group {
+                if let url = URL(string: feed.proxiedCoverUrl), !feed.proxiedCoverUrl.isEmpty {
+                    CachedAsyncImage(url: url) { img in
+                        img
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: artworkSize, height: artworkSize)
+                            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                            .shadow(color: .black.opacity(0.35), radius: 14, y: 6)
+                    } placeholder: {
                         coverPlaceholder(width: artworkSize, height: artworkSize, title: feed.title)
                             .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                     }
-                }
-                .frame(maxWidth: .infinity)
-
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(feed.title)
-                        .font(.system(size: 16, weight: .bold))
-                        .lineLimit(2)
-                        .multilineTextAlignment(.leading)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-
-                    if !synopsis.isEmpty {
-                        Text(synopsis)
-                            .font(.system(size: 12, weight: .regular))
-                            .opacity(0.85)
-                            .lineLimit(3)
-                            .multilineTextAlignment(.leading)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                }
-
-                Spacer(minLength: 0)
-
-                // Bottom bar: genre line + view affordance — fills the card base
-                HStack {
-                    Text(podcastSubtitle(feed))
-                        .font(.system(size: 11.5, weight: .regular))
-                        .opacity(0.75)
-                        .lineLimit(1)
-                    Spacer()
-                    HStack(spacing: 5) {
-                        Image(systemName: "play.fill")
-                            .font(.system(size: 10, weight: .bold))
-                        Text("查看节目")
-                            .font(.system(size: 12, weight: .semibold))
-                    }
-                    .foregroundStyle(Color.white)
-                    .padding(.horizontal, 13)
-                    .padding(.vertical, 7)
-                    .background(Color.white.opacity(0.18), in: Capsule())
+                } else {
+                    coverPlaceholder(width: artworkSize, height: artworkSize, title: feed.title)
+                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                 }
             }
-            .padding(16)
-            .foregroundStyle(Color.white)
+            .frame(maxWidth: .infinity)
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text(feed.title)
+                    .font(.system(size: 16, weight: .bold))
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                if !synopsis.isEmpty {
+                    Text(synopsis)
+                        .font(.system(size: 12, weight: .regular))
+                        .opacity(0.85)
+                        .lineLimit(3)
+                        .multilineTextAlignment(.leading)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
+
+            // Bottom bar: genre line + view affordance — fills the card base
+            HStack {
+                Text(podcastSubtitle(feed))
+                    .font(.system(size: 11.5, weight: .regular))
+                    .opacity(0.75)
+                    .lineLimit(1)
+                Spacer()
+                HStack(spacing: 5) {
+                    Image(systemName: "play.fill")
+                        .font(.system(size: 10, weight: .bold))
+                    Text("查看节目")
+                        .font(.system(size: 12, weight: .semibold))
+                }
+                .foregroundStyle(Color.white)
+                .padding(.horizontal, 13)
+                .padding(.vertical, 7)
+                .background(Color.white.opacity(0.18), in: Capsule())
+            }
         }
-        .frame(width: cardWidth, height: cardHeight)
+        .padding(16)
+        .foregroundStyle(Color.white)
+        .frame(width: cardWidth, alignment: .leading)
+        .background(
+            Group {
+                if let url = URL(string: feed.proxiedCoverUrl), !feed.proxiedCoverUrl.isEmpty {
+                    CachedAsyncImage(url: url) { img in
+                        img
+                            .resizable()
+                            .scaledToFill()
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .clipped()
+                            .blur(radius: 44)
+                            .clipped()
+                            .overlay(Color.black.opacity(0.38))
+                    } placeholder: {
+                        AmberTheme.surfaceRaised
+                    }
+                } else {
+                    AmberTheme.surfaceRaised
+                }
+            }
+        )
         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
         .contentShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
     }
@@ -829,7 +759,7 @@ public struct HomeLibraryView: View {
                 VStack(alignment: .leading, spacing: 3) {
                     sectionTitle("试试这些频道")
                     Text("编辑精选")
-                        .font(.system(size: 12, weight: .regular))
+                        .font(.system(size: 13.5, weight: .regular))
                         .foregroundStyle(AmberTheme.labelTertiary)
                 }
                 .padding(.horizontal, AmberTheme.pageMargin)

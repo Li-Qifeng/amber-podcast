@@ -246,11 +246,8 @@ public struct EpisodeRowView: View {
     }
 
     private func formatDate(_ dateStr: String) -> String {
-        guard !dateStr.isEmpty else { return "" }
-        if dateStr.count >= 10 {
-            return String(dateStr.prefix(10))
-        }
-        return dateStr
+        // Detail rows show the full localized stamp (2026年11月12日).
+        AmberDate.full(dateStr)
     }
 
     private func formatDuration(_ seconds: Double) -> String {
