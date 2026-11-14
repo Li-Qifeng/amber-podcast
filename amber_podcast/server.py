@@ -1355,9 +1355,19 @@ async def ci_deploy_webhook(bg_tasks: BackgroundTasks, payload: Optional[Dict[st
             os.makedirs(os.path.dirname(dist_ipa), exist_ok=True)
             shutil.copy2(src_ipa, dist_ipa)
 
-            # 2. Sign with zsign (force bundle version 35 to prevent iOS downgrade abort on rollback)
+            # 2. Sign with zsign
             cert_pass = Path("/root/ios-re/airstore-pro/data/certs/default/pass.txt").read_text().strip()
             out_ipa = "/root/ios-re/airstore-pro/data/studio/amber-podcast/amber-podcast_signed.ipa"
+            build_num = "36"
+            try:
+                import re
+                txt = Path("/root/projects/amber-podcast/ios/project.yml").read_text()
+                m = re.search(r'CURRENT_PROJECT_VERSION:\s*"([^"]+)"', txt)
+                if m:
+                    build_num = m.group(1)
+            except Exception:
+                pass
+
             cmd = [
                 "zsign",
                 "-k", "/root/ios-re/airstore-pro/data/certs/default/cert.p12",
@@ -1365,7 +1375,7 @@ async def ci_deploy_webhook(bg_tasks: BackgroundTasks, payload: Optional[Dict[st
                 "-m", "/root/ios-re/airstore-pro/data/certs/default/dev.mobileprovision",
                 "-b", "com.ioslgm.46542",
                 "-n", "Amber 播客",
-                "-r", "35",
+                "-r", build_num,
                 "-P", "-z", "1",
                 "-o", out_ipa,
                 dist_ipa
