@@ -389,69 +389,78 @@ public struct AppleExpandingPlayCapsule: View {
         self.action = action
     }
 
+    /// Opaque, high-contrast capsule fill: solid white on the dark canvas,
+    /// near-black on the light one. Never blends into the card surface,
+    /// and never carries a border (the old ring was removed by design).
+    private var capsuleFill: Color {
+        Color(uiColor: UIColor { traits in
+            traits.userInterfaceStyle == .dark
+                ? UIColor.white
+                : UIColor(red: 0.09, green: 0.09, blue: 0.11, alpha: 1.0)
+        })
+    }
+    private var glyphFill: Color {
+        Color(uiColor: UIColor { traits in
+            traits.userInterfaceStyle == .dark
+                ? UIColor(red: 0.09, green: 0.09, blue: 0.11, alpha: 1.0)
+                : UIColor.white
+        })
+    }
+
     public var body: some View {
         Button(action: action) {
-            VStack(alignment: .leading, spacing: 3) {
-                HStack(spacing: 5) {
+            VStack(alignment: .leading, spacing: 0) {
+                // Idle / paused: solid play triangle + duration. No labels.
+                // Playing: the glyph becomes a moving center-baseline
+                // equalizer (Apple Podcasts style, bars oscillate around a
+                // middle baseline, not a bottom one) and the capsule
+                // expands to reveal the slim progress bar.
+                HStack(spacing: 6) {
                     if isPlaying {
-                        EqualizerWaveformView(isPlaying: true, color: tintColor, barCount: 4)
-                        Text("正在播放")
-                            .font(.system(size: 11.5, weight: .bold, design: .rounded))
-                            .foregroundStyle(tintColor)
-                    } else if isCurrent {
-                        Image(systemName: "pause.fill")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundStyle(tintColor)
-                        Text("继续收听")
-                            .font(.system(size: 11.5, weight: .semibold, design: .rounded))
-                            .foregroundStyle(tintColor)
+                        EqualizerWaveformView(isPlaying: true, color: glyphFill, barCount: 4)
+                            .frame(width: 36)
                     } else {
                         Image(systemName: "play.fill")
                             .font(.system(size: 10, weight: .bold))
-                            .foregroundStyle(AmberTheme.labelPrimary)
+                            .foregroundStyle(glyphFill)
                         Text(durationText)
                             .font(.system(size: 11.5, weight: .semibold, design: .rounded))
-                            .foregroundStyle(AmberTheme.labelPrimary)
+                            .foregroundStyle(glyphFill)
                     }
                 }
+                .frame(minWidth: 75, alignment: .leading)
                 .padding(.horizontal, 11)
-                .padding(.vertical, 6)
-                .background(
-                    isPlaying
-                        ? tintColor.opacity(0.18)
-                        : (isCurrent ? tintColor.opacity(0.12) : Color.white.opacity(0.14)),
-                    in: Capsule()
-                )
-                .overlay(
-                    Capsule()
-                        .strokeBorder(isPlaying || isCurrent ? tintColor.opacity(0.35) : Color.clear, lineWidth: 1)
-                )
+                .padding(.vertical, 7)
 
-                // Downward extending visualizer mini progress bar
+                // Expanded mini progress bar (Apple effect). Shown for the
+                // current episode — animated under the equalizer while
+                // playing, static under the play glyph while paused.
                 if isCurrent || progress > 0 {
                     ZStack(alignment: .leading) {
                         Capsule()
-                            .fill(Color.white.opacity(0.15))
+                            .fill(glyphFill.opacity(0.18))
                             .frame(height: 2.5)
-
                         Capsule()
                             .fill(tintColor)
                             .frame(width: max(4, 75 * CGFloat(min(1.0, max(0.0, progress)))), height: 2.5)
                     }
                     .frame(width: 75, height: 2.5)
-                    .padding(.horizontal, 4)
-                    .padding(.top, 1)
+                    .padding(.horizontal, 11)
+                    .padding(.top, 3)
+                    .padding(.bottom, 4)
                     .transition(.opacity.combined(with: .scale(scale: 0.95)))
                 }
             }
+            .background(capsuleFill, in: Capsule())
         }
         .buttonStyle(ApplePlayButtonStyle(scale: 0.88))
         .animation(.spring(response: 0.35, dampingFraction: 0.72), value: isPlaying)
         .animation(.spring(response: 0.35, dampingFraction: 0.72), value: isCurrent)
+        .animation(.spring(response: 0.35, dampingFraction: 0.72), value: progress > 0)
     }
 }
 
-// MARK: - Apple Podcasts Style Equalizer Waveform View (Animated Sound Bars)
+// MARK: - Apple Podcasts Style Equalizer Waveform View (Center-Baseline)
 public struct EqualizerWaveformView: View {
     public var isPlaying: Bool
     public var color: Color
@@ -463,44 +472,28 @@ public struct EqualizerWaveformView: View {
         self.barCount = barCount
     }
 
-    @State private var phase: CGFloat = 0.0
+    private let idleHeight: CGFloat = 4
+    private let activeHeights: [CGFloat] = [10, 5, 12, 7]
 
     public var body: some View {
-        HStack(alignment: .bottom, spacing: 2) {
+        HStack(alignment: .center, spacing: 2.5) {
             ForEach(0..<barCount, id: \.self) { index in
-                bar(index: index)
+                Capsule(style: .continuous)
+                    .fill(color)
+                    .frame(
+                        width: 2.4,
+                        height: isPlaying ? activeHeights[index % activeHeights.count] : idleHeight
+                    )
+                    .animation(
+                        .easeInOut(duration: 0.5 + Double(index % 3) * 0.18)
+                            .repeatForever(autoreverses: true)
+                            .delay(Double(index) * 0.13),
+                        value: isPlaying
+                    )
             }
         }
         .frame(height: 12)
-        .onAppear {
-            if isPlaying {
-                withAnimation(.easeInOut(duration: 0.55).repeatForever(autoreverses: true)) {
-                    phase = 1.0
-                }
-            }
-        }
-        .onChange(of: isPlaying) { playing in
-            if playing {
-                withAnimation(.easeInOut(duration: 0.55).repeatForever(autoreverses: true)) {
-                    phase = 1.0
-                }
-            } else {
-                withAnimation(.easeOut(duration: 0.2)) {
-                    phase = 0.0
-                }
-            }
-        }
-    }
-
-    private func bar(index: Int) -> some View {
-        let heights: [CGFloat] = [4, 10, 6, 8]
-        let baseHeight = heights[index % heights.count]
-        let dynamicHeight = isPlaying ? (baseHeight + (phase > 0.5 ? 4 : -2)) : 3.0
-
-        return RoundedRectangle(cornerRadius: 1, style: .continuous)
-            .fill(color)
-            .frame(width: 2.2, height: max(2.5, min(12, dynamicHeight)))
-            .animation(.easeInOut(duration: 0.25).repeatForever(autoreverses: true).delay(Double(index) * 0.12), value: phase)
+        .accessibilityLabel("Equalizer")
     }
 }
 
