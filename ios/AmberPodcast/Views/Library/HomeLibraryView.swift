@@ -1152,12 +1152,18 @@ public struct HomeLibraryView: View {
     }
 
     private func formatDuration(_ seconds: Double) -> String {
-        guard seconds > 0 else { return "00:00" }
+        guard seconds > 0 else { return "0分钟" }
         let total = Int(seconds)
         let hours = total / 3600
         let minutes = (total % 3600) / 60
-        if hours > 0 { return "\(hours)h \(minutes)m" }
-        return "\(minutes) min"
+        let secs = total % 60
+        if hours > 0 {
+            return "\(hours)小时\(minutes)分"
+        } else if minutes > 0 {
+            return "\(minutes)分钟"
+        } else {
+            return "\(secs)秒"
+        }
     }
 
     /// Apple "Title ›" section header language.
