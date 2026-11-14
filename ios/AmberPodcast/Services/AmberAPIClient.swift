@@ -145,36 +145,6 @@ public final class AmberAPIClient: ObservableObject {
         return try JSONDecoder().decode(DiscoverFeedResponse.self, from: data)
     }
 
-    // MARK: - Feed Episodes (preview)
-    public struct FeedEpisodesResponse: Codable {
-        public let feedId: String
-        public let episodes: [Episode]
-        public let isPreview: Bool
-
-        enum CodingKeys: String, CodingKey {
-            case episodes
-            case feedId = "feed_id"
-            case isPreview = "is_preview"
-        }
-    }
-
-    /// List (or auto-preview) the episodes of a feed. Discover feeds are
-    /// parsed on demand and cached server-side, so this is cheap to call for
-    /// the "new episode recommendations" shelf.
-    public func fetchFeedEpisodes(feedId: String, feedUrl: String? = nil, limit: Int = 5) async throws -> [Episode] {
-        var path = "/api/v1/feeds/\(feedId)/episodes?limit=\(limit)"
-        if let feedUrl = feedUrl, let encoded = feedUrl.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) {
-            path += "&feed_url=\(encoded)"
-        }
-        let req = try makeRequest(endpoint: path)
-        let (data, resp) = try await session.data(for: req)
-        guard (resp as? HTTPURLResponse)?.statusCode == 200 else {
-            throw URLError(.badServerResponse)
-        }
-        let decoded = try JSONDecoder().decode(FeedEpisodesResponse.self, from: data)
-        return decoded.episodes
-    }
-
     // MARK: - Library
     public struct LibraryResponse: Codable {
         public let feeds: [PodcastFeed]

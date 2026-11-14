@@ -15,7 +15,6 @@ public struct HomeLibraryView: View {
     @State private var errorMessage: String? = nil
     @State private var discoverFeed: AmberAPIClient.DiscoverFeedResponse? = nil
     @State private var isLoadingDiscover: Bool = false
-    @State private var latestEpisodes: [String: Episode] = [:]
 
     @AppStorage("amber_cached_library_json_v2") private var cachedLibraryJson: String = ""
 
@@ -171,15 +170,14 @@ public struct HomeLibraryView: View {
 
     // MARK: - Unified Apple-Pattern Hero Card (Shared by 最新单集 / 新节目推荐 / 试试这些频道)
     /// A single self-contained dark container card. Passes `episode` for a dynamic
-    /// Apple expanding play capsule (single-episode card) or `nil` for a "查看节目"
-    /// affordance (channel card). The artwork zone is a blurred cover texture with
-    /// the sharp square cover contained on top — never a stretched crop.
+    /// Apple expanding play capsule with sound wave and progress bar, or `nil` for a "查看节目" affordance.
     private func unifiedHeroCard(
         feed: PodcastFeed,
         episode: Episode? = nil,
+        badgeText: String? = nil,
         cardWidth: CGFloat
     ) -> some View {
-        let artworkHeight = cardWidth * 0.52
+        let artworkHeight = cardWidth * 0.68
         let isCurrent = episode.map { player.currentEpisode?.id == $0.id } ?? false
         let isPlayingThis = isCurrent && player.isPlaying
         let liveProgress = isCurrent && player.duration > 0
@@ -187,9 +185,10 @@ public struct HomeLibraryView: View {
             : (episode.map { Double($0.progress) / 100.0 } ?? 0.0)
         let titleText = episode?.title ?? feed.title
         let synopsis = episode.map { stripHTML($0.shownotes) } ?? stripHTML(feed.description)
+        let badge = badgeText ?? (episode != nil ? "最新单集" : (feed.id.isEmpty ? "" : "节目"))
 
         return VStack(alignment: .leading, spacing: 0) {
-            // Artwork zone: blurred cover texture (no hard crop) + contained square cover
+            // Wide artwork flush to the container's top edge
             NavigationLink(destination: FeedDetailView(feed: feed)) {
                 ZStack(alignment: .bottom) {
                     if let url = URL(string: feed.proxiedCoverUrl), !feed.proxiedCoverUrl.isEmpty {
@@ -199,39 +198,24 @@ public struct HomeLibraryView: View {
                                 .scaledToFill()
                                 .frame(width: cardWidth, height: artworkHeight)
                                 .clipped()
-                                .blur(radius: 28)
-                                .opacity(0.5)
                         } placeholder: {
-                            Rectangle()
-                                .fill(AmberTheme.surfaceRaised)
-                                .frame(width: cardWidth, height: artworkHeight)
-                        }
-
-                        CachedAsyncImage(url: url) { img in
-                            img
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 96, height: 96)
-                                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                                .shadow(color: .black.opacity(0.35), radius: 10, y: 4)
-                        } placeholder: {
-                            coverPlaceholder(width: 96, height: 96, title: feed.title)
-                        }
-
-                        // Live progress bar along the artwork's bottom edge
-                        if liveProgress > 0 {
-                            GeometryReader { pGeo in
-                                ZStack(alignment: .leading) {
-                                    Rectangle().fill(Color.white.opacity(0.12))
-                                    Rectangle()
-                                        .fill(AmberTheme.primaryAmber)
-                                        .frame(width: pGeo.size.width * CGFloat(liveProgress))
-                                }
-                            }
-                            .frame(height: 3)
+                            coverPlaceholder(width: cardWidth, height: artworkHeight, title: feed.title)
                         }
                     } else {
                         coverPlaceholder(width: cardWidth, height: artworkHeight, title: feed.title)
+                    }
+
+                    // Live progress bar along the artwork's bottom edge
+                    if liveProgress > 0 {
+                        GeometryReader { pGeo in
+                            ZStack(alignment: .leading) {
+                                Rectangle().fill(Color.white.opacity(0.12))
+                                Rectangle()
+                                    .fill(AmberTheme.primaryAmber)
+                                    .frame(width: pGeo.size.width * CGFloat(liveProgress))
+                            }
+                        }
+                        .frame(height: 3)
                     }
                 }
                 .frame(width: cardWidth, height: artworkHeight)
@@ -240,12 +224,22 @@ public struct HomeLibraryView: View {
             .buttonStyle(.plain)
 
             VStack(alignment: .leading, spacing: 6) {
+                // Section badge
+                if !badge.isEmpty {
+                    Text(badge)
+                        .font(.system(size: 11, weight: .semibold, design: .rounded))
+                        .foregroundStyle(AmberTheme.primaryAmber)
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 2.5)
+                        .background(AmberTheme.primaryAmber.opacity(0.12), in: Capsule())
+                }
+
                 NavigationLink(destination: FeedDetailView(feed: feed)) {
                     VStack(alignment: .leading, spacing: 4) {
-                        // Card title — always the neutral primary color
+                        // Card title
                         Text(titleText)
                             .font(.system(size: 16, weight: .bold, design: .rounded))
-                            .foregroundStyle(AmberTheme.labelPrimary)
+                            .foregroundStyle(isCurrent ? AmberTheme.primaryAmber : AmberTheme.labelPrimary)
                             .lineLimit(2)
                             .multilineTextAlignment(.leading)
 
@@ -285,7 +279,7 @@ public struct HomeLibraryView: View {
                             .foregroundStyle(AmberTheme.labelPrimary)
                             .padding(.horizontal, 13)
                             .padding(.vertical, 7)
-                            .background(Color.white.opacity(0.22), in: Capsule())
+                            .background(Color.white.opacity(0.10), in: Capsule())
                         }
                         .buttonStyle(AmberNavCapsuleButtonStyle())
                     }
@@ -305,7 +299,7 @@ public struct HomeLibraryView: View {
     }
 
     private func latestEpisodeCard(episode: Episode, feed: PodcastFeed, cardWidth: CGFloat) -> some View {
-        unifiedHeroCard(feed: feed, episode: episode, cardWidth: cardWidth)
+        unifiedHeroCard(feed: feed, episode: episode, badgeText: "最新单集", cardWidth: cardWidth)
     }
 
     private func coverPlaceholder(width: CGFloat, height: CGFloat, title: String) -> some View {
@@ -341,8 +335,16 @@ public struct HomeLibraryView: View {
             let pageWidth = screenWidth * 0.86
 
             VStack(alignment: .leading, spacing: 16) {
-                sectionTitle("继续收听")
-                    .padding(.horizontal, AmberTheme.pageMargin)
+                HStack(alignment: .firstTextBaseline) {
+                    sectionTitle("继续收听")
+
+                    Spacer()
+
+                    Text("最新 \(rows.count)")
+                        .font(.system(size: 11, weight: .medium, design: .monospaced))
+                        .foregroundStyle(AmberTheme.labelTertiary)
+                }
+                .padding(.horizontal, AmberTheme.pageMargin)
 
                 // One row per page, horizontally paged — same row component
                 // and peek behaviour as the "You May Have Missed" group.
@@ -530,8 +532,13 @@ public struct HomeLibraryView: View {
             let pageWidth = screenWidth * 0.86
 
             VStack(alignment: .leading, spacing: 16) {
-                sectionTitle("你可能错过了")
-                    .padding(.horizontal, AmberTheme.pageMargin)
+                VStack(alignment: .leading, spacing: 3) {
+                    sectionTitle("你可能错过了")
+                    Text("来自你关注的节目")
+                        .font(.system(size: 13.5, weight: .regular))
+                        .foregroundStyle(AmberTheme.labelTertiary)
+                }
+                .padding(.horizontal, AmberTheme.pageMargin)
 
                 ScrollView(.horizontal, showsIndicators: false) {
                     LazyHStack(spacing: 14) {
@@ -601,7 +608,7 @@ public struct HomeLibraryView: View {
                 // Episode title (fixed 2 lines)
                 Text(episode.title)
                     .font(.system(size: 15, weight: .bold))
-                    .foregroundStyle(AmberTheme.labelPrimary)
+                    .foregroundStyle(isCurrent ? AmberTheme.primaryAmber : AmberTheme.labelPrimary)
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
             }
@@ -669,7 +676,7 @@ public struct HomeLibraryView: View {
         .frame(height: 100)
     }
 
-    // MARK: - 5. 新节目推荐 (single-episode cards: newest episode per show)
+    // MARK: - 5. 新节目推荐 (Apple Large Control - Unified Hero Card)
     @ViewBuilder
     private func newShowsForYouShelf() -> some View {
         let shows = newShowsForYou
@@ -677,14 +684,18 @@ public struct HomeLibraryView: View {
             let cardWidth = screenWidth * 0.76
 
             VStack(alignment: .leading, spacing: 16) {
-                sectionTitle("新节目推荐")
-                    .padding(.horizontal, AmberTheme.pageMargin)
+                VStack(alignment: .leading, spacing: 3) {
+                    sectionTitle("新节目推荐")
+                    Text("根据你的收听偏好")
+                        .font(.system(size: 13.5, weight: .regular))
+                        .foregroundStyle(AmberTheme.labelTertiary)
+                }
+                .padding(.horizontal, AmberTheme.pageMargin)
 
                 ScrollView(.horizontal, showsIndicators: false) {
                     LazyHStack(spacing: AmberTheme.cardGap) {
                         ForEach(shows) { feed in
-                            let ep = latestEpisodes[feed.id]
-                            unifiedHeroCard(feed: feed, episode: ep, cardWidth: cardWidth)
+                            unifiedHeroCard(feed: feed, episode: nil, badgeText: "新节目推荐", cardWidth: cardWidth)
                         }
                     }
                     .padding(.horizontal, AmberTheme.pageMargin)
@@ -704,13 +715,18 @@ public struct HomeLibraryView: View {
             let cardWidth = screenWidth * 0.76
 
             VStack(alignment: .leading, spacing: 16) {
-                sectionTitle("试试这些频道")
-                    .padding(.horizontal, AmberTheme.pageMargin)
+                VStack(alignment: .leading, spacing: 3) {
+                    sectionTitle("试试这些频道")
+                    Text("编辑精选")
+                        .font(.system(size: 13.5, weight: .regular))
+                        .foregroundStyle(AmberTheme.labelTertiary)
+                }
+                .padding(.horizontal, AmberTheme.pageMargin)
 
                 ScrollView(.horizontal, showsIndicators: false) {
                     LazyHStack(spacing: AmberTheme.cardGap) {
                         ForEach(channels) { feed in
-                            unifiedHeroCard(feed: feed, episode: nil, cardWidth: cardWidth)
+                            unifiedHeroCard(feed: feed, episode: nil, badgeText: "推荐频道", cardWidth: cardWidth)
                         }
                     }
                     .padding(.horizontal, AmberTheme.pageMargin)
@@ -728,8 +744,13 @@ public struct HomeLibraryView: View {
         let items = moreToDiscover
         if items.count >= 3 {
             VStack(alignment: .leading, spacing: 16) {
-                sectionTitle("探索更多")
-                    .padding(.horizontal, AmberTheme.pageMargin)
+                VStack(alignment: .leading, spacing: 3) {
+                    sectionTitle("探索更多")
+                    Text("根据你的收听偏好")
+                        .font(.system(size: 12, weight: .regular))
+                        .foregroundStyle(AmberTheme.labelTertiary)
+                }
+                .padding(.horizontal, AmberTheme.pageMargin)
 
                 ScrollView(.horizontal, showsIndicators: false) {
                     LazyHGrid(rows: [
@@ -1073,20 +1094,6 @@ public struct HomeLibraryView: View {
         // Kick off discover fetch for both subscribed and empty states (shared)
         await loadDiscover()
 
-        // 新节目推荐 (episode-level shelf): lazily fetch each recommended
-        // show's newest episode. Server-side cached (30 min), so refreshes
-        // are cheap. Failures are non-fatal: the shelf falls back to the
-        // channel-level card (episode == nil).
-        Task { @MainActor in
-            for feed in self.newShowsForYou {
-                if self.latestEpisodes[feed.id] != nil { continue }
-                if let eps = try? await AmberAPIClient.shared.fetchFeedEpisodes(feedId: feed.id, feedUrl: feed.feedUrl, limit: 3),
-                   let newest = Self.newestEpisode(of: eps) {
-                    self.latestEpisodes[feed.id] = newest
-                }
-            }
-        }
-
         do {
             let lib = try await AmberAPIClient.shared.fetchLibrary()
             await MainActor.run {
@@ -1179,9 +1186,8 @@ public struct HomeLibraryView: View {
         let total = Int(seconds)
         let hours = total / 3600
         let minutes = (total % 3600) / 60
-        if hours > 0 { return "\(hours)小时\(minutes)分" }
-        if minutes > 0 { return "\(minutes)分钟" }
-        return "\(total)秒"
+        if hours > 0 { return "\(hours)h \(minutes)m" }
+        return "\(minutes) min"
     }
 
     /// Apple "Title ›" section header language.
@@ -1201,44 +1207,26 @@ public struct HomeLibraryView: View {
             .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    /// "Sun, 12 Oct 2026 08:00:00 +0000" / ISO-8601 / "yyyy-MM-dd" → 本地化中文日期。
-    private static func localizedDate(_ s: String) -> String {
-        guard let d = parsePubDate(s) else { return s }
-        let out = DateFormatter()
-        out.locale = Locale(identifier: "zh_CN")
-        let year = Calendar.current.component(.year, from: d)
-        out.dateFormat = (year == Calendar.current.component(.year, from: .now)) ? "M月d日" : "yyyy年M月d日"
-        return out.string(from: d)
-    }
+    /// "2026-11-12" → "11月12日" (locale-following via date template).
+    private static let isoDayFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd"
+        f.locale = Locale(identifier: "en_US_POSIX")
+        return f
+    }()
 
-    /// RSS pubDate (RFC 822) / ISO-8601 / "yyyy-MM-dd" → Date.
-    private static func parsePubDate(_ raw: String) -> Date? {
-        let text = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !text.isEmpty else { return nil }
-        if let d = ISO8601DateFormatter().date(from: text) { return d }
-        let rfc = DateFormatter()
-        rfc.locale = Locale(identifier: "en_US_POSIX")
-        rfc.dateFormat = "EEE, dd MMM yyyy HH:mm:ss ZZZZ"
-        if let d = rfc.date(from: text) { return d }
-        let iso = DateFormatter()
-        iso.locale = Locale(identifier: "en_US_POSIX")
-        iso.dateFormat = "yyyy-MM-dd"
-        return iso.date(from: text)
+    private static func localizedDate(_ s: String) -> String {
+        guard let d = isoDayFormatter.date(from: s) else { return s }
+        let out = DateFormatter()
+        out.setLocalizedDateFormatFromTemplate("MMMd")
+        out.locale = Locale(identifier: "zh_CN")
+        return out.string(from: d)
     }
 
     /// Apple card second line: genre when known, else the author, else nothing.
     private func podcastSubtitle(_ feed: PodcastFeed) -> String {
         if let g = feed.genre, !g.isEmpty { return g }
         return feed.author
-    }
-
-    /// Newest of a small episode list by pubDate (RSS documents are usually
-    /// newest-first, but don't rely on document order).
-    private static func newestEpisode(of episodes: [Episode]) -> Episode? {
-        guard !episodes.isEmpty else { return nil }
-        return episodes.max { lhs, rhs in
-            (parsePubDate(lhs.pubDate) ?? .distantPast) < (parsePubDate(rhs.pubDate) ?? .distantPast)
-        }
     }
 }
 
