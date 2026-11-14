@@ -759,7 +759,8 @@ public struct HomeLibraryView: View {
     private func newShowsForYouShelf() -> some View {
         let shows = newShowsForYou
         if !shows.isEmpty {
-            let cardWidth = screenWidth * 0.76
+            let cardWidth = screenWidth * 0.70
+            let cardHeight = cardWidth * 1.08
 
             VStack(alignment: .leading, spacing: 16) {
                 sectionTitle("新节目推荐")
@@ -768,7 +769,7 @@ public struct HomeLibraryView: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     LazyHStack(spacing: AmberTheme.cardGap) {
                         ForEach(shows) { feed in
-                            unifiedHeroCard(feed: feed, episode: nil, badgeText: "新节目推荐", cardWidth: cardWidth)
+                            newShowsForYouCard(feed: feed, cardWidth: cardWidth, cardHeight: cardHeight)
                         }
                     }
                     .padding(.horizontal, AmberTheme.pageMargin)
@@ -780,12 +781,110 @@ public struct HomeLibraryView: View {
         }
     }
 
+    private func newShowsForYouCard(feed: PodcastFeed, cardWidth: CGFloat, cardHeight: CGFloat) -> some View {
+        let synopsis = stripHTML(feed.description)
+        let isSubscribed = feeds.contains(where: { $0.id == feed.id || $0.title.lowercased() == feed.title.lowercased() })
+        let tag = feed.genre ?? feed.editorialTag ?? "精选推荐"
+
+        return NavigationLink(destination: FeedDetailView(feed: feed)) {
+            ZStack(alignment: .bottom) {
+                // 1. Full-bleed Artwork
+                Group {
+                    if let url = URL(string: feed.proxiedCoverUrl), !feed.proxiedCoverUrl.isEmpty {
+                        CachedAsyncImage(url: url) { img in
+                            img
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: cardWidth, height: cardHeight)
+                                .clipped()
+                        } placeholder: {
+                            coverPlaceholder(width: cardWidth, height: cardHeight, title: feed.title)
+                        }
+                    } else {
+                        coverPlaceholder(width: cardWidth, height: cardHeight, title: feed.title)
+                    }
+                }
+                .frame(width: cardWidth, height: cardHeight)
+
+                // 2. Glass blur gradient mask overlay on the bottom half
+                VStack(alignment: .leading, spacing: 6) {
+                    // Tag & category板块
+                    Text(tag)
+                        .font(.system(size: 11, weight: .semibold, design: .rounded))
+                        .foregroundStyle(Color.white.opacity(0.75))
+
+                    // Description / synopsis (2 lines)
+                    if !synopsis.isEmpty {
+                        Text(synopsis)
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(AmberTheme.labelPrimary)
+                            .lineLimit(2)
+                            .multilineTextAlignment(.leading)
+                    }
+
+                    Spacer(minLength: 4)
+
+                    // Bottom bar: rating/author on left, "+" subscribe button on right
+                    HStack(alignment: .center) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "star.fill")
+                                .font(.system(size: 10))
+                                .foregroundStyle(Color.white.opacity(0.8))
+                            Text("精选 · \(feed.author.isEmpty ? feed.title : feed.author)")
+                                .font(.system(size: 11, weight: .regular))
+                                .foregroundStyle(AmberTheme.labelSecondary)
+                                .lineLimit(1)
+                        }
+
+                        Spacer()
+
+                        // "+" button for subscribe
+                        Button {
+                            toggleSubscribe(feed: feed)
+                        } label: {
+                            Image(systemName: isSubscribed ? "checkmark" : "plus")
+                                .font(.system(size: 12, weight: .bold))
+                                .foregroundStyle(AmberTheme.labelPrimary)
+                                .frame(width: 28, height: 28)
+                                .background(Color.white.opacity(0.20), in: Circle())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal, 14)
+                .padding(.top, 14)
+                .padding(.bottom, 12)
+                .frame(width: cardWidth, height: cardHeight * 0.52, alignment: .leading)
+                .background(
+                    Rectangle()
+                        .fill(.ultraThinMaterial)
+                        .mask(
+                            LinearGradient(
+                                stops: [
+                                    .init(color: .clear, location: 0.0),
+                                    .init(color: .black.opacity(0.85), location: 0.18),
+                                    .init(color: .black, location: 1.0)
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                )
+            }
+            .frame(width: cardWidth, height: cardHeight)
+            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        }
+        .buttonStyle(.plain)
+    }
+
     // MARK: - 6. 试试这些频道 (Apple Large Control - Unified Hero Card)
     @ViewBuilder
     private func channelsToTryShelf() -> some View {
         let channels = channelsToTry
         if !channels.isEmpty {
-            let cardWidth = screenWidth * 0.76
+            let cardWidth = screenWidth * 0.70
+            let cardHeight = cardWidth * 1.08
 
             VStack(alignment: .leading, spacing: 16) {
                 sectionTitle("试试这些频道")
@@ -794,7 +893,7 @@ public struct HomeLibraryView: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     LazyHStack(spacing: AmberTheme.cardGap) {
                         ForEach(channels) { feed in
-                            unifiedHeroCard(feed: feed, episode: nil, badgeText: "推荐频道", cardWidth: cardWidth)
+                            channelToTryCard(feed: feed, cardWidth: cardWidth, cardHeight: cardHeight)
                         }
                     }
                     .padding(.horizontal, AmberTheme.pageMargin)
@@ -804,6 +903,96 @@ public struct HomeLibraryView: View {
                 .scrollClipDisabled()
             }
         }
+    }
+
+    private func channelToTryCard(feed: PodcastFeed, cardWidth: CGFloat, cardHeight: CGFloat) -> some View {
+        let synopsis = stripHTML(feed.description)
+        let isSubscribed = feeds.contains(where: { $0.id == feed.id || $0.title.lowercased() == feed.title.lowercased() })
+        let slogan = !synopsis.isEmpty ? synopsis : (feed.genre.map { "\($0) 领域优质播客" } ?? "探索优质音频节目")
+
+        return NavigationLink(destination: FeedDetailView(feed: feed)) {
+            ZStack(alignment: .bottom) {
+                // 1. Full-bleed Channel Logo
+                Group {
+                    if let url = URL(string: feed.proxiedCoverUrl), !feed.proxiedCoverUrl.isEmpty {
+                        CachedAsyncImage(url: url) { img in
+                            img
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: cardWidth, height: cardHeight)
+                                .clipped()
+                        } placeholder: {
+                            coverPlaceholder(width: cardWidth, height: cardHeight, title: feed.title)
+                        }
+                    } else {
+                        coverPlaceholder(width: cardWidth, height: cardHeight, title: feed.title)
+                    }
+                }
+                .frame(width: cardWidth, height: cardHeight)
+
+                // 2. Glass blur gradient mask overlay on the bottom half
+                // 注意：logo自带频道名，底部不重复写频道名，专注展示频道宗旨与slogan
+                VStack(alignment: .leading, spacing: 6) {
+                    // Slogan / Purpose description
+                    Text(slogan)
+                        .font(.system(size: 13, weight: .semibold, design: .rounded))
+                        .foregroundStyle(AmberTheme.labelPrimary)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
+
+                    Spacer(minLength: 4)
+
+                    // Bottom row: genre tag on left, "+" button on right
+                    HStack(alignment: .center) {
+                        if let g = feed.genre, !g.isEmpty {
+                            Text(g)
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundStyle(Color.white.opacity(0.70))
+                        } else if !feed.author.isEmpty {
+                            Text(feed.author)
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundStyle(Color.white.opacity(0.70))
+                        }
+
+                        Spacer()
+
+                        Button {
+                            toggleSubscribe(feed: feed)
+                        } label: {
+                            Image(systemName: isSubscribed ? "checkmark" : "plus")
+                                .font(.system(size: 12, weight: .bold))
+                                .foregroundStyle(AmberTheme.labelPrimary)
+                                .frame(width: 28, height: 28)
+                                .background(Color.white.opacity(0.20), in: Circle())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal, 14)
+                .padding(.top, 14)
+                .padding(.bottom, 12)
+                .frame(width: cardWidth, height: cardHeight * 0.48, alignment: .leading)
+                .background(
+                    Rectangle()
+                        .fill(.ultraThinMaterial)
+                        .mask(
+                            LinearGradient(
+                                stops: [
+                                    .init(color: .clear, location: 0.0),
+                                    .init(color: .black.opacity(0.85), location: 0.18),
+                                    .init(color: .black, location: 1.0)
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                )
+            }
+            .frame(width: cardWidth, height: cardHeight)
+            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - 7. 探索更多 (Apple "More to Discover" grid — same row language as 你可能错过了)
@@ -1142,6 +1331,18 @@ public struct HomeLibraryView: View {
         let lib = AmberAPIClient.LibraryResponse(feeds: feeds, recentEpisodes: recentEpisodes, heroEpisode: heroEpisode)
         if let data = try? JSONEncoder().encode(lib), let str = String(data: data, encoding: .utf8) {
             cachedLibraryJson = str
+        }
+    }
+
+    private func toggleSubscribe(feed: PodcastFeed) {
+        guard !feed.feedUrl.isEmpty else { return }
+        Task {
+            do {
+                _ = try await AmberAPIClient.shared.subscribe(url: feed.feedUrl, autoTranslate: false)
+                await loadData()
+            } catch {
+                print("Failed to toggle subscribe: \(error)")
+            }
         }
     }
 
