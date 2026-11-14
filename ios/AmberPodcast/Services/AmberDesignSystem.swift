@@ -394,21 +394,13 @@ public struct AppleExpandingPlayCapsule: View {
             VStack(alignment: .leading, spacing: 3) {
                 HStack(spacing: 5) {
                     if isPlaying {
-                        EqualizerWaveformView(isPlaying: true, color: tintColor, barCount: 4)
-                        Text("正在播放")
-                            .font(.system(size: 11.5, weight: .bold, design: .rounded))
-                            .foregroundStyle(tintColor)
-                    } else if isCurrent {
-                        Image(systemName: "pause.fill")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundStyle(tintColor)
-                        Text("继续收听")
-                            .font(.system(size: 11.5, weight: .semibold, design: .rounded))
-                            .foregroundStyle(tintColor)
+                        EqualizerWaveformView(isPlaying: true, color: AmberTheme.labelPrimary, barCount: 4)
                     } else {
                         Image(systemName: "play.fill")
                             .font(.system(size: 10, weight: .bold))
                             .foregroundStyle(AmberTheme.labelPrimary)
+                    }
+                    if !durationText.isEmpty {
                         Text(durationText)
                             .font(.system(size: 11.5, weight: .semibold, design: .rounded))
                             .foregroundStyle(AmberTheme.labelPrimary)
@@ -417,14 +409,8 @@ public struct AppleExpandingPlayCapsule: View {
                 .padding(.horizontal, 11)
                 .padding(.vertical, 6)
                 .background(
-                    isPlaying
-                        ? tintColor.opacity(0.18)
-                        : (isCurrent ? tintColor.opacity(0.12) : Color.white.opacity(0.14)),
+                    Color.white.opacity(0.14),
                     in: Capsule()
-                )
-                .overlay(
-                    Capsule()
-                        .strokeBorder(isPlaying || isCurrent ? tintColor.opacity(0.35) : Color.clear, lineWidth: 1)
                 )
 
                 // Downward extending visualizer mini progress bar
@@ -435,7 +421,7 @@ public struct AppleExpandingPlayCapsule: View {
                             .frame(height: 2.5)
 
                         Capsule()
-                            .fill(tintColor)
+                            .fill(Color.white.opacity(0.85))
                             .frame(width: max(4, 75 * CGFloat(min(1.0, max(0.0, progress)))), height: 2.5)
                     }
                     .frame(width: 75, height: 2.5)
@@ -457,7 +443,7 @@ public struct EqualizerWaveformView: View {
     public var color: Color
     public var barCount: Int
 
-    public init(isPlaying: Bool = true, color: Color = AmberTheme.primaryAmber, barCount: Int = 3) {
+    public init(isPlaying: Bool = true, color: Color = AmberTheme.labelPrimary, barCount: Int = 4) {
         self.isPlaying = isPlaying
         self.color = color
         self.barCount = barCount
@@ -466,7 +452,7 @@ public struct EqualizerWaveformView: View {
     @State private var phase: CGFloat = 0.0
 
     public var body: some View {
-        HStack(alignment: .bottom, spacing: 2) {
+        HStack(alignment: .center, spacing: 2) {
             ForEach(0..<barCount, id: \.self) { index in
                 bar(index: index)
             }
