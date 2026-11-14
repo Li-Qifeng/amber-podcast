@@ -436,7 +436,7 @@ async def get_discover_feed(token: str = Depends(verify_token)):
     # 3. Genre shelves — real Apple categories (legacy RSS accepts genre=<id>).
     #    Gathered concurrently; a dead genre is skipped, never fatal.
     genre_results = await asyncio.gather(
-        *[apple_agg.fetch_top_by_genre("cn", gid, 50) for _, gid in GENRE_SHELVES],
+        *[apple_agg.fetch_top_by_genre("cn", gid, 200) for _, gid in GENRE_SHELVES],
         return_exceptions=True,
     )
     categories = []
@@ -651,32 +651,47 @@ async def proxy_image(url: str = Query(...), w: int = Query(1200, ge=100, le=300
         return FileResponse(str(cached_file), media_type="image/jpeg", headers=headers)
 
     import httpx
+    import asyncio
     from PIL import Image
-    try:
-        async with httpx.AsyncClient(timeout=12.0, follow_redirects=True) as client:
-            resp = await client.get(clean_url)
-            if resp.status_code == 200:
-                raw_bytes = resp.content
-                import io
-                try:
-                    img = Image.open(io.BytesIO(raw_bytes))
-                    img.thumbnail((w, w), Image.Resampling.LANCZOS)
-                    img.convert("RGB").save(str(cached_file), "JPEG", quality=90, optimize=True)
-                except Exception as e:
-                    logger.warning(f"PIL compression failed for {clean_url}: {e}, saving raw")
-                    with open(cached_file, "wb") as f:
-                        f.write(raw_bytes)
 
-                return FileResponse(str(cached_file), media_type="image/jpeg", headers=headers)
-            else:
-                ph = get_placeholder()
-                if ph.exists():
-                    return FileResponse(str(ph), media_type="image/jpeg", headers=headers)
-    except Exception as e:
-        logger.warning(f"Image proxy failed for {clean_url}: {e}")
-        ph = get_placeholder()
-        if ph.exists():
-            return FileResponse(str(ph), media_type="image/jpeg", headers=headers)
+    # Upstream candidates: the mzstatic Apple CDN mirrors (s1/s2 host swap).
+    candidates = [clean_url]
+    if "mzstatic.com" in clean_url:
+        alt = clean_url.replace("s1.", "s2.") if "s1." in clean_url else clean_url.replace("s2.", "s1.")
+        candidates.append(alt)
+
+    fetched = None
+    for url in candidates:
+        try:
+            async with httpx.AsyncClient(timeout=18.0, follow_redirects=True) as client:
+                resp = await client.get(url)
+                if resp.status_code == 200:
+                    fetched = resp.content
+                    break
+                logger.warning(f"Image proxy upstream {resp.status_code} for {url}")
+        except Exception as e:
+            logger.warning(f"Image proxy fetch failed for {url}: {e}")
+        await asyncio.sleep(0.6)
+
+    if fetched is not None:
+        import io
+        try:
+            img = Image.open(io.BytesIO(fetched))
+            img.thumbnail((w, w), Image.Resampling.LANCZOS)
+            img.convert("RGB").save(str(cached_file), "JPEG", quality=90, optimize=True)
+        except Exception as e:
+            logger.warning(f"PIL compression failed for {clean_url}: {e}, saving raw")
+            with open(cached_file, "wb") as f:
+                f.write(fetched)
+
+        return FileResponse(str(cached_file), media_type="image/jpeg", headers=headers)
+
+    # Upstream failed for every candidate: keep the previous behaviour (branded
+    # placeholder, or fall back to the raw URL). Failures are intentionally NOT
+    # cached, so the next request retries the CDN.
+    ph = get_placeholder()
+    if ph.exists():
+        return FileResponse(str(ph), media_type="image/jpeg", headers=headers)
 
     return RedirectResponse(url=clean_url)
 

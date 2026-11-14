@@ -19,13 +19,17 @@ class ApplePodcastAggregator:
         self._cache_ttl = 3600 * 6  # 6 hours
 
     async def lookup_podcasts_batch(self, ids: List[str]) -> List[Dict[str, Any]]:
-        """Batch lookup podcast metadata from iTunes API in chunks of 50."""
+        """Batch lookup podcast metadata from iTunes API in chunks of 50.
+
+        Enriches up to 200 ids (4 chunks) — matches the Apple genre-chart
+        depth we pull on the discover shelves.
+        """
         if not ids:
             return []
         results = []
         chunk_size = 50
         async with httpx.AsyncClient(timeout=self.timeout) as client:
-            for i in range(0, min(len(ids), 100), chunk_size):
+            for i in range(0, min(len(ids), 200), chunk_size):
                 chunk = ids[i:i + chunk_size]
                 ids_str = ",".join(chunk)
                 try:
