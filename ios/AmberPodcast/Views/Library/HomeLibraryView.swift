@@ -224,22 +224,12 @@ public struct HomeLibraryView: View {
             .buttonStyle(.plain)
 
             VStack(alignment: .leading, spacing: 6) {
-                // Section badge
-                if !badge.isEmpty {
-                    Text(badge)
-                        .font(.system(size: 11, weight: .semibold, design: .rounded))
-                        .foregroundStyle(AmberTheme.primaryAmber)
-                        .padding(.horizontal, 7)
-                        .padding(.vertical, 2.5)
-                        .background(AmberTheme.primaryAmber.opacity(0.12), in: Capsule())
-                }
-
                 NavigationLink(destination: FeedDetailView(feed: feed)) {
                     VStack(alignment: .leading, spacing: 4) {
                         // Card title
                         Text(titleText)
                             .font(.system(size: 16, weight: .bold, design: .rounded))
-                            .foregroundStyle(isCurrent ? AmberTheme.primaryAmber : AmberTheme.labelPrimary)
+                            .foregroundStyle(AmberTheme.labelPrimary)
                             .lineLimit(2)
                             .multilineTextAlignment(.leading)
 
@@ -532,13 +522,8 @@ public struct HomeLibraryView: View {
             let pageWidth = screenWidth * 0.86
 
             VStack(alignment: .leading, spacing: 16) {
-                VStack(alignment: .leading, spacing: 3) {
-                    sectionTitle("你可能错过了")
-                    Text("来自你关注的节目")
-                        .font(.system(size: 13.5, weight: .regular))
-                        .foregroundStyle(AmberTheme.labelTertiary)
-                }
-                .padding(.horizontal, AmberTheme.pageMargin)
+                sectionTitle("你可能错过了")
+                    .padding(.horizontal, AmberTheme.pageMargin)
 
                 ScrollView(.horizontal, showsIndicators: false) {
                     LazyHStack(spacing: 14) {
@@ -600,15 +585,15 @@ public struct HomeLibraryView: View {
             .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
 
             VStack(alignment: .leading, spacing: 4) {
-                // Localized date line (e.g. 11月12日)
+                // Localized date line (e.g. 11月12日, 1天前, 14:30)
                 Text(Self.localizedDate(episode.pubDate))
                     .font(.system(size: 11, weight: .regular))
                     .foregroundStyle(AmberTheme.labelTertiary)
 
-                // Episode title (fixed 2 lines)
+                // Episode title (fixed 2 lines, neutral white)
                 Text(episode.title)
                     .font(.system(size: 15, weight: .bold))
-                    .foregroundStyle(isCurrent ? AmberTheme.primaryAmber : AmberTheme.labelPrimary)
+                    .foregroundStyle(AmberTheme.labelPrimary)
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
             }
@@ -684,13 +669,8 @@ public struct HomeLibraryView: View {
             let cardWidth = screenWidth * 0.76
 
             VStack(alignment: .leading, spacing: 16) {
-                VStack(alignment: .leading, spacing: 3) {
-                    sectionTitle("新节目推荐")
-                    Text("根据你的收听偏好")
-                        .font(.system(size: 13.5, weight: .regular))
-                        .foregroundStyle(AmberTheme.labelTertiary)
-                }
-                .padding(.horizontal, AmberTheme.pageMargin)
+                sectionTitle("新节目推荐")
+                    .padding(.horizontal, AmberTheme.pageMargin)
 
                 ScrollView(.horizontal, showsIndicators: false) {
                     LazyHStack(spacing: AmberTheme.cardGap) {
@@ -715,13 +695,8 @@ public struct HomeLibraryView: View {
             let cardWidth = screenWidth * 0.76
 
             VStack(alignment: .leading, spacing: 16) {
-                VStack(alignment: .leading, spacing: 3) {
-                    sectionTitle("试试这些频道")
-                    Text("编辑精选")
-                        .font(.system(size: 13.5, weight: .regular))
-                        .foregroundStyle(AmberTheme.labelTertiary)
-                }
-                .padding(.horizontal, AmberTheme.pageMargin)
+                sectionTitle("试试这些频道")
+                    .padding(.horizontal, AmberTheme.pageMargin)
 
                 ScrollView(.horizontal, showsIndicators: false) {
                     LazyHStack(spacing: AmberTheme.cardGap) {
@@ -744,13 +719,8 @@ public struct HomeLibraryView: View {
         let items = moreToDiscover
         if items.count >= 3 {
             VStack(alignment: .leading, spacing: 16) {
-                VStack(alignment: .leading, spacing: 3) {
-                    sectionTitle("探索更多")
-                    Text("根据你的收听偏好")
-                        .font(.system(size: 12, weight: .regular))
-                        .foregroundStyle(AmberTheme.labelTertiary)
-                }
-                .padding(.horizontal, AmberTheme.pageMargin)
+                sectionTitle("探索更多")
+                    .padding(.horizontal, AmberTheme.pageMargin)
 
                 ScrollView(.horizontal, showsIndicators: false) {
                     LazyHGrid(rows: [
@@ -1207,20 +1177,8 @@ public struct HomeLibraryView: View {
             .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    /// "2026-11-12" → "11月12日" (locale-following via date template).
-    private static let isoDayFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.dateFormat = "yyyy-MM-dd"
-        f.locale = Locale(identifier: "en_US_POSIX")
-        return f
-    }()
-
     private static func localizedDate(_ s: String) -> String {
-        guard let d = isoDayFormatter.date(from: s) else { return s }
-        let out = DateFormatter()
-        out.setLocalizedDateFormatFromTemplate("MMMd")
-        out.locale = Locale(identifier: "zh_CN")
-        return out.string(from: d)
+        AmberDate.relative(s)
     }
 
     /// Apple card second line: genre when known, else the author, else nothing.

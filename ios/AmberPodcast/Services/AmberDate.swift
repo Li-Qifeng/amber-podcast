@@ -54,4 +54,37 @@ public enum AmberDate {
         guard let d = parse(s) else { return s }
         return fullFormatter.string(from: d)
     }
+
+    /// Smart relative date stamp: today -> "HH:mm", yesterday -> "1天前", 2-7 days -> "N天前", beyond -> "M月d日" / "yyyy年M月d日"
+    public static func relative(_ s: String) -> String {
+        guard let d = parse(s) else { return s }
+        let calendar = Calendar.current
+        let now = Date()
+
+        if calendar.isDateInToday(d) {
+            let f = DateFormatter()
+            f.dateFormat = "HH:mm"
+            f.locale = Locale(identifier: "zh_CN")
+            return f.string(from: d)
+        }
+
+        if calendar.isDateInYesterday(d) {
+            return "1天前"
+        }
+
+        let comps = calendar.dateComponents([.day], from: calendar.startOfDay(for: d), to: calendar.startOfDay(for: now))
+        if let days = comps.day, days >= 2 && days <= 7 {
+            return "\(days)天前"
+        }
+
+        let isCurrentYear = calendar.component(.year, from: d) == calendar.component(.year, from: now)
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "zh_CN")
+        if isCurrentYear {
+            f.dateFormat = "M月d日"
+        } else {
+            f.dateFormat = "yyyy年M月d日"
+        }
+        return f.string(from: d)
+    }
 }
