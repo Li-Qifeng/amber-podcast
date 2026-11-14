@@ -149,7 +149,7 @@ public struct HomeLibraryView: View {
     @ViewBuilder
     private func latestEpisodesShelf() -> some View {
         if let ep = heroEpisode, let feed = heroFeed {
-            let cardWidth = screenWidth * 0.76
+            let cardWidth = screenWidth * 0.70
 
             VStack(alignment: .leading, spacing: 16) {
                 sectionTitle("最新单集")
@@ -289,7 +289,100 @@ public struct HomeLibraryView: View {
     }
 
     private func latestEpisodeCard(episode: Episode, feed: PodcastFeed, cardWidth: CGFloat) -> some View {
-        unifiedHeroCard(feed: feed, episode: episode, badgeText: "最新单集", cardWidth: cardWidth)
+        let cardHeight: CGFloat = cardWidth * 1.08
+        let isCurrent = player.currentEpisode?.id == episode.id
+        let isPlayingThis = isCurrent && player.isPlaying
+        let liveProgress = isCurrent && player.duration > 0
+            ? (player.currentTime / player.duration)
+            : Double(episode.progress) / 100.0
+        let dateStr = AmberDate.relative(episode.pubDate)
+        let synopsis = stripHTML(episode.shownotes)
+        let rawCover = (episode.imageUrl?.isEmpty == false) ? episode.imageUrl! : feed.proxiedCoverUrl
+
+        return ZStack(alignment: .bottom) {
+            // ① 封面展示：单集封面优先，无则回退频道封面
+            Group {
+                if let url = URL(string: rawCover), !rawCover.isEmpty {
+                    CachedAsyncImage(url: url) { img in
+                        img
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: cardWidth, height: cardHeight)
+                            .clipped()
+                    } placeholder: {
+                        coverPlaceholder(width: cardWidth, height: cardHeight, title: feed.title)
+                    }
+                } else {
+                    coverPlaceholder(width: cardWidth, height: cardHeight, title: feed.title)
+                }
+            }
+            .frame(width: cardWidth, height: cardHeight)
+
+            // ② 遮罩与文字：下半部分高斯模糊渐变毛玻璃遮罩
+            VStack(alignment: .leading, spacing: 6) {
+                // ③ 时间显示：相对时间，无“最新单集”黄色小标
+                if !dateStr.isEmpty {
+                    Text(dateStr)
+                        .font(.system(size: 11, weight: .semibold, design: .rounded))
+                        .foregroundStyle(Color.white.opacity(0.75))
+                }
+
+                // 单集标题（中性高对比，两行截断）
+                Text(episode.title)
+                    .font(.system(size: 15, weight: .bold, design: .rounded))
+                    .foregroundStyle(AmberTheme.labelPrimary)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+
+                // 简介（两行截断）
+                if !synopsis.isEmpty {
+                    Text(synopsis)
+                        .font(.system(size: 12, weight: .regular))
+                        .foregroundStyle(AmberTheme.labelSecondary)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
+                }
+
+                Spacer(minLength: 4)
+
+                // 播放胶囊
+                HStack {
+                    AppleExpandingPlayCapsule(
+                        isPlaying: isPlayingThis,
+                        isCurrent: isCurrent,
+                        progress: liveProgress,
+                        durationText: formatDuration(Double(episode.duration)),
+                        tintColor: AmberTheme.primaryAmber
+                    ) {
+                        playEpisode(episode, feed: feed)
+                    }
+
+                    Spacer()
+                }
+            }
+            .padding(.horizontal, 14)
+            .padding(.top, 14)
+            .padding(.bottom, 12)
+            .frame(width: cardWidth, height: cardHeight * 0.52, alignment: .leading)
+            .background(
+                Rectangle()
+                    .fill(.ultraThinMaterial)
+                    .mask(
+                        LinearGradient(
+                            stops: [
+                                .init(color: .clear, location: 0.0),
+                                .init(color: .black.opacity(0.85), location: 0.18),
+                                .init(color: .black, location: 1.0)
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+            )
+        }
+        .frame(width: cardWidth, height: cardHeight)
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 
     private func coverPlaceholder(width: CGFloat, height: CGFloat, title: String) -> some View {
