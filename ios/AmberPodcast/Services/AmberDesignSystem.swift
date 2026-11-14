@@ -391,45 +391,41 @@ public struct AppleExpandingPlayCapsule: View {
 
     public var body: some View {
         Button(action: action) {
-            VStack(alignment: .leading, spacing: 3) {
-                HStack(spacing: 5) {
-                    if isPlaying {
-                        EqualizerWaveformView(isPlaying: true, color: AmberTheme.labelPrimary, barCount: 4)
-                    } else {
-                        Image(systemName: "play.fill")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundStyle(AmberTheme.labelPrimary)
-                    }
-                    if !durationText.isEmpty {
-                        Text(durationText)
-                            .font(.system(size: 11.5, weight: .semibold, design: .rounded))
-                            .foregroundStyle(AmberTheme.labelPrimary)
-                    }
+            HStack(spacing: 5) {
+                if isPlaying {
+                    EqualizerWaveformView(isPlaying: true, color: AmberTheme.labelPrimary, barCount: 4)
+                } else {
+                    Image(systemName: "play.fill")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(AmberTheme.labelPrimary)
                 }
-                .padding(.horizontal, 11)
-                .padding(.vertical, 6)
-                .background(
-                    Color.white.opacity(0.14),
-                    in: Capsule()
-                )
-
-                // Downward extending visualizer mini progress bar
-                if isCurrent || progress > 0 {
-                    ZStack(alignment: .leading) {
-                        Capsule()
-                            .fill(Color.white.opacity(0.15))
-                            .frame(height: 2.5)
-
-                        Capsule()
-                            .fill(Color.white.opacity(0.85))
-                            .frame(width: max(4, 75 * CGFloat(min(1.0, max(0.0, progress)))), height: 2.5)
-                    }
-                    .frame(width: 75, height: 2.5)
-                    .padding(.horizontal, 4)
-                    .padding(.top, 1)
-                    .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                if !durationText.isEmpty {
+                    Text(durationText)
+                        .font(.system(size: 11.5, weight: .semibold, design: .rounded))
+                        .foregroundStyle(AmberTheme.labelPrimary)
                 }
             }
+            .padding(.horizontal, 11)
+            .padding(.vertical, 6)
+            .background(
+                ZStack(alignment: .bottomLeading) {
+                    Capsule()
+                        .fill(Color.white.opacity(0.14))
+
+                    if isCurrent || progress > 0 {
+                        GeometryReader { geo in
+                            Capsule()
+                                .fill(Color.white.opacity(0.85))
+                                .frame(width: max(4, geo.size.width * CGFloat(min(1.0, max(0.0, progress)))), height: 2)
+                        }
+                        .frame(height: 2)
+                        .padding(.horizontal, 3)
+                        .padding(.bottom, 1.5)
+                        .clipShape(Capsule())
+                    }
+                }
+            )
+            .clipShape(Capsule())
         }
         .buttonStyle(ApplePlayButtonStyle(scale: 0.88))
         .animation(.spring(response: 0.35, dampingFraction: 0.72), value: isPlaying)

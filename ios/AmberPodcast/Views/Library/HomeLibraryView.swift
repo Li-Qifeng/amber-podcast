@@ -289,7 +289,7 @@ public struct HomeLibraryView: View {
     }
 
     private func latestEpisodeCard(episode: Episode, feed: PodcastFeed, cardWidth: CGFloat) -> some View {
-        let cardHeight: CGFloat = cardWidth * 1.08
+        let cardHeight: CGFloat = cardWidth * 4.0 / 3.0
         let isCurrent = player.currentEpisode?.id == episode.id
         let isPlayingThis = isCurrent && player.isPlaying
         let liveProgress = isCurrent && player.duration > 0
@@ -320,24 +320,24 @@ public struct HomeLibraryView: View {
 
             // ② 遮罩与文字：下半部分高斯模糊渐变毛玻璃遮罩
             VStack(alignment: .leading, spacing: 6) {
-                // ③ 时间显示：相对时间，无“最新单集”黄色小标
+                // ③ 时间显示：相对时间（大两号至 13pt）
                 if !dateStr.isEmpty {
                     Text(dateStr)
-                        .font(.system(size: 11, weight: .semibold, design: .rounded))
+                        .font(.system(size: 13, weight: .semibold, design: .rounded))
                         .foregroundStyle(Color.white.opacity(0.75))
                 }
 
-                // 单集标题（中性高对比，两行截断）
+                // 单集标题（大两号至 17pt）
                 Text(episode.title)
-                    .font(.system(size: 15, weight: .bold, design: .rounded))
+                    .font(.system(size: 17, weight: .bold, design: .rounded))
                     .foregroundStyle(AmberTheme.labelPrimary)
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
 
-                // 简介（两行截断）
+                // 简介（大两号至 14pt）
                 if !synopsis.isEmpty {
                     Text(synopsis)
-                        .font(.system(size: 12, weight: .regular))
+                        .font(.system(size: 14, weight: .regular))
                         .foregroundStyle(AmberTheme.labelSecondary)
                         .lineLimit(2)
                         .multilineTextAlignment(.leading)
@@ -363,7 +363,7 @@ public struct HomeLibraryView: View {
             .padding(.horizontal, 14)
             .padding(.top, 14)
             .padding(.bottom, 12)
-            .frame(width: cardWidth, height: cardHeight * 0.52, alignment: .leading)
+            .frame(width: cardWidth, height: cardHeight * 0.48, alignment: .leading)
             .background(
                 Rectangle()
                     .fill(.ultraThinMaterial)
@@ -494,15 +494,15 @@ public struct HomeLibraryView: View {
                                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                                 .shadow(color: .black.opacity(0.18), radius: 6, y: 3)
 
-                                // Apple order: show name first, then genre/author
+                                // Apple order: show name first, then genre/author（大一号至 14.5pt / 12.5pt）
                                 Text(feed.title)
-                                    .font(.system(size: 13, weight: .medium))
+                                    .font(.system(size: 14.5, weight: .semibold))
                                     .foregroundStyle(AmberTheme.labelPrimary)
                                     .lineLimit(1)
                                     .frame(width: posterSize, alignment: .leading)
 
                                 Text(podcastSubtitle(feed))
-                                    .font(.system(size: 11, weight: .regular))
+                                    .font(.system(size: 12.5, weight: .regular))
                                     .foregroundStyle(AmberTheme.labelTertiary)
                                     .lineLimit(1)
                                     .frame(width: posterSize, alignment: .leading)
@@ -678,14 +678,14 @@ public struct HomeLibraryView: View {
             .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
 
             VStack(alignment: .leading, spacing: 4) {
-                // Localized date line (e.g. 11月12日, 1天前, 14:30)
+                // Localized date line (放大两号至 13pt)
                 Text(Self.localizedDate(episode.pubDate))
-                    .font(.system(size: 11, weight: .regular))
+                    .font(.system(size: 13, weight: .regular))
                     .foregroundStyle(AmberTheme.labelTertiary)
 
-                // Episode title (fixed 2 lines, neutral white)
+                // Episode title (放大两号至 17pt, fixed 2 lines, neutral white)
                 Text(episode.title)
-                    .font(.system(size: 15, weight: .bold))
+                    .font(.system(size: 17, weight: .bold))
                     .foregroundStyle(AmberTheme.labelPrimary)
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
@@ -760,7 +760,7 @@ public struct HomeLibraryView: View {
         let shows = newShowsForYou
         if !shows.isEmpty {
             let cardWidth = screenWidth * 0.70
-            let cardHeight = cardWidth * 1.08
+            let cardHeight = cardWidth * 4.0 / 3.0
 
             VStack(alignment: .leading, spacing: 16) {
                 sectionTitle("新节目推荐")
@@ -808,15 +808,15 @@ public struct HomeLibraryView: View {
 
                 // 2. Glass blur gradient mask overlay on the bottom half
                 VStack(alignment: .leading, spacing: 6) {
-                    // Tag & category板块
+                    // Tag & category板块（放大两号至 13pt）
                     Text(tag)
-                        .font(.system(size: 11, weight: .semibold, design: .rounded))
+                        .font(.system(size: 13, weight: .semibold, design: .rounded))
                         .foregroundStyle(Color.white.opacity(0.75))
 
-                    // Description / synopsis (2 lines)
+                    // Description / synopsis (放大两号至 15pt, 2 lines)
                     if !synopsis.isEmpty {
                         Text(synopsis)
-                            .font(.system(size: 13, weight: .medium))
+                            .font(.system(size: 15, weight: .medium))
                             .foregroundStyle(AmberTheme.labelPrimary)
                             .lineLimit(2)
                             .multilineTextAlignment(.leading)
@@ -854,7 +854,7 @@ public struct HomeLibraryView: View {
                 .padding(.horizontal, 14)
                 .padding(.top, 14)
                 .padding(.bottom, 12)
-                .frame(width: cardWidth, height: cardHeight * 0.52, alignment: .leading)
+                .frame(width: cardWidth, height: cardHeight * 0.48, alignment: .leading)
                 .background(
                     Rectangle()
                         .fill(.ultraThinMaterial)
@@ -884,7 +884,7 @@ public struct HomeLibraryView: View {
         let channels = channelsToTry
         if !channels.isEmpty {
             let cardWidth = screenWidth * 0.70
-            let cardHeight = cardWidth * 1.08
+            let cardHeight = cardWidth * 4.0 / 3.0
 
             VStack(alignment: .leading, spacing: 16) {
                 sectionTitle("试试这些频道")
@@ -933,9 +933,9 @@ public struct HomeLibraryView: View {
                 // 2. Glass blur gradient mask overlay on the bottom half
                 // 注意：logo自带频道名，底部不重复写频道名，专注展示频道宗旨与slogan
                 VStack(alignment: .leading, spacing: 6) {
-                    // Slogan / Purpose description
+                    // Slogan / Purpose description (放大两号至 15pt)
                     Text(slogan)
-                        .font(.system(size: 13, weight: .semibold, design: .rounded))
+                        .font(.system(size: 15, weight: .semibold, design: .rounded))
                         .foregroundStyle(AmberTheme.labelPrimary)
                         .lineLimit(2)
                         .multilineTextAlignment(.leading)
@@ -946,11 +946,11 @@ public struct HomeLibraryView: View {
                     HStack(alignment: .center) {
                         if let g = feed.genre, !g.isEmpty {
                             Text(g)
-                                .font(.system(size: 11, weight: .medium))
+                                .font(.system(size: 12, weight: .medium))
                                 .foregroundStyle(Color.white.opacity(0.70))
                         } else if !feed.author.isEmpty {
                             Text(feed.author)
-                                .font(.system(size: 11, weight: .medium))
+                                .font(.system(size: 12, weight: .medium))
                                 .foregroundStyle(Color.white.opacity(0.70))
                         }
 
@@ -1045,12 +1045,12 @@ public struct HomeLibraryView: View {
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text(feed.title)
-                        .font(.system(size: 13.5, weight: .semibold))
+                        .font(.system(size: 14.5, weight: .semibold))
                         .foregroundStyle(AmberTheme.labelPrimary)
                         .lineLimit(2)
                         .multilineTextAlignment(.leading)
                     Text(podcastSubtitle(feed))
-                        .font(.system(size: 11, weight: .regular))
+                        .font(.system(size: 12, weight: .regular))
                         .foregroundStyle(AmberTheme.labelTertiary)
                         .lineLimit(1)
                 }
@@ -1446,7 +1446,7 @@ public struct HomeLibraryView: View {
     }
 
     private func formatDuration(_ seconds: Double) -> String {
-        guard seconds > 0 else { return "0分钟" }
+        guard seconds > 0 else { return "" }
         let total = Int(seconds)
         let hours = total / 3600
         let minutes = (total % 3600) / 60
@@ -1520,11 +1520,11 @@ public struct AllChannelsListView: View {
 
                                 VStack(alignment: .leading, spacing: 3) {
                                     Text(f.title)
-                                        .font(.system(size: 14.5, weight: .medium, design: .rounded))
+                                        .font(.system(size: 15.5, weight: .semibold, design: .rounded))
                                         .foregroundStyle(AmberTheme.labelPrimary)
                                         .lineLimit(1)
                                     Text(f.author.isEmpty ? "播客主" : f.author)
-                                        .font(.system(size: 12))
+                                        .font(.system(size: 13))
                                         .foregroundStyle(AmberTheme.labelTertiary)
                                         .lineLimit(1)
                                 }
