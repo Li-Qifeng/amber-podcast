@@ -371,6 +371,8 @@ public struct AppleExpandingPlayCapsule: View {
     public var progress: Double
     public var durationText: String
     public var tintColor: Color
+    public var cardBackgroundColor: Color?
+    public var foregroundColor: Color?
     public var action: () -> Void
 
     public init(
@@ -379,6 +381,8 @@ public struct AppleExpandingPlayCapsule: View {
         progress: Double = 0.0,
         durationText: String,
         tintColor: Color = AmberTheme.primaryAmber,
+        cardBackgroundColor: Color? = nil,
+        foregroundColor: Color? = nil,
         action: @escaping () -> Void
     ) {
         self.isPlaying = isPlaying
@@ -386,48 +390,71 @@ public struct AppleExpandingPlayCapsule: View {
         self.progress = progress
         self.durationText = durationText
         self.tintColor = tintColor
+        self.cardBackgroundColor = cardBackgroundColor
+        self.foregroundColor = foregroundColor
         self.action = action
+    }
+
+    private var resolvedForeground: Color {
+        if let fg = foregroundColor { return fg }
+        if let bg = cardBackgroundColor {
+            let lum = AmberColorPalette.luminance(of: bg)
+            return lum > 0.55 ? Color(red: 0.10, green: 0.10, blue: 0.12) : Color.white
+        }
+        return Color.white
+    }
+
+    private var resolvedCapsuleFill: Color {
+        if let bg = cardBackgroundColor {
+            let lum = AmberColorPalette.luminance(of: bg)
+            return lum > 0.55 ? Color.black.opacity(0.08) : Color.white.opacity(0.18)
+        }
+        return Color.white.opacity(0.18)
     }
 
     public var body: some View {
         Button(action: action) {
-            HStack(spacing: 5) {
+            HStack(spacing: 6) {
                 if isPlaying {
-                    EqualizerWaveformView(isPlaying: true, color: AmberTheme.labelPrimary, barCount: 4)
+                    EqualizerWaveformView(isPlaying: true, color: resolvedForeground, barCount: 4)
                 } else {
                     Image(systemName: "play.fill")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundStyle(AmberTheme.labelPrimary)
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(resolvedForeground)
                 }
                 if !durationText.isEmpty {
                     Text(durationText)
-                        .font(.system(size: 11.5, weight: .semibold, design: .rounded))
-                        .foregroundStyle(AmberTheme.labelPrimary)
+                        .font(.system(size: 13, weight: .semibold, design: .rounded))
+                        .foregroundStyle(resolvedForeground)
                 }
             }
-            .padding(.horizontal, 11)
-            .padding(.vertical, 6)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+            .frame(minHeight: 34)
             .background(
                 ZStack(alignment: .bottomLeading) {
                     Capsule()
-                        .fill(Color.white.opacity(0.14))
+                        .fill(resolvedCapsuleFill)
+
+                    Capsule()
+                        .stroke(resolvedForeground.opacity(0.12), lineWidth: 0.8)
 
                     if isCurrent || progress > 0 {
                         GeometryReader { geo in
                             Capsule()
-                                .fill(Color.white.opacity(0.85))
+                                .fill(resolvedForeground.opacity(0.90))
                                 .frame(width: max(4, geo.size.width * CGFloat(min(1.0, max(0.0, progress)))), height: 2)
                         }
                         .frame(height: 2)
-                        .padding(.horizontal, 3)
-                        .padding(.bottom, 1.5)
+                        .padding(.horizontal, 4)
+                        .padding(.bottom, 2)
                         .clipShape(Capsule())
                     }
                 }
             )
             .clipShape(Capsule())
         }
-        .buttonStyle(ApplePlayButtonStyle(scale: 0.88))
+        .buttonStyle(ApplePlayButtonStyle(scale: 0.90))
         .animation(.spring(response: 0.35, dampingFraction: 0.72), value: isPlaying)
         .animation(.spring(response: 0.35, dampingFraction: 0.72), value: isCurrent)
     }
