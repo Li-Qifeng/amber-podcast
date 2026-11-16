@@ -74,14 +74,15 @@ public struct HomeLibraryView: View {
                         VStack(alignment: .leading, spacing: 0) {
                             AmberScrollTopProbe()
 
-                            // 1. 最新单集 (only when heroEpisode != nil)
-                            if heroEpisode != nil {
-                                latestEpisodesShelf()
+                            let latestEpisodes = latestEpisodesList
+                            // 1. 最新单集
+                            if !latestEpisodes.isEmpty {
+                                latestEpisodesShelf(items: latestEpisodes)
                             }
 
                             // 2. 继续收听
                             continueListeningShelf()
-                                .padding(.top, heroEpisode != nil ? 20 : 8)
+                                .padding(.top, !latestEpisodes.isEmpty ? 20 : 8)
 
                             // 3. 你可能错过了 (Apple "You May Have Missed" paged group)
                             youMayHaveMissedShelf()
@@ -146,18 +147,38 @@ public struct HomeLibraryView: View {
     }
 
     // MARK: - 1. 最新单集 (Apple Podcasts card style)
-    @ViewBuilder
-    private func latestEpisodesShelf() -> some View {
+    /// Aggregated recent episodes for the hero carousel (hero drop first, followed by newest drops from feeds)
+    private var latestEpisodesList: [(Episode, PodcastFeed)] {
+        var list: [(Episode, PodcastFeed)] = []
+        var seenIds = Set<String>()
+
         if let ep = heroEpisode, let feed = heroFeed {
-            let cardWidth = screenWidth * 0.70
-            let cardHeight = cardWidth * 4.0 / 3.0
+            list.append((ep, feed))
+            seenIds.insert(ep.id)
+        }
 
-            VStack(alignment: .leading, spacing: 16) {
-                sectionTitle("最新单集")
-                    .padding(.horizontal, AmberTheme.pageMargin)
+        for ep in recentEpisodes {
+            if !seenIds.contains(ep.id), let feed = feeds.first(where: { $0.id == ep.feedId }) {
+                list.append((ep, feed))
+                seenIds.insert(ep.id)
+            }
+            if list.count >= 10 { break }
+        }
+        return list
+    }
 
-                ScrollView(.horizontal, showsIndicators: false) {
-                    LazyHStack(spacing: AmberTheme.cardGap) {
+    @ViewBuilder
+    private func latestEpisodesShelf(items: [(Episode, PodcastFeed)]) -> some View {
+        let cardWidth = screenWidth * 0.70
+        let cardHeight = cardWidth * 4.0 / 3.0
+
+        VStack(alignment: .leading, spacing: 16) {
+            sectionTitle("最新单集")
+                .padding(.horizontal, AmberTheme.pageMargin)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                LazyHStack(spacing: AmberTheme.cardGap) {
+                    ForEach(items, id: \.0.id) { ep, feed in
                         HomeTileLatestEpisodeCard(
                             episode: ep,
                             feed: feed,
@@ -167,12 +188,12 @@ public struct HomeLibraryView: View {
                             onPlay: { playEpisode(ep, feed: feed) }
                         )
                     }
-                    .padding(.horizontal, AmberTheme.pageMargin)
-                    .scrollTargetLayout()
                 }
-                .scrollTargetBehavior(.viewAligned)
-                .scrollClipDisabled()
+                .padding(.horizontal, AmberTheme.pageMargin)
+                .scrollTargetLayout()
             }
+            .scrollTargetBehavior(.viewAligned)
+            .scrollClipDisabled()
         }
     }
 
@@ -1264,7 +1285,7 @@ fileprivate struct HomeTileLatestEpisodeCard: View {
     var body: some View {
         let rawCover = (episode.imageUrl?.isEmpty == false) ? episode.imageUrl! : feed.proxiedCoverUrl
         let coverUrl = URL(string: rawCover)
-        let artworkSize: CGFloat = min(cardWidth - 32, cardHeight * 0.45)
+        let artworkSize: CGFloat = min(cardWidth - 36, cardHeight * 0.44)
         let dateStr = AmberDate.relative(episode.pubDate)
         let synopsis = homeStripHTML(episode.shownotes)
 
@@ -1298,7 +1319,7 @@ fileprivate struct HomeTileLatestEpisodeCard: View {
                     }
                     Spacer()
                 }
-                .padding(.top, 16)
+                .padding(.top, 22)
 
                 Spacer(minLength: 8)
 
@@ -1386,7 +1407,7 @@ fileprivate struct HomeTileNewShowCard: View {
         let synopsis = homeStripHTML(feed.description)
         let tag = feed.genre ?? feed.editorialTag ?? "精选推荐"
         let coverUrl = URL(string: feed.proxiedCoverUrl)
-        let artworkSize: CGFloat = min(cardWidth - 32, cardHeight * 0.45)
+        let artworkSize: CGFloat = min(cardWidth - 36, cardHeight * 0.44)
 
         NavigationLink(destination: FeedDetailView(feed: feed)) {
             VStack(alignment: .leading, spacing: 0) {
@@ -1418,7 +1439,7 @@ fileprivate struct HomeTileNewShowCard: View {
                     }
                     Spacer()
                 }
-                .padding(.top, 16)
+                .padding(.top, 22)
 
                 Spacer(minLength: 8)
 
@@ -1514,7 +1535,7 @@ fileprivate struct HomeTileChannelCard: View {
         let synopsis = homeStripHTML(feed.description)
         let slogan = !synopsis.isEmpty ? synopsis : (feed.genre.map { "\($0) 领域优质播客" } ?? "探索优质音频节目")
         let coverUrl = URL(string: feed.proxiedCoverUrl)
-        let artworkSize: CGFloat = min(cardWidth - 32, cardHeight * 0.45)
+        let artworkSize: CGFloat = min(cardWidth - 36, cardHeight * 0.44)
 
         NavigationLink(destination: FeedDetailView(feed: feed)) {
             VStack(alignment: .leading, spacing: 0) {
@@ -1546,7 +1567,7 @@ fileprivate struct HomeTileChannelCard: View {
                     }
                     Spacer()
                 }
-                .padding(.top, 16)
+                .padding(.top, 22)
 
                 Spacer(minLength: 8)
 
