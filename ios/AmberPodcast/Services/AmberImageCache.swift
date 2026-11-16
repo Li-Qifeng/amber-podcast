@@ -128,3 +128,65 @@ public struct CachedAsyncImage<Content: View, Placeholder: View>: View {
         }
     }
 }
+
+/// Variant of CachedAsyncImage that also yields the underlying UIImage for dominant color extraction or metadata
+public struct CachedAsyncImageWithUI<Content: View, Placeholder: View>: View {
+    let url: URL?
+    @ViewBuilder let content: (Image, UIImage) -> Content
+    @ViewBuilder let placeholder: () -> Placeholder
+
+    @State private var uiImage: UIImage? = nil
+    @State private var isLoading: Bool = false
+
+    public init(
+        url: URL?,
+        @ViewBuilder content: @escaping (Image, UIImage) -> Content,
+        @ViewBuilder placeholder: @escaping () -> Placeholder
+    ) {
+        self.url = url
+        self.content = content
+        self.placeholder = placeholder
+        if let u = url, let cached = AmberImageCache.shared.image(for: u) {
+            _uiImage = State(initialValue: cached)
+        }
+    }
+
+    public var body: some View {
+        Group {
+            if let img = uiImage {
+                content(Image(uiImage: img), img)
+            } else {
+                placeholder()
+            }
+        }
+        .task(id: url) {
+            await loadImage()
+        }
+    }
+
+    private func loadImage() async {
+        guard let url = url else { return }
+        if let cached = AmberImageCache.shared.image(for: url) {
+            self.uiImage = cached
+            return
+        }
+
+        guard !isLoading else { return }
+        isLoading = true
+
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            if let fetched = UIImage(data: data) {
+                AmberImageCache.shared.store(fetched, for: url)
+                await MainActor.run {
+                    self.uiImage = fetched
+                    self.isLoading = false
+                }
+            } else {
+                await MainActor.run { self.isLoading = false }
+            }
+        } catch {
+            await MainActor.run { self.isLoading = false }
+        }
+    }
+}
