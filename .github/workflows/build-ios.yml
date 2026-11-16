@@ -4,6 +4,15 @@ on:
   push:
     branches: [ main, master ]
   workflow_dispatch:
+    inputs:
+      capture_screenshots:
+        description: 'Capture Simulator Screenshots & Traces'
+        type: boolean
+        default: false
+
+env:
+  HOMEBREW_NO_AUTO_UPDATE: "1"
+  HOMEBREW_NO_INSTALL_CLEANUP: "1"
 
 jobs:
   build:
@@ -35,7 +44,17 @@ jobs:
           xcodegen generate
           ls -la AmberPodcast.xcodeproj
 
+      - name: Cache Xcode DerivedData
+        uses: actions/cache@v4
+        with:
+          path: |
+            ios/build/DerivedData
+          key: xcode-deriveddata-${{ runner.os }}-${{ hashFiles('ios/project.yml', 'ios/AmberPodcast/**/*.swift') }}
+          restore-keys: |
+            xcode-deriveddata-${{ runner.os }}-
+
       - name: Build for Simulator & Capture Screenshots
+        if: contains(github.event.head_commit.message, '[snap]') || contains(github.event.head_commit.message, '[screenshots]') || (github.event_name == 'workflow_dispatch' && inputs.capture_screenshots == true)
         run: |
           cd ios
           mkdir -p screenshots
@@ -119,7 +138,7 @@ jobs:
 
       - name: Upload Screenshot Artifacts
         uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && (contains(github.event.head_commit.message, '[snap]') || contains(github.event.head_commit.message, '[screenshots]') || (github.event_name == 'workflow_dispatch' && inputs.capture_screenshots == true))
         with:
           name: AmberPodcast-Screenshots
           path: ios/screenshots/
@@ -133,6 +152,7 @@ jobs:
             -scheme AmberPodcast \
             -destination "generic/platform=iOS" \
             -archivePath build/AmberPodcast.xcarchive \
+            -derivedDataPath build/DerivedData \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
