@@ -1264,7 +1264,7 @@ fileprivate struct HomeTileLatestEpisodeCard: View {
     var body: some View {
         let rawCover = (episode.imageUrl?.isEmpty == false) ? episode.imageUrl! : feed.proxiedCoverUrl
         let coverUrl = URL(string: rawCover)
-        let artworkSize: CGFloat = min(cardWidth - 28, cardHeight * 0.46)
+        let artworkSize: CGFloat = min(cardWidth - 32, cardHeight * 0.45)
         let dateStr = AmberDate.relative(episode.pubDate)
         let synopsis = homeStripHTML(episode.shownotes)
 
@@ -1282,7 +1282,7 @@ fileprivate struct HomeTileLatestEpisodeCard: View {
                                 .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                        .stroke(Color.white.opacity(0.12), lineWidth: 0.8)
+                                        .stroke(Color.white.opacity(0.14), lineWidth: 0.8)
                                 )
                                 .shadow(color: Color.black.opacity(0.24), radius: 8, x: 0, y: 4)
                                 .onAppear {
@@ -1298,11 +1298,11 @@ fileprivate struct HomeTileLatestEpisodeCard: View {
                     }
                     Spacer()
                 }
-                .padding(.top, 14)
+                .padding(.top, 16)
 
                 Spacer(minLength: 8)
 
-                // 2. Metadata & Typography Section
+                // 2. Metadata & Action Section
                 VStack(alignment: .leading, spacing: 5) {
                     if !dateStr.isEmpty {
                         Text(dateStr)
@@ -1324,25 +1324,25 @@ fileprivate struct HomeTileLatestEpisodeCard: View {
                             .multilineTextAlignment(.leading)
                     }
 
-                    Spacer(minLength: 6)
-
-                    // 3. Play Capsule at bottom
+                    // 3. Play Capsule directly following text (tight, unified grouping)
                     HStack {
                         AppleExpandingPlayCapsule(
                             isPlaying: isPlayingThis,
                             isCurrent: player.currentEpisode?.id == episode.id,
                             progress: liveProgress,
                             durationText: homeFormatDuration(Double(episode.duration)),
-                            tintColor: AmberTheme.primaryAmber
+                            tintColor: AmberTheme.primaryAmber,
+                            cardBackgroundColor: dominantColor ?? AmberTheme.surfaceRaised
                         ) {
                             onPlay()
                         }
 
                         Spacer()
                     }
+                    .padding(.top, 4)
                 }
-                .padding(.horizontal, 14)
-                .padding(.bottom, 14)
+                .padding(.horizontal, 16)
+                .padding(.bottom, 16)
             }
             .frame(width: cardWidth, height: cardHeight)
             .background(
@@ -1386,7 +1386,7 @@ fileprivate struct HomeTileNewShowCard: View {
         let synopsis = homeStripHTML(feed.description)
         let tag = feed.genre ?? feed.editorialTag ?? "精选推荐"
         let coverUrl = URL(string: feed.proxiedCoverUrl)
-        let artworkSize: CGFloat = min(cardWidth - 28, cardHeight * 0.46)
+        let artworkSize: CGFloat = min(cardWidth - 32, cardHeight * 0.45)
 
         NavigationLink(destination: FeedDetailView(feed: feed)) {
             VStack(alignment: .leading, spacing: 0) {
@@ -1402,7 +1402,7 @@ fileprivate struct HomeTileNewShowCard: View {
                                 .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                        .stroke(Color.white.opacity(0.12), lineWidth: 0.8)
+                                        .stroke(Color.white.opacity(0.14), lineWidth: 0.8)
                                 )
                                 .shadow(color: Color.black.opacity(0.24), radius: 8, x: 0, y: 4)
                                 .onAppear {
@@ -1418,7 +1418,7 @@ fileprivate struct HomeTileNewShowCard: View {
                     }
                     Spacer()
                 }
-                .padding(.top, 14)
+                .padding(.top, 16)
 
                 Spacer(minLength: 8)
 
@@ -1442,8 +1442,6 @@ fileprivate struct HomeTileNewShowCard: View {
                             .multilineTextAlignment(.leading)
                     }
 
-                    Spacer(minLength: 6)
-
                     // 3. Bottom Bar: author on left, "+" subscribe on right
                     HStack(alignment: .center) {
                         HStack(spacing: 4) {
@@ -1462,16 +1460,17 @@ fileprivate struct HomeTileNewShowCard: View {
                             onToggleSubscribe()
                         } label: {
                             Image(systemName: isSubscribed ? "checkmark" : "plus")
-                                .font(.system(size: 12, weight: .bold))
+                                .font(.system(size: 13, weight: .bold))
                                 .foregroundStyle(Color.white)
-                                .frame(width: 28, height: 28)
+                                .frame(width: 32, height: 32)
                                 .background(Color.white.opacity(0.20), in: Circle())
                         }
                         .buttonStyle(.plain)
                     }
+                    .padding(.top, 4)
                 }
-                .padding(.horizontal, 14)
-                .padding(.bottom, 14)
+                .padding(.horizontal, 16)
+                .padding(.bottom, 16)
             }
             .frame(width: cardWidth, height: cardHeight)
             .background(
@@ -1515,7 +1514,7 @@ fileprivate struct HomeTileChannelCard: View {
         let synopsis = homeStripHTML(feed.description)
         let slogan = !synopsis.isEmpty ? synopsis : (feed.genre.map { "\($0) 领域优质播客" } ?? "探索优质音频节目")
         let coverUrl = URL(string: feed.proxiedCoverUrl)
-        let artworkSize: CGFloat = min(cardWidth - 28, cardHeight * 0.46)
+        let artworkSize: CGFloat = min(cardWidth - 32, cardHeight * 0.45)
 
         NavigationLink(destination: FeedDetailView(feed: feed)) {
             VStack(alignment: .leading, spacing: 0) {
@@ -1531,7 +1530,7 @@ fileprivate struct HomeTileChannelCard: View {
                                 .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                        .stroke(Color.white.opacity(0.12), lineWidth: 0.8)
+                                        .stroke(Color.white.opacity(0.14), lineWidth: 0.8)
                                 )
                                 .shadow(color: Color.black.opacity(0.24), radius: 8, x: 0, y: 4)
                                 .onAppear {
@@ -1547,7 +1546,7 @@ fileprivate struct HomeTileChannelCard: View {
                     }
                     Spacer()
                 }
-                .padding(.top, 14)
+                .padding(.top, 16)
 
                 Spacer(minLength: 8)
 
@@ -1564,8 +1563,6 @@ fileprivate struct HomeTileChannelCard: View {
                         .foregroundStyle(Color.white.opacity(0.70))
                         .lineLimit(2)
                         .multilineTextAlignment(.leading)
-
-                    Spacer(minLength: 6)
 
                     // 3. Bottom Row: genre on left, "+" button on right
                     HStack(alignment: .center) {
@@ -1585,16 +1582,17 @@ fileprivate struct HomeTileChannelCard: View {
                             onToggleSubscribe()
                         } label: {
                             Image(systemName: isSubscribed ? "checkmark" : "plus")
-                                .font(.system(size: 12, weight: .bold))
+                                .font(.system(size: 13, weight: .bold))
                                 .foregroundStyle(Color.white)
-                                .frame(width: 28, height: 28)
+                                .frame(width: 32, height: 32)
                                 .background(Color.white.opacity(0.20), in: Circle())
                         }
                         .buttonStyle(.plain)
                     }
+                    .padding(.top, 4)
                 }
-                .padding(.horizontal, 14)
-                .padding(.bottom, 14)
+                .padding(.horizontal, 16)
+                .padding(.bottom, 16)
             }
             .frame(width: cardWidth, height: cardHeight)
             .background(
