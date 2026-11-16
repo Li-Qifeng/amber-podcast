@@ -344,17 +344,18 @@ public struct LiquidGlassCapsule<Content: View>: View {
 
 // MARK: - Apple Podcasts Signature Fluid Play ButtonStyle (Physical Spring Give & Smooth Release)
 public struct ApplePlayButtonStyle: ButtonStyle {
-    public var scale: CGFloat = 0.88
-    private let impact = UIImpactFeedbackGenerator(style: .medium)
+    public var scale: CGFloat = 0.96
+    private let impact = UIImpactFeedbackGenerator(style: .light)
 
-    public init(scale: CGFloat = 0.88) {
+    public init(scale: CGFloat = 0.96) {
         self.scale = scale
     }
 
     public func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .scaleEffect(configuration.isPressed ? scale : 1.0)
-            .animation(.spring(response: 0.20, dampingFraction: 0.60), value: configuration.isPressed)
+            .opacity(configuration.isPressed ? 0.78 : 1.0)
+            .animation(.spring(response: 0.22, dampingFraction: 0.65), value: configuration.isPressed)
             .onChange(of: configuration.isPressed) { isPressed in
                 if isPressed {
                     impact.prepare()
@@ -364,7 +365,7 @@ public struct ApplePlayButtonStyle: ButtonStyle {
     }
 }
 
-// MARK: - Apple Podcasts Signature Expanding Play Capsule (With Animated Equalizer & Mini Progress Bar)
+// MARK: - Apple Podcasts Signature Expanding Play Capsule (Unslop Native Standard)
 public struct AppleExpandingPlayCapsule: View {
     public var isPlaying: Bool
     public var isCurrent: Bool
@@ -395,68 +396,47 @@ public struct AppleExpandingPlayCapsule: View {
         self.action = action
     }
 
+    private var isLightBackground: Bool {
+        if let bg = cardBackgroundColor {
+            return AmberColorPalette.luminance(of: bg) > 0.55
+        }
+        return false
+    }
+
     private var resolvedForeground: Color {
         if let fg = foregroundColor { return fg }
-        if let bg = cardBackgroundColor {
-            let lum = AmberColorPalette.luminance(of: bg)
-            return lum > 0.55 ? Color(red: 0.10, green: 0.10, blue: 0.12) : Color.white
-        }
-        return Color.white
+        return isLightBackground ? Color.white : Color(red: 0.08, green: 0.08, blue: 0.10)
     }
 
     private var resolvedCapsuleFill: Color {
-        if let bg = cardBackgroundColor {
-            let lum = AmberColorPalette.luminance(of: bg)
-            return lum > 0.55 ? Color.black.opacity(0.08) : Color.white.opacity(0.18)
-        }
-        return Color.white.opacity(0.18)
+        return isLightBackground ? Color(red: 0.10, green: 0.10, blue: 0.12) : Color.white
     }
 
     public var body: some View {
         Button(action: action) {
-            HStack(spacing: 6) {
-                if isPlaying {
-                    EqualizerWaveformView(isPlaying: true, color: resolvedForeground, barCount: 4)
-                } else {
-                    Image(systemName: "play.fill")
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundStyle(resolvedForeground)
-                }
+            HStack(spacing: 5) {
+                Image(systemName: isPlaying ? "pause.fill" : "play.fill")
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(resolvedForeground)
+
                 if !durationText.isEmpty {
                     Text(durationText)
-                        .font(.system(size: 13, weight: .semibold, design: .rounded))
+                        .font(.system(size: 12, weight: .semibold))
+                        .monospacedDigit()
                         .foregroundStyle(resolvedForeground)
                 }
             }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 8)
-            .frame(minHeight: 34)
+            .padding(.horizontal, 13)
+            .padding(.vertical, 7)
+            .frame(minHeight: 30)
             .background(
-                ZStack(alignment: .bottomLeading) {
-                    Capsule()
-                        .fill(resolvedCapsuleFill)
-
-                    Capsule()
-                        .stroke(resolvedForeground.opacity(0.12), lineWidth: 0.8)
-
-                    if isCurrent || progress > 0 {
-                        GeometryReader { geo in
-                            Capsule()
-                                .fill(resolvedForeground.opacity(0.90))
-                                .frame(width: max(4, geo.size.width * CGFloat(min(1.0, max(0.0, progress)))), height: 2)
-                        }
-                        .frame(height: 2)
-                        .padding(.horizontal, 4)
-                        .padding(.bottom, 2)
-                        .clipShape(Capsule())
-                    }
-                }
+                Capsule()
+                    .fill(resolvedCapsuleFill)
+                    .shadow(color: Color.black.opacity(0.12), radius: 3, x: 0, y: 1.5)
             )
-            .clipShape(Capsule())
         }
-        .buttonStyle(ApplePlayButtonStyle(scale: 0.90))
-        .animation(.spring(response: 0.35, dampingFraction: 0.72), value: isPlaying)
-        .animation(.spring(response: 0.35, dampingFraction: 0.72), value: isCurrent)
+        .buttonStyle(ApplePlayButtonStyle(scale: 0.96))
+        .animation(.snappy(duration: 0.2), value: isPlaying)
     }
 }
 
