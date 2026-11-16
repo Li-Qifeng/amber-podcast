@@ -1297,6 +1297,8 @@ fileprivate struct HomeTileLatestEpisodeCard: View {
 
         NavigationLink(destination: FeedDetailView(feed: feed)) {
             VStack(alignment: .leading, spacing: 0) {
+                Spacer(minLength: 14)
+
                 // 1. Artwork Section (Square, centered horizontally with subtle drop shadow)
                 HStack {
                     Spacer()
@@ -1325,8 +1327,8 @@ fileprivate struct HomeTileLatestEpisodeCard: View {
                     }
                     Spacer()
                 }
-                .padding(.top, 20)
-                .padding(.bottom, 20)
+
+                Spacer(minLength: 14)
 
                 // 2. Metadata & Action Section
                 VStack(alignment: .leading, spacing: 5) {
@@ -1351,9 +1353,7 @@ fileprivate struct HomeTileLatestEpisodeCard: View {
                             .multilineTextAlignment(.leading)
                     }
 
-                    Spacer(minLength: 4)
-
-                    // 3. Play Capsule anchored to the bottom
+                    // 3. Play Capsule directly following text (tight, unified grouping)
                     HStack {
                         AppleExpandingPlayCapsule(
                             isPlaying: isPlayingThis,
@@ -1368,6 +1368,7 @@ fileprivate struct HomeTileLatestEpisodeCard: View {
 
                         Spacer()
                     }
+                    .padding(.top, 6)
                 }
                 .padding(.horizontal, 16)
                 .padding(.bottom, 16)
@@ -1418,6 +1419,8 @@ fileprivate struct HomeTileNewShowCard: View {
 
         NavigationLink(destination: FeedDetailView(feed: feed)) {
             VStack(alignment: .leading, spacing: 0) {
+                Spacer(minLength: 14)
+
                 // 1. Artwork Section
                 HStack {
                     Spacer()
@@ -1446,8 +1449,8 @@ fileprivate struct HomeTileNewShowCard: View {
                     }
                     Spacer()
                 }
-                .padding(.top, 20)
-                .padding(.bottom, 20)
+
+                Spacer(minLength: 14)
 
                 // 2. Metadata & Typography Section
                 VStack(alignment: .leading, spacing: 5) {
@@ -1468,8 +1471,6 @@ fileprivate struct HomeTileNewShowCard: View {
                             .lineLimit(2)
                             .multilineTextAlignment(.leading)
                     }
-
-                    Spacer(minLength: 4)
 
                     // 3. Bottom Bar: author on left, "+" subscribe on right
                     HStack(alignment: .center) {
@@ -1547,6 +1548,8 @@ fileprivate struct HomeTileChannelCard: View {
 
         NavigationLink(destination: FeedDetailView(feed: feed)) {
             VStack(alignment: .leading, spacing: 0) {
+                Spacer(minLength: 14)
+
                 // 1. Channel Logo Artwork
                 HStack {
                     Spacer()
@@ -1575,8 +1578,8 @@ fileprivate struct HomeTileChannelCard: View {
                     }
                     Spacer()
                 }
-                .padding(.top, 20)
-                .padding(.bottom, 20)
+
+                Spacer(minLength: 14)
 
                 // 2. Typography & Slogan
                 VStack(alignment: .leading, spacing: 5) {
@@ -1591,8 +1594,6 @@ fileprivate struct HomeTileChannelCard: View {
                         .foregroundStyle(Color.white.opacity(0.70))
                         .lineLimit(2)
                         .multilineTextAlignment(.leading)
-
-                    Spacer(minLength: 4)
 
                     // 3. Bottom Row: genre on left, "+" button on right
                     HStack(alignment: .center) {
