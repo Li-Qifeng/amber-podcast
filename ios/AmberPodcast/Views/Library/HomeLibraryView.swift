@@ -1325,20 +1325,20 @@ fileprivate struct HomeTileLatestEpisodeCard: View {
                     }
                     Spacer()
                 }
-                .padding(.top, 22)
-
-                Spacer(minLength: 8)
+                .padding(.top, 20)
+                .padding(.bottom, 20)
 
                 // 2. Metadata & Action Section
                 VStack(alignment: .leading, spacing: 5) {
                     if !dateStr.isEmpty {
                         Text(dateStr)
-                            .font(.system(size: 13, weight: .semibold, design: .rounded))
+                            .font(.system(size: 13, weight: .semibold))
+                            .monospacedDigit()
                             .foregroundStyle(Color.white.opacity(0.65))
                     }
 
                     Text(episode.title)
-                        .font(.system(size: 17, weight: .bold, design: .rounded))
+                        .font(.system(size: 17, weight: .bold))
                         .foregroundStyle(Color.white)
                         .lineLimit(2)
                         .multilineTextAlignment(.leading)
@@ -1351,7 +1351,9 @@ fileprivate struct HomeTileLatestEpisodeCard: View {
                             .multilineTextAlignment(.leading)
                     }
 
-                    // 3. Play Capsule directly following text (tight, unified grouping)
+                    Spacer(minLength: 4)
+
+                    // 3. Play Capsule anchored to the bottom
                     HStack {
                         AppleExpandingPlayCapsule(
                             isPlaying: isPlayingThis,
@@ -1366,7 +1368,6 @@ fileprivate struct HomeTileLatestEpisodeCard: View {
 
                         Spacer()
                     }
-                    .padding(.top, 4)
                 }
                 .padding(.horizontal, 16)
                 .padding(.bottom, 16)
@@ -1445,18 +1446,17 @@ fileprivate struct HomeTileNewShowCard: View {
                     }
                     Spacer()
                 }
-                .padding(.top, 22)
-
-                Spacer(minLength: 8)
+                .padding(.top, 20)
+                .padding(.bottom, 20)
 
                 // 2. Metadata & Typography Section
                 VStack(alignment: .leading, spacing: 5) {
                     Text(tag)
-                        .font(.system(size: 13, weight: .semibold, design: .rounded))
+                        .font(.system(size: 13, weight: .semibold))
                         .foregroundStyle(Color.white.opacity(0.65))
 
                     Text(feed.title)
-                        .font(.system(size: 17, weight: .bold, design: .rounded))
+                        .font(.system(size: 17, weight: .bold))
                         .foregroundStyle(Color.white)
                         .lineLimit(1)
                         .multilineTextAlignment(.leading)
@@ -1468,6 +1468,8 @@ fileprivate struct HomeTileNewShowCard: View {
                             .lineLimit(2)
                             .multilineTextAlignment(.leading)
                     }
+
+                    Spacer(minLength: 4)
 
                     // 3. Bottom Bar: author on left, "+" subscribe on right
                     HStack(alignment: .center) {
@@ -1573,14 +1575,13 @@ fileprivate struct HomeTileChannelCard: View {
                     }
                     Spacer()
                 }
-                .padding(.top, 22)
-
-                Spacer(minLength: 8)
+                .padding(.top, 20)
+                .padding(.bottom, 20)
 
                 // 2. Typography & Slogan
                 VStack(alignment: .leading, spacing: 5) {
                     Text(feed.title)
-                        .font(.system(size: 17, weight: .bold, design: .rounded))
+                        .font(.system(size: 17, weight: .bold))
                         .foregroundStyle(Color.white)
                         .lineLimit(1)
                         .multilineTextAlignment(.leading)
@@ -1590,6 +1591,8 @@ fileprivate struct HomeTileChannelCard: View {
                         .foregroundStyle(Color.white.opacity(0.70))
                         .lineLimit(2)
                         .multilineTextAlignment(.leading)
+
+                    Spacer(minLength: 4)
 
                     // 3. Bottom Row: genre on left, "+" button on right
                     HStack(alignment: .center) {
