@@ -150,6 +150,7 @@ public struct HomeLibraryView: View {
     private func latestEpisodesShelf() -> some View {
         if let ep = heroEpisode, let feed = heroFeed {
             let cardWidth = screenWidth * 0.70
+            let cardHeight = cardWidth * 4.0 / 3.0
 
             VStack(alignment: .leading, spacing: 16) {
                 sectionTitle("最新单集")
@@ -157,7 +158,14 @@ public struct HomeLibraryView: View {
 
                 ScrollView(.horizontal, showsIndicators: false) {
                     LazyHStack(spacing: AmberTheme.cardGap) {
-                        latestEpisodeCard(episode: ep, feed: feed, cardWidth: cardWidth)
+                        HomeTileLatestEpisodeCard(
+                            episode: ep,
+                            feed: feed,
+                            cardWidth: cardWidth,
+                            cardHeight: cardHeight,
+                            player: player,
+                            onPlay: { playEpisode(ep, feed: feed) }
+                        )
                     }
                     .padding(.horizontal, AmberTheme.pageMargin)
                     .scrollTargetLayout()
@@ -288,126 +296,8 @@ public struct HomeLibraryView: View {
         .contentShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
     }
 
-    private func latestEpisodeCard(episode: Episode, feed: PodcastFeed, cardWidth: CGFloat) -> some View {
-        let cardHeight: CGFloat = cardWidth * 4.0 / 3.0
-        let isCurrent = player.currentEpisode?.id == episode.id
-        let isPlayingThis = isCurrent && player.isPlaying
-        let liveProgress = isCurrent && player.duration > 0
-            ? (player.currentTime / player.duration)
-            : Double(episode.progress) / 100.0
-        let dateStr = AmberDate.relative(episode.pubDate)
-        let synopsis = stripHTML(episode.shownotes)
-        let rawCover = (episode.imageUrl?.isEmpty == false) ? episode.imageUrl! : feed.proxiedCoverUrl
-
-        return ZStack(alignment: .bottom) {
-            // ① 封面展示：单集封面优先，无则回退频道封面
-            Group {
-                if let url = URL(string: rawCover), !rawCover.isEmpty {
-                    CachedAsyncImage(url: url) { img in
-                        img
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: cardWidth, height: cardHeight)
-                            .clipped()
-                    } placeholder: {
-                        coverPlaceholder(width: cardWidth, height: cardHeight, title: feed.title)
-                    }
-                } else {
-                    coverPlaceholder(width: cardWidth, height: cardHeight, title: feed.title)
-                }
-            }
-            .frame(width: cardWidth, height: cardHeight)
-
-            // ② 遮罩与文字：下半部分高斯模糊渐变毛玻璃遮罩
-            VStack(alignment: .leading, spacing: 6) {
-                // ③ 时间显示：相对时间（大两号至 13pt）
-                if !dateStr.isEmpty {
-                    Text(dateStr)
-                        .font(.system(size: 13, weight: .semibold, design: .rounded))
-                        .foregroundStyle(Color.white.opacity(0.75))
-                }
-
-                // 单集标题（大两号至 17pt）
-                Text(episode.title)
-                    .font(.system(size: 17, weight: .bold, design: .rounded))
-                    .foregroundStyle(AmberTheme.labelPrimary)
-                    .lineLimit(2)
-                    .multilineTextAlignment(.leading)
-
-                // 简介（大两号至 14pt）
-                if !synopsis.isEmpty {
-                    Text(synopsis)
-                        .font(.system(size: 14, weight: .regular))
-                        .foregroundStyle(AmberTheme.labelSecondary)
-                        .lineLimit(2)
-                        .multilineTextAlignment(.leading)
-                }
-
-                Spacer(minLength: 4)
-
-                // 播放胶囊
-                HStack {
-                    AppleExpandingPlayCapsule(
-                        isPlaying: isPlayingThis,
-                        isCurrent: isCurrent,
-                        progress: liveProgress,
-                        durationText: formatDuration(Double(episode.duration)),
-                        tintColor: AmberTheme.primaryAmber
-                    ) {
-                        playEpisode(episode, feed: feed)
-                    }
-
-                    Spacer()
-                }
-            }
-            .padding(.horizontal, 14)
-            .padding(.top, 14)
-            .padding(.bottom, 12)
-            .frame(width: cardWidth, height: cardHeight * 0.48, alignment: .leading)
-            .background(
-                Rectangle()
-                    .fill(.ultraThinMaterial)
-                    .mask(
-                        LinearGradient(
-                            stops: [
-                                .init(color: .clear, location: 0.0),
-                                .init(color: .black.opacity(0.85), location: 0.18),
-                                .init(color: .black, location: 1.0)
-                            ],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-            )
-        }
-        .frame(width: cardWidth, height: cardHeight)
-        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-        .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-    }
-
     private func coverPlaceholder(width: CGFloat, height: CGFloat, title: String) -> some View {
-        // Soft brand-grey "loading" plate — a near-black block reads as a
-        // missing image on tinted pages, so keep it light and quiet.
-        ZStack {
-            RoundedRectangle(cornerRadius: 0, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: [AmberTheme.surfaceRaised, AmberTheme.surfaceRaised.opacity(0.72)],
-                        startPoint: .topLeading, endPoint: .bottomTrailing
-                    )
-                )
-            VStack(spacing: 6) {
-                Image(systemName: "waveform")
-                    .font(.system(size: min(width, height) * 0.22, weight: .light))
-                    .foregroundStyle(AmberTheme.labelTertiary)
-                Text(title)
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(AmberTheme.labelSecondary)
-                    .lineLimit(1)
-                    .padding(.horizontal, 8)
-            }
-        }
-        .frame(width: width, height: height)
+        homeArtworkPlaceholder(width: width, height: height, title: title)
     }
 
     // MARK: - 2. 继续收听 (same transparent row language as 你可能错过了)
@@ -769,7 +659,14 @@ public struct HomeLibraryView: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     LazyHStack(spacing: AmberTheme.cardGap) {
                         ForEach(shows) { feed in
-                            newShowsForYouCard(feed: feed, cardWidth: cardWidth, cardHeight: cardHeight)
+                            let isSubscribed = feeds.contains(where: { $0.id == feed.id || $0.title.lowercased() == feed.title.lowercased() })
+                            HomeTileNewShowCard(
+                                feed: feed,
+                                cardWidth: cardWidth,
+                                cardHeight: cardHeight,
+                                isSubscribed: isSubscribed,
+                                onToggleSubscribe: { toggleSubscribe(feed: feed) }
+                            )
                         }
                     }
                     .padding(.horizontal, AmberTheme.pageMargin)
@@ -779,103 +676,6 @@ public struct HomeLibraryView: View {
                 .scrollClipDisabled()
             }
         }
-    }
-
-    private func newShowsForYouCard(feed: PodcastFeed, cardWidth: CGFloat, cardHeight: CGFloat) -> some View {
-        let synopsis = stripHTML(feed.description)
-        let isSubscribed = feeds.contains(where: { $0.id == feed.id || $0.title.lowercased() == feed.title.lowercased() })
-        let tag = feed.genre ?? feed.editorialTag ?? "精选推荐"
-
-        return NavigationLink(destination: FeedDetailView(feed: feed)) {
-            ZStack(alignment: .bottom) {
-                // 1. Full-bleed Artwork
-                Group {
-                    if let url = URL(string: feed.proxiedCoverUrl), !feed.proxiedCoverUrl.isEmpty {
-                        CachedAsyncImage(url: url) { img in
-                            img
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: cardWidth, height: cardHeight)
-                                .clipped()
-                        } placeholder: {
-                            coverPlaceholder(width: cardWidth, height: cardHeight, title: feed.title)
-                        }
-                    } else {
-                        coverPlaceholder(width: cardWidth, height: cardHeight, title: feed.title)
-                    }
-                }
-                .frame(width: cardWidth, height: cardHeight)
-
-                // 2. Glass blur gradient mask overlay on the bottom half
-                VStack(alignment: .leading, spacing: 6) {
-                    // Tag & category板块（放大两号至 13pt）
-                    Text(tag)
-                        .font(.system(size: 13, weight: .semibold, design: .rounded))
-                        .foregroundStyle(Color.white.opacity(0.75))
-
-                    // Description / synopsis (放大两号至 15pt, 2 lines)
-                    if !synopsis.isEmpty {
-                        Text(synopsis)
-                            .font(.system(size: 15, weight: .medium))
-                            .foregroundStyle(AmberTheme.labelPrimary)
-                            .lineLimit(2)
-                            .multilineTextAlignment(.leading)
-                    }
-
-                    Spacer(minLength: 4)
-
-                    // Bottom bar: rating/author on left, "+" subscribe button on right
-                    HStack(alignment: .center) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "star.fill")
-                                .font(.system(size: 10))
-                                .foregroundStyle(Color.white.opacity(0.8))
-                            Text("精选 · \(feed.author.isEmpty ? feed.title : feed.author)")
-                                .font(.system(size: 11, weight: .regular))
-                                .foregroundStyle(AmberTheme.labelSecondary)
-                                .lineLimit(1)
-                        }
-
-                        Spacer()
-
-                        // "+" button for subscribe
-                        Button {
-                            toggleSubscribe(feed: feed)
-                        } label: {
-                            Image(systemName: isSubscribed ? "checkmark" : "plus")
-                                .font(.system(size: 12, weight: .bold))
-                                .foregroundStyle(AmberTheme.labelPrimary)
-                                .frame(width: 28, height: 28)
-                                .background(Color.white.opacity(0.20), in: Circle())
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-                .padding(.horizontal, 14)
-                .padding(.top, 14)
-                .padding(.bottom, 12)
-                .frame(width: cardWidth, height: cardHeight * 0.48, alignment: .leading)
-                .background(
-                    Rectangle()
-                        .fill(.ultraThinMaterial)
-                        .mask(
-                            LinearGradient(
-                                stops: [
-                                    .init(color: .clear, location: 0.0),
-                                    .init(color: .black.opacity(0.85), location: 0.18),
-                                    .init(color: .black, location: 1.0)
-                                ],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        )
-                )
-            }
-            .frame(width: cardWidth, height: cardHeight)
-            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-            .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-        }
-        .buttonStyle(.plain)
     }
 
     // MARK: - 6. 试试这些频道 (Apple Large Control - Unified Hero Card)
@@ -893,7 +693,14 @@ public struct HomeLibraryView: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     LazyHStack(spacing: AmberTheme.cardGap) {
                         ForEach(channels) { feed in
-                            channelToTryCard(feed: feed, cardWidth: cardWidth, cardHeight: cardHeight)
+                            let isSubscribed = feeds.contains(where: { $0.id == feed.id || $0.title.lowercased() == feed.title.lowercased() })
+                            HomeTileChannelCard(
+                                feed: feed,
+                                cardWidth: cardWidth,
+                                cardHeight: cardHeight,
+                                isSubscribed: isSubscribed,
+                                onToggleSubscribe: { toggleSubscribe(feed: feed) }
+                            )
                         }
                     }
                     .padding(.horizontal, AmberTheme.pageMargin)
@@ -903,96 +710,6 @@ public struct HomeLibraryView: View {
                 .scrollClipDisabled()
             }
         }
-    }
-
-    private func channelToTryCard(feed: PodcastFeed, cardWidth: CGFloat, cardHeight: CGFloat) -> some View {
-        let synopsis = stripHTML(feed.description)
-        let isSubscribed = feeds.contains(where: { $0.id == feed.id || $0.title.lowercased() == feed.title.lowercased() })
-        let slogan = !synopsis.isEmpty ? synopsis : (feed.genre.map { "\($0) 领域优质播客" } ?? "探索优质音频节目")
-
-        return NavigationLink(destination: FeedDetailView(feed: feed)) {
-            ZStack(alignment: .bottom) {
-                // 1. Full-bleed Channel Logo
-                Group {
-                    if let url = URL(string: feed.proxiedCoverUrl), !feed.proxiedCoverUrl.isEmpty {
-                        CachedAsyncImage(url: url) { img in
-                            img
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: cardWidth, height: cardHeight)
-                                .clipped()
-                        } placeholder: {
-                            coverPlaceholder(width: cardWidth, height: cardHeight, title: feed.title)
-                        }
-                    } else {
-                        coverPlaceholder(width: cardWidth, height: cardHeight, title: feed.title)
-                    }
-                }
-                .frame(width: cardWidth, height: cardHeight)
-
-                // 2. Glass blur gradient mask overlay on the bottom half
-                // 注意：logo自带频道名，底部不重复写频道名，专注展示频道宗旨与slogan
-                VStack(alignment: .leading, spacing: 6) {
-                    // Slogan / Purpose description (放大两号至 15pt)
-                    Text(slogan)
-                        .font(.system(size: 15, weight: .semibold, design: .rounded))
-                        .foregroundStyle(AmberTheme.labelPrimary)
-                        .lineLimit(2)
-                        .multilineTextAlignment(.leading)
-
-                    Spacer(minLength: 4)
-
-                    // Bottom row: genre tag on left, "+" button on right
-                    HStack(alignment: .center) {
-                        if let g = feed.genre, !g.isEmpty {
-                            Text(g)
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundStyle(Color.white.opacity(0.70))
-                        } else if !feed.author.isEmpty {
-                            Text(feed.author)
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundStyle(Color.white.opacity(0.70))
-                        }
-
-                        Spacer()
-
-                        Button {
-                            toggleSubscribe(feed: feed)
-                        } label: {
-                            Image(systemName: isSubscribed ? "checkmark" : "plus")
-                                .font(.system(size: 12, weight: .bold))
-                                .foregroundStyle(AmberTheme.labelPrimary)
-                                .frame(width: 28, height: 28)
-                                .background(Color.white.opacity(0.20), in: Circle())
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-                .padding(.horizontal, 14)
-                .padding(.top, 14)
-                .padding(.bottom, 12)
-                .frame(width: cardWidth, height: cardHeight * 0.48, alignment: .leading)
-                .background(
-                    Rectangle()
-                        .fill(.ultraThinMaterial)
-                        .mask(
-                            LinearGradient(
-                                stops: [
-                                    .init(color: .clear, location: 0.0),
-                                    .init(color: .black.opacity(0.85), location: 0.18),
-                                    .init(color: .black, location: 1.0)
-                                ],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        )
-                )
-            }
-            .frame(width: cardWidth, height: cardHeight)
-            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-            .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-        }
-        .buttonStyle(.plain)
     }
 
     // MARK: - 7. 探索更多 (Apple "More to Discover" grid — same row language as 你可能错过了)
@@ -1446,18 +1163,7 @@ public struct HomeLibraryView: View {
     }
 
     private func formatDuration(_ seconds: Double) -> String {
-        guard seconds > 0 else { return "" }
-        let total = Int(seconds)
-        let hours = total / 3600
-        let minutes = (total % 3600) / 60
-        let secs = total % 60
-        if hours > 0 {
-            return "\(hours)小时\(minutes)分"
-        } else if minutes > 0 {
-            return "\(minutes)分钟"
-        } else {
-            return "\(secs)秒"
-        }
+        homeFormatDuration(seconds)
     }
 
     /// Apple "Title ›" section header language.
@@ -1473,8 +1179,7 @@ public struct HomeLibraryView: View {
     }
 
     private func stripHTML(_ text: String) -> String {
-        text.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
-            .trimmingCharacters(in: .whitespacesAndNewlines)
+        homeStripHTML(text)
     }
 
     private static func localizedDate(_ s: String) -> String {
@@ -1485,6 +1190,438 @@ public struct HomeLibraryView: View {
     private func podcastSubtitle(_ feed: PodcastFeed) -> String {
         if let g = feed.genre, !g.isEmpty { return g }
         return feed.author
+    }
+}
+
+// MARK: - Fileprivate Helpers for Tile Cards
+
+fileprivate func homeArtworkPlaceholder(width: CGFloat, height: CGFloat, title: String) -> some View {
+    ZStack {
+        RoundedRectangle(cornerRadius: 14, style: .continuous)
+            .fill(
+                LinearGradient(
+                    colors: [AmberTheme.surfaceRaised, AmberTheme.surfaceRaised.opacity(0.72)],
+                    startPoint: .topLeading, endPoint: .bottomTrailing
+                )
+            )
+        VStack(spacing: 6) {
+            Image(systemName: "waveform")
+                .font(.system(size: min(width, height) * 0.22, weight: .light))
+                .foregroundStyle(AmberTheme.labelTertiary)
+            Text(title)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(AmberTheme.labelSecondary)
+                .lineLimit(1)
+                .padding(.horizontal, 8)
+        }
+    }
+    .frame(width: width, height: height)
+}
+
+fileprivate func homeFormatDuration(_ seconds: Double) -> String {
+    guard seconds > 0 else { return "" }
+    let total = Int(seconds)
+    let hours = total / 3600
+    let minutes = (total % 3600) / 60
+    let secs = total % 60
+    if hours > 0 {
+        return "\(hours)小时\(minutes)分"
+    } else if minutes > 0 {
+        return "\(minutes)分钟"
+    } else {
+        return "\(secs)秒"
+    }
+}
+
+fileprivate func homeStripHTML(_ text: String) -> String {
+    text.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
+        .trimmingCharacters(in: .whitespacesAndNewlines)
+}
+
+// MARK: - Apple Tile Cards (Small Square Cover + Auto Dominant Color Background)
+
+fileprivate struct HomeTileLatestEpisodeCard: View {
+    let episode: Episode
+    let feed: PodcastFeed
+    let cardWidth: CGFloat
+    let cardHeight: CGFloat
+    @ObservedObject var player: DualTrackAudioPlayer
+    let onPlay: () -> Void
+
+    @State private var dominantColor: Color? = nil
+
+    private var liveProgress: Double {
+        let isCurrent = player.currentEpisode?.id == episode.id
+        return isCurrent && player.duration > 0
+            ? (player.currentTime / player.duration)
+            : Double(episode.progress) / 100.0
+    }
+
+    private var isPlayingThis: Bool {
+        player.currentEpisode?.id == episode.id && player.isPlaying
+    }
+
+    var body: some View {
+        let rawCover = (episode.imageUrl?.isEmpty == false) ? episode.imageUrl! : feed.proxiedCoverUrl
+        let coverUrl = URL(string: rawCover)
+        let artworkSize: CGFloat = min(cardWidth - 28, cardHeight * 0.46)
+        let dateStr = AmberDate.relative(episode.pubDate)
+        let synopsis = homeStripHTML(episode.shownotes)
+
+        NavigationLink(destination: FeedDetailView(feed: feed)) {
+            VStack(alignment: .leading, spacing: 0) {
+                // 1. Artwork Section (Square, centered horizontally with subtle drop shadow)
+                HStack {
+                    Spacer()
+                    if let url = coverUrl, !rawCover.isEmpty {
+                        CachedAsyncImageWithUI(url: url) { img, uiImg in
+                            img
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: artworkSize, height: artworkSize)
+                                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                        .stroke(Color.white.opacity(0.12), lineWidth: 0.8)
+                                )
+                                .shadow(color: Color.black.opacity(0.24), radius: 8, x: 0, y: 4)
+                                .onAppear {
+                                    if dominantColor == nil {
+                                        dominantColor = AmberColorPalette.shared.dominantColor(for: uiImg, key: url.absoluteString)
+                                    }
+                                }
+                        } placeholder: {
+                            homeArtworkPlaceholder(width: artworkSize, height: artworkSize, title: feed.title)
+                        }
+                    } else {
+                        homeArtworkPlaceholder(width: artworkSize, height: artworkSize, title: feed.title)
+                    }
+                    Spacer()
+                }
+                .padding(.top, 14)
+
+                Spacer(minLength: 8)
+
+                // 2. Metadata & Typography Section
+                VStack(alignment: .leading, spacing: 5) {
+                    if !dateStr.isEmpty {
+                        Text(dateStr)
+                            .font(.system(size: 13, weight: .semibold, design: .rounded))
+                            .foregroundStyle(Color.white.opacity(0.65))
+                    }
+
+                    Text(episode.title)
+                        .font(.system(size: 17, weight: .bold, design: .rounded))
+                        .foregroundStyle(Color.white)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
+
+                    if !synopsis.isEmpty {
+                        Text(synopsis)
+                            .font(.system(size: 14, weight: .regular))
+                            .foregroundStyle(Color.white.opacity(0.65))
+                            .lineLimit(2)
+                            .multilineTextAlignment(.leading)
+                    }
+
+                    Spacer(minLength: 6)
+
+                    // 3. Play Capsule at bottom
+                    HStack {
+                        AppleExpandingPlayCapsule(
+                            isPlaying: isPlayingThis,
+                            isCurrent: player.currentEpisode?.id == episode.id,
+                            progress: liveProgress,
+                            durationText: homeFormatDuration(Double(episode.duration)),
+                            tintColor: AmberTheme.primaryAmber
+                        ) {
+                            onPlay()
+                        }
+
+                        Spacer()
+                    }
+                }
+                .padding(.horizontal, 14)
+                .padding(.bottom, 14)
+            }
+            .frame(width: cardWidth, height: cardHeight)
+            .background(
+                LinearGradient(
+                    colors: [
+                        dominantColor ?? AmberTheme.surfaceRaised,
+                        (dominantColor ?? AmberTheme.surfaceRaised).opacity(0.85)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                ),
+                in: RoundedRectangle(cornerRadius: 22, style: .continuous)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    .stroke(Color.white.opacity(0.08), lineWidth: 0.8)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+            .contentShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+            .animation(.easeInOut(duration: 0.25), value: dominantColor)
+            .task(id: coverUrl) {
+                if let u = coverUrl, let cached = AmberImageCache.shared.image(for: u) {
+                    self.dominantColor = AmberColorPalette.shared.dominantColor(for: cached, key: u.absoluteString)
+                }
+            }
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+fileprivate struct HomeTileNewShowCard: View {
+    let feed: PodcastFeed
+    let cardWidth: CGFloat
+    let cardHeight: CGFloat
+    let isSubscribed: Bool
+    let onToggleSubscribe: () -> Void
+
+    @State private var dominantColor: Color? = nil
+
+    var body: some View {
+        let synopsis = homeStripHTML(feed.description)
+        let tag = feed.genre ?? feed.editorialTag ?? "精选推荐"
+        let coverUrl = URL(string: feed.proxiedCoverUrl)
+        let artworkSize: CGFloat = min(cardWidth - 28, cardHeight * 0.46)
+
+        NavigationLink(destination: FeedDetailView(feed: feed)) {
+            VStack(alignment: .leading, spacing: 0) {
+                // 1. Artwork Section
+                HStack {
+                    Spacer()
+                    if let url = coverUrl, !feed.proxiedCoverUrl.isEmpty {
+                        CachedAsyncImageWithUI(url: url) { img, uiImg in
+                            img
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: artworkSize, height: artworkSize)
+                                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                        .stroke(Color.white.opacity(0.12), lineWidth: 0.8)
+                                )
+                                .shadow(color: Color.black.opacity(0.24), radius: 8, x: 0, y: 4)
+                                .onAppear {
+                                    if dominantColor == nil {
+                                        dominantColor = AmberColorPalette.shared.dominantColor(for: uiImg, key: url.absoluteString)
+                                    }
+                                }
+                        } placeholder: {
+                            homeArtworkPlaceholder(width: artworkSize, height: artworkSize, title: feed.title)
+                        }
+                    } else {
+                        homeArtworkPlaceholder(width: artworkSize, height: artworkSize, title: feed.title)
+                    }
+                    Spacer()
+                }
+                .padding(.top, 14)
+
+                Spacer(minLength: 8)
+
+                // 2. Metadata & Typography Section
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(tag)
+                        .font(.system(size: 13, weight: .semibold, design: .rounded))
+                        .foregroundStyle(Color.white.opacity(0.65))
+
+                    Text(feed.title)
+                        .font(.system(size: 17, weight: .bold, design: .rounded))
+                        .foregroundStyle(Color.white)
+                        .lineLimit(1)
+                        .multilineTextAlignment(.leading)
+
+                    if !synopsis.isEmpty {
+                        Text(synopsis)
+                            .font(.system(size: 14, weight: .regular))
+                            .foregroundStyle(Color.white.opacity(0.65))
+                            .lineLimit(2)
+                            .multilineTextAlignment(.leading)
+                    }
+
+                    Spacer(minLength: 6)
+
+                    // 3. Bottom Bar: author on left, "+" subscribe on right
+                    HStack(alignment: .center) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "star.fill")
+                                .font(.system(size: 10))
+                                .foregroundStyle(Color.white.opacity(0.8))
+                            Text("精选 · \(feed.author.isEmpty ? feed.title : feed.author)")
+                                .font(.system(size: 12, weight: .regular))
+                                .foregroundStyle(Color.white.opacity(0.70))
+                                .lineLimit(1)
+                        }
+
+                        Spacer()
+
+                        Button {
+                            onToggleSubscribe()
+                        } label: {
+                            Image(systemName: isSubscribed ? "checkmark" : "plus")
+                                .font(.system(size: 12, weight: .bold))
+                                .foregroundStyle(Color.white)
+                                .frame(width: 28, height: 28)
+                                .background(Color.white.opacity(0.20), in: Circle())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal, 14)
+                .padding(.bottom, 14)
+            }
+            .frame(width: cardWidth, height: cardHeight)
+            .background(
+                LinearGradient(
+                    colors: [
+                        dominantColor ?? AmberTheme.surfaceRaised,
+                        (dominantColor ?? AmberTheme.surfaceRaised).opacity(0.85)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                ),
+                in: RoundedRectangle(cornerRadius: 22, style: .continuous)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    .stroke(Color.white.opacity(0.08), lineWidth: 0.8)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+            .contentShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+            .animation(.easeInOut(duration: 0.25), value: dominantColor)
+            .task(id: coverUrl) {
+                if let u = coverUrl, let cached = AmberImageCache.shared.image(for: u) {
+                    self.dominantColor = AmberColorPalette.shared.dominantColor(for: cached, key: u.absoluteString)
+                }
+            }
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+fileprivate struct HomeTileChannelCard: View {
+    let feed: PodcastFeed
+    let cardWidth: CGFloat
+    let cardHeight: CGFloat
+    let isSubscribed: Bool
+    let onToggleSubscribe: () -> Void
+
+    @State private var dominantColor: Color? = nil
+
+    var body: some View {
+        let synopsis = homeStripHTML(feed.description)
+        let slogan = !synopsis.isEmpty ? synopsis : (feed.genre.map { "\($0) 领域优质播客" } ?? "探索优质音频节目")
+        let coverUrl = URL(string: feed.proxiedCoverUrl)
+        let artworkSize: CGFloat = min(cardWidth - 28, cardHeight * 0.46)
+
+        NavigationLink(destination: FeedDetailView(feed: feed)) {
+            VStack(alignment: .leading, spacing: 0) {
+                // 1. Channel Logo Artwork
+                HStack {
+                    Spacer()
+                    if let url = coverUrl, !feed.proxiedCoverUrl.isEmpty {
+                        CachedAsyncImageWithUI(url: url) { img, uiImg in
+                            img
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: artworkSize, height: artworkSize)
+                                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                        .stroke(Color.white.opacity(0.12), lineWidth: 0.8)
+                                )
+                                .shadow(color: Color.black.opacity(0.24), radius: 8, x: 0, y: 4)
+                                .onAppear {
+                                    if dominantColor == nil {
+                                        dominantColor = AmberColorPalette.shared.dominantColor(for: uiImg, key: url.absoluteString)
+                                    }
+                                }
+                        } placeholder: {
+                            homeArtworkPlaceholder(width: artworkSize, height: artworkSize, title: feed.title)
+                        }
+                    } else {
+                        homeArtworkPlaceholder(width: artworkSize, height: artworkSize, title: feed.title)
+                    }
+                    Spacer()
+                }
+                .padding(.top, 14)
+
+                Spacer(minLength: 8)
+
+                // 2. Typography & Slogan
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(feed.title)
+                        .font(.system(size: 17, weight: .bold, design: .rounded))
+                        .foregroundStyle(Color.white)
+                        .lineLimit(1)
+                        .multilineTextAlignment(.leading)
+
+                    Text(slogan)
+                        .font(.system(size: 14, weight: .regular))
+                        .foregroundStyle(Color.white.opacity(0.70))
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
+
+                    Spacer(minLength: 6)
+
+                    // 3. Bottom Row: genre on left, "+" button on right
+                    HStack(alignment: .center) {
+                        if let g = feed.genre, !g.isEmpty {
+                            Text(g)
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundStyle(Color.white.opacity(0.65))
+                        } else if !feed.author.isEmpty {
+                            Text(feed.author)
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundStyle(Color.white.opacity(0.65))
+                        }
+
+                        Spacer()
+
+                        Button {
+                            onToggleSubscribe()
+                        } label: {
+                            Image(systemName: isSubscribed ? "checkmark" : "plus")
+                                .font(.system(size: 12, weight: .bold))
+                                .foregroundStyle(Color.white)
+                                .frame(width: 28, height: 28)
+                                .background(Color.white.opacity(0.20), in: Circle())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal, 14)
+                .padding(.bottom, 14)
+            }
+            .frame(width: cardWidth, height: cardHeight)
+            .background(
+                LinearGradient(
+                    colors: [
+                        dominantColor ?? AmberTheme.surfaceRaised,
+                        (dominantColor ?? AmberTheme.surfaceRaised).opacity(0.85)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                ),
+                in: RoundedRectangle(cornerRadius: 22, style: .continuous)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    .stroke(Color.white.opacity(0.08), lineWidth: 0.8)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+            .contentShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+            .animation(.easeInOut(duration: 0.25), value: dominantColor)
+            .task(id: coverUrl) {
+                if let u = coverUrl, let cached = AmberImageCache.shared.image(for: u) {
+                    self.dominantColor = AmberColorPalette.shared.dominantColor(for: cached, key: u.absoluteString)
+                }
+            }
+        }
+        .buttonStyle(.plain)
     }
 }
 
