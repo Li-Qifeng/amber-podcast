@@ -147,21 +147,27 @@ public struct HomeLibraryView: View {
     }
 
     // MARK: - 1. 最新单集 (Apple Podcasts card style)
-    /// Aggregated recent episodes for the hero carousel (hero drop first, followed by newest drops from feeds)
+    /// Aggregated recent episodes for the hero carousel (hero drop first, followed by newest drops from feeds, strictly 1 episode per feed)
     private var latestEpisodesList: [(Episode, PodcastFeed)] {
         var list: [(Episode, PodcastFeed)] = []
-        var seenIds = Set<String>()
+        var seenFeedIds = Set<String>()
 
         if let ep = heroEpisode, let feed = heroFeed {
             list.append((ep, feed))
-            seenIds.insert(ep.id)
+            seenFeedIds.insert(feed.id)
+            if !ep.feedId.isEmpty {
+                seenFeedIds.insert(ep.feedId)
+            }
         }
 
         for ep in recentEpisodes {
-            if !seenIds.contains(ep.id), let feed = feeds.first(where: { $0.id == ep.feedId }) {
-                list.append((ep, feed))
-                seenIds.insert(ep.id)
+            guard !seenFeedIds.contains(ep.feedId),
+                  let feed = feeds.first(where: { $0.id == ep.feedId }) else {
+                continue
             }
+            list.append((ep, feed))
+            seenFeedIds.insert(ep.feedId)
+            seenFeedIds.insert(feed.id)
             if list.count >= 10 { break }
         }
         return list
