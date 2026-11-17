@@ -99,9 +99,14 @@ def _get_setting(key: str, default: Optional[str] = None) -> str:
 
 def _int_setting(key: str, fallback: int, minimum: int = 1) -> int:
     try:
-        return max(minimum, int(_get_setting(key)))
+        return max(minimum, int(_get_setting(key, str(fallback))))
     except (TypeError, ValueError):
         return fallback
+
+
+def _bool_setting(key: str, fallback: bool = False) -> bool:
+    val = _get_setting(key, "1" if fallback else "0")
+    return val.strip().lower() in ("1", "true", "yes", "on")
 
 
 @asynccontextmanager
@@ -212,42 +217,6 @@ def _active_pipeline_count() -> int:
         ["pending", "transcribing", "translating", "synthesizing"], limit=1000))
 
 
-DEFAULT_SETTINGS: Dict[str, Any] = {
-    "max_concurrent_pipelines": 1,
-    "auto_translate_new": False,
-    "default_tts_voice": "zh-CN-YunxiNeural",
-    "min_episode_duration_sec": 300,
-    "max_episode_duration_sec": 7200,
-    "auto_archive_to_gdrive": False,
-    "keep_local_audio": True,
-    "storage_soft_ceiling_gb": 20,
-    "notification_webhook_url": "",
-    "asr_engine": "groq",
-    "llm_engine": "groq",
-    "tts_engine": "edge",
-}
-
-def _int_setting(key: str, default: int) -> int:
-    val = db.get_setting(key, DEFAULT_SETTINGS.get(key, default))
-    try:
-        return int(val)
-    except (TypeError, ValueError):
-        return default
-
-def _bool_setting(key: str, default: bool = False) -> bool:
-    val = db.get_setting(key, DEFAULT_SETTINGS.get(key, default))
-    if isinstance(val, bool):
-        return val
-    if isinstance(val, (int, float)):
-        return bool(val)
-    if isinstance(val, str):
-        return val.lower() in ("true", "1", "yes", "on")
-    return default
-
-def _setting(key: str, default: Any = None) -> Any:
-    return db.get_setting(key, DEFAULT_SETTINGS.get(key, default))
-
-
 def _enqueue_pipeline(episode_id: str) -> bool:
     """Mark an episode pending and launch the pipeline, respecting the concurrency cap.
 
@@ -264,17 +233,15 @@ def _enqueue_pipeline(episode_id: str) -> bool:
 
 def _queue_auto_translations(episode_ids: List[str]) -> int:
     """Queue newly discovered episodes for the pipeline — once, and only when
-    the feed opted into auto_translate or global auto_translate_new is enabled,
-    and the drop postdates the subscription.
+    the feed opted into auto_translate and the drop postdates the subscription.
     """
     queued = 0
-    auto_all = _bool_setting("auto_translate_new", False)
     for eid in episode_ids:
         ep = db.get_episode(eid)
         if not ep or ep.get("status") != "idle":
             continue  # already running/finished, or a duplicate from an overlap
         feed = db.get_feed(ep["feed_id"])
-        if not feed or (not feed.get("auto_translate") and not auto_all):
+        if not feed or not feed.get("auto_translate"):
             continue
         if (_pub_ts(ep.get("pub_date")) or 0) <= feed["created_at"]:
             continue  # back-catalogue drop: never auto-transcribe pre-subscribe content
