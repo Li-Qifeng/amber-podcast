@@ -1297,8 +1297,6 @@ fileprivate struct HomeTileLatestEpisodeCard: View {
 
         NavigationLink(destination: FeedDetailView(feed: feed)) {
             VStack(alignment: .leading, spacing: 0) {
-                Spacer(minLength: 14)
-
                 // 1. Artwork Section (Square, centered horizontally with subtle drop shadow)
                 HStack {
                     Spacer()
@@ -1327,8 +1325,8 @@ fileprivate struct HomeTileLatestEpisodeCard: View {
                     }
                     Spacer()
                 }
-
-                Spacer(minLength: 14)
+                .padding(.top, 16)
+                .padding(.bottom, 12)
 
                 // 2. Metadata & Action Section
                 VStack(alignment: .leading, spacing: 5) {
@@ -1419,8 +1417,6 @@ fileprivate struct HomeTileNewShowCard: View {
 
         NavigationLink(destination: FeedDetailView(feed: feed)) {
             VStack(alignment: .leading, spacing: 0) {
-                Spacer(minLength: 14)
-
                 // 1. Artwork Section
                 HStack {
                     Spacer()
@@ -1449,8 +1445,8 @@ fileprivate struct HomeTileNewShowCard: View {
                     }
                     Spacer()
                 }
-
-                Spacer(minLength: 14)
+                .padding(.top, 16)
+                .padding(.bottom, 12)
 
                 // 2. Metadata & Typography Section
                 VStack(alignment: .leading, spacing: 5) {
@@ -1548,8 +1544,6 @@ fileprivate struct HomeTileChannelCard: View {
 
         NavigationLink(destination: FeedDetailView(feed: feed)) {
             VStack(alignment: .leading, spacing: 0) {
-                Spacer(minLength: 14)
-
                 // 1. Channel Logo Artwork
                 HStack {
                     Spacer()
@@ -1578,8 +1572,8 @@ fileprivate struct HomeTileChannelCard: View {
                     }
                     Spacer()
                 }
-
-                Spacer(minLength: 14)
+                .padding(.top, 16)
+                .padding(.bottom, 12)
 
                 // 2. Typography & Slogan
                 VStack(alignment: .leading, spacing: 5) {

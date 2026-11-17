@@ -1017,7 +1017,9 @@ def get_pipeline_status(token: str = Depends(verify_token)):
     # 按播客（feed）分组，供前端「按播客分类」展示
     by_feed: Dict[str, Dict[str, Any]] = {}
     for ep in all_episodes:
-        fid = ep.get("feed_id", "") or "unknown"
+        fid = ep.get("feed_id", "")
+        if not fid or fid not in feed_map:
+            continue
         if fid not in by_feed:
             meta = feed_map.get(fid, {})
             by_feed[fid] = {

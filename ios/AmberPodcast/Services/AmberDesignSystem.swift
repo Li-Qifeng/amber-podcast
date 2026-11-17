@@ -396,47 +396,79 @@ public struct AppleExpandingPlayCapsule: View {
         self.action = action
     }
 
-    private var isLightBackground: Bool {
-        if let bg = cardBackgroundColor {
-            return AmberColorPalette.luminance(of: bg) > 0.55
-        }
-        return false
+    /// Card artwork luminance decides ink colour so the capsule never washes out.
+    private var isLightCard: Bool {
+        guard let bg = cardBackgroundColor else { return false }
+        return AmberColorPalette.luminance(of: bg) > 0.55
     }
 
-    private var resolvedForeground: Color {
+    private var ink: Color {
         if let fg = foregroundColor { return fg }
-        return isLightBackground ? Color.white : Color(red: 0.08, green: 0.08, blue: 0.10)
+        return isLightCard ? Color(red: 0.08, green: 0.08, blue: 0.10) : Color.white
     }
 
-    private var resolvedCapsuleFill: Color {
-        return isLightBackground ? Color(red: 0.10, green: 0.10, blue: 0.12) : Color.white
-    }
+    private var inkDim: Color { ink.opacity(0.55) }
+    private var inkTrack: Color { ink.opacity(0.20) }
+    private var clampedProgress: CGFloat { CGFloat(min(max(progress, 0), 1)) }
 
     public var body: some View {
         Button(action: action) {
-            HStack(spacing: 5) {
-                Image(systemName: isPlaying ? "pause.fill" : "play.fill")
-                    .font(.system(size: 11, weight: .bold))
-                    .foregroundStyle(resolvedForeground)
+            HStack(spacing: 7) {
+                // Leading glyph: play triangle when idle, live waveform while playing.
+                Group {
+                    if isPlaying {
+                        EqualizerWaveformView(
+                            isPlaying: true,
+                            color: ink,
+                            barCount: 4,
+                            barWidth: 2,
+                            maxHeight: 11
+                        )
+                        .transition(.opacity.combined(with: .scale(scale: 0.7)))
+                    } else {
+                        Image(systemName: "play.fill")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundStyle(ink)
+                            .transition(.opacity.combined(with: .scale(scale: 0.7)))
+                    }
+                }
+                .frame(width: 13, height: 11)
+
+                // Plain hairline progress bar — only once the episode is loaded.
+                if isCurrent && clampedProgress > 0 {
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            Capsule()
+                                .fill(inkTrack)
+                                .frame(height: 2)
+                            Capsule()
+                                .fill(ink)
+                                .frame(width: max(2, geo.size.width * clampedProgress), height: 2)
+                        }
+                        .frame(maxHeight: .infinity, alignment: .center)
+                    }
+                    .frame(width: 46, height: 11)
+                    .transition(.opacity.combined(with: .scale(scale: 0.85, anchor: .leading)))
+                }
 
                 if !durationText.isEmpty {
                     Text(durationText)
                         .font(.system(size: 12, weight: .semibold))
                         .monospacedDigit()
-                        .foregroundStyle(resolvedForeground)
+                        .foregroundStyle(ink)
                 }
             }
-            .padding(.horizontal, 13)
-            .padding(.vertical, 7)
-            .frame(minHeight: 30)
-            .background(
-                Capsule()
-                    .fill(resolvedCapsuleFill)
-                    .shadow(color: Color.black.opacity(0.12), radius: 3, x: 0, y: 1.5)
-            )
+            .padding(.horizontal, 11)
+            .padding(.vertical, 5)
+            .frame(minHeight: 28)
+            // Frosted glass, no stroke — Apple's material carries its own edge.
+            .background(.ultraThinMaterial, in: Capsule())
+            .shadow(color: Color.black.opacity(0.10), radius: 4, x: 0, y: 2)
         }
         .buttonStyle(ApplePlayButtonStyle(scale: 0.96))
-        .animation(.snappy(duration: 0.2), value: isPlaying)
+        .animation(.spring(response: 0.36, dampingFraction: 0.82), value: isPlaying)
+        .animation(.spring(response: 0.36, dampingFraction: 0.82), value: isCurrent)
+        .animation(.linear(duration: 0.25), value: clampedProgress)
     }
 }
 
@@ -445,22 +477,32 @@ public struct EqualizerWaveformView: View {
     public var isPlaying: Bool
     public var color: Color
     public var barCount: Int
+    public var barWidth: CGFloat
+    public var maxHeight: CGFloat
 
-    public init(isPlaying: Bool = true, color: Color = AmberTheme.labelPrimary, barCount: Int = 4) {
+    public init(
+        isPlaying: Bool = true,
+        color: Color = AmberTheme.labelPrimary,
+        barCount: Int = 4,
+        barWidth: CGFloat = 2.2,
+        maxHeight: CGFloat = 12
+    ) {
         self.isPlaying = isPlaying
         self.color = color
         self.barCount = barCount
+        self.barWidth = barWidth
+        self.maxHeight = maxHeight
     }
 
     @State private var phase: CGFloat = 0.0
 
     public var body: some View {
-        HStack(alignment: .center, spacing: 2) {
+        HStack(alignment: .center, spacing: 1.5) {
             ForEach(0..<barCount, id: \.self) { index in
                 bar(index: index)
             }
         }
-        .frame(height: 12)
+        .frame(height: maxHeight)
         .onAppear {
             if isPlaying {
                 withAnimation(.easeInOut(duration: 0.55).repeatForever(autoreverses: true)) {
@@ -482,14 +524,21 @@ public struct EqualizerWaveformView: View {
     }
 
     private func bar(index: Int) -> some View {
-        let heights: [CGFloat] = [4, 10, 6, 8]
+        let heights: [CGFloat] = [0.42, 1.0, 0.62, 0.82]
         let baseHeight = heights[index % heights.count]
-        let dynamicHeight = isPlaying ? (baseHeight + (phase > 0.5 ? 4 : -2)) : 3.0
+        let dynamicHeight = isPlaying
+            ? maxHeight * (baseHeight + (phase > 0.5 ? 0.18 : -0.22))
+            : maxHeight * 0.26
 
-        return RoundedRectangle(cornerRadius: 1, style: .continuous)
+        return RoundedRectangle(cornerRadius: barWidth / 2, style: .continuous)
             .fill(color)
-            .frame(width: 2.2, height: max(2.5, min(12, dynamicHeight)))
-            .animation(.easeInOut(duration: 0.25).repeatForever(autoreverses: true).delay(Double(index) * 0.12), value: phase)
+            .frame(width: barWidth, height: max(3, min(maxHeight, dynamicHeight)))
+            .animation(
+                .easeInOut(duration: 0.32)
+                    .repeatForever(autoreverses: true)
+                    .delay(Double(index) * 0.10),
+                value: phase
+            )
     }
 }
 

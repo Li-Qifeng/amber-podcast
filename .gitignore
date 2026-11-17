@@ -16,3 +16,5 @@ DerivedData/
 .DS_Store
 *.swp
 ci_screenshots/
+.worktrees/
+data/archive/
