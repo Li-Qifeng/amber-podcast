@@ -228,15 +228,17 @@ def _enqueue_pipeline(episode_id: str) -> bool:
 
 def _queue_auto_translations(episode_ids: List[str]) -> int:
     """Queue newly discovered episodes for the pipeline — once, and only when
-    the feed opted into auto_translate and the drop postdates the subscription.
+    the feed opted into auto_translate or global auto_translate_new is enabled,
+    and the drop postdates the subscription.
     """
     queued = 0
+    auto_all = _bool_setting("auto_translate_new", False)
     for eid in episode_ids:
         ep = db.get_episode(eid)
         if not ep or ep.get("status") != "idle":
             continue  # already running/finished, or a duplicate from an overlap
         feed = db.get_feed(ep["feed_id"])
-        if not feed or not feed.get("auto_translate"):
+        if not feed or (not feed.get("auto_translate") and not auto_all):
             continue
         if (_pub_ts(ep.get("pub_date")) or 0) <= feed["created_at"]:
             continue  # back-catalogue drop: never auto-transcribe pre-subscribe content
@@ -809,7 +811,22 @@ async def run_pipeline_task(episode_id: str):
                 f.write(resp.content)
 
         # Step 2: Language detection & routing
-        is_chinese = any('\u4e00' <= c <= '\u9fff' for c in ep.get("title", "")) or ep.get("feed_id", "").startswith("xyz_")
+        # Multi-factor Chinese podcast detection:
+        # 1. Episode title contains Chinese characters
+        # 2. Feed title contains Chinese characters
+        # 3. Feed originates from Xiaoyuzhou (xyz_*)
+        # 4. Episode shownotes contains Chinese content
+        feed = db.get_feed(ep.get("feed_id", "")) or {}
+        feed_title = feed.get("title", "")
+        ep_title = ep.get("title", "")
+        shownotes = ep.get("shownotes", "")
+        
+        has_zh_title = any('\u4e00' <= c <= '\u9fff' for c in ep_title)
+        has_zh_feed = any('\u4e00' <= c <= '\u9fff' for c in feed_title)
+        is_xyz = ep.get("feed_id", "").startswith("xyz_")
+        zh_shownotes_count = sum(1 for c in shownotes[:600] if '\u4e00' <= c <= '\u9fff')
+        
+        is_chinese = has_zh_title or has_zh_feed or is_xyz or (zh_shownotes_count >= 8)
         if is_chinese:
             logger.info(f"Episode {episode_id} is native Chinese podcast. Executing ASR subtitle extraction & AI notes.")
             db.update_episode_status(episode_id, status="transcribing", progress=30)
@@ -1098,10 +1115,14 @@ def get_pipeline_stats(token: str = Depends(verify_token)):
     ready = [e for e in eps if e.get("status") == "ready"]
     failed = [e for e in eps if e.get("status") == "failed"]
 
+    # Sanity-check durations: realistic pipeline run is between 15s and 7200s (2 hours).
+    # Durations outside this range (e.g. historical un-migrated timestamps, machine sleep)
+    # are treated as unmeasured outliers so they don't skew the metric.
     durations = [
         (e.get("updated_at") or 0) - (e.get("dump_started_at") or 0)
         for e in ready
-        if (e.get("updated_at") or 0) > (e.get("dump_started_at") or 0) > 0
+        if 15 <= ((e.get("updated_at") or 0) - (e.get("dump_started_at") or 0)) <= 7200
+        and (e.get("dump_started_at") or 0) > 0
     ]
     avg_duration = int(sum(durations) / len(durations)) if durations else 0
 

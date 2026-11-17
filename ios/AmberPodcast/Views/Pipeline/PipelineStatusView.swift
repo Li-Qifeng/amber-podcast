@@ -1,15 +1,62 @@
 import SwiftUI
 
-/// Process-level cache for the pipeline (转储) page. NavigationStack destroys
-/// view state on every push/pop, so plain @State blanks the screen and refetches
-/// from zero. Holding the last payloads in a shared store gives instant stale
-/// content while .task refreshes in the background (stale-while-revalidate).
+/// Process-level & Disk-persistent cache for the pipeline (转储) page.
+/// Automatically restores the last refreshed state immediately upon app launch
+/// so the screen is never blank, and persists updates in the background.
 @MainActor
 final class PipelineStore: ObservableObject {
     static let shared = PipelineStore()
+
     @Published var statusData: AmberAPIClient.PipelineStatusResponse? = nil
     @Published var queueData: AmberAPIClient.PipelineQueueResponse? = nil
     @Published var statsData: AmberAPIClient.PipelineStatsResponse? = nil
+
+    private static var cacheFileURL: URL {
+        let dir = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first
+            ?? FileManager.default.temporaryDirectory
+        return dir.appendingPathComponent("pipeline_store_cache.json")
+    }
+
+    private struct CachedPayload: Codable {
+        let statusData: AmberAPIClient.PipelineStatusResponse?
+        let queueData: AmberAPIClient.PipelineQueueResponse?
+        let statsData: AmberAPIClient.PipelineStatsResponse?
+    }
+
+    public init() {
+        loadFromDisk()
+    }
+
+    func update(status: AmberAPIClient.PipelineStatusResponse?,
+                queue: AmberAPIClient.PipelineQueueResponse?,
+                stats: AmberAPIClient.PipelineStatsResponse?) {
+        if let status = status { self.statusData = status }
+        if let queue = queue { self.queueData = queue }
+        if let stats = stats { self.statsData = stats }
+        saveToDisk()
+    }
+
+    private func loadFromDisk() {
+        let url = Self.cacheFileURL
+        guard FileManager.default.fileExists(atPath: url.path),
+              let data = try? Data(contentsOf: url),
+              let payload = try? JSONDecoder().decode(CachedPayload.self, from: data) else {
+            return
+        }
+        self.statusData = payload.statusData
+        self.queueData = payload.queueData
+        self.statsData = payload.statsData
+    }
+
+    private func saveToDisk() {
+        let payload = CachedPayload(statusData: statusData, queueData: queueData, statsData: statsData)
+        let url = Self.cacheFileURL
+        DispatchQueue.global(qos: .utility).async {
+            if let data = try? JSONEncoder().encode(payload) {
+                try? data.write(to: url, options: .atomic)
+            }
+        }
+    }
 }
 
 public struct PipelineStatusView: View {
@@ -724,15 +771,16 @@ public struct PipelineStatusView: View {
 
     // MARK: - Actions
     private func loadAll() async {
-        isLoading = true
+        // Only show blocking loading spinner on very first cold launch if disk cache is completely empty
+        if store.statusData == nil && store.queueData == nil && store.statsData == nil {
+            isLoading = true
+        }
         async let statusTask = try? await apiClient.fetchPipelineStatus()
         async let queueTask = try? await apiClient.fetchPipelineQueue()
         async let statsTask = try? await apiClient.fetchPipelineStats()
         let (s, q, st) = await (statusTask, queueTask, statsTask)
         await MainActor.run {
-            if let s = s { self.store.statusData = s }
-            if let q = q { self.store.queueData = q }
-            if let st = st { self.store.statsData = st }
+            self.store.update(status: s, queue: q, stats: st)
             self.isLoading = false
         }
     }
@@ -746,11 +794,11 @@ public struct PipelineStatusView: View {
                 if Task.isCancelled { break }
                 let active = (store.queueData?.counts.running ?? 0) + (store.queueData?.counts.queued ?? 0)
                 guard active > 0 else { continue }
-                if let q = try? await apiClient.fetchPipelineQueue() {
-                    await MainActor.run { self.store.queueData = q }
-                }
-                if let st = try? await apiClient.fetchPipelineStats() {
-                    await MainActor.run { self.store.statsData = st }
+                async let qTask = try? await apiClient.fetchPipelineQueue()
+                async let stTask = try? await apiClient.fetchPipelineStats()
+                let (q, st) = await (qTask, stTask)
+                await MainActor.run {
+                    self.store.update(status: nil, queue: q, stats: st)
                 }
             }
         }
