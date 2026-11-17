@@ -212,6 +212,42 @@ def _active_pipeline_count() -> int:
         ["pending", "transcribing", "translating", "synthesizing"], limit=1000))
 
 
+DEFAULT_SETTINGS: Dict[str, Any] = {
+    "max_concurrent_pipelines": 1,
+    "auto_translate_new": False,
+    "default_tts_voice": "zh-CN-YunxiNeural",
+    "min_episode_duration_sec": 300,
+    "max_episode_duration_sec": 7200,
+    "auto_archive_to_gdrive": False,
+    "keep_local_audio": True,
+    "storage_soft_ceiling_gb": 20,
+    "notification_webhook_url": "",
+    "asr_engine": "groq",
+    "llm_engine": "groq",
+    "tts_engine": "edge",
+}
+
+def _int_setting(key: str, default: int) -> int:
+    val = db.get_setting(key, DEFAULT_SETTINGS.get(key, default))
+    try:
+        return int(val)
+    except (TypeError, ValueError):
+        return default
+
+def _bool_setting(key: str, default: bool = False) -> bool:
+    val = db.get_setting(key, DEFAULT_SETTINGS.get(key, default))
+    if isinstance(val, bool):
+        return val
+    if isinstance(val, (int, float)):
+        return bool(val)
+    if isinstance(val, str):
+        return val.lower() in ("true", "1", "yes", "on")
+    return default
+
+def _setting(key: str, default: Any = None) -> Any:
+    return db.get_setting(key, DEFAULT_SETTINGS.get(key, default))
+
+
 def _enqueue_pipeline(episode_id: str) -> bool:
     """Mark an episode pending and launch the pipeline, respecting the concurrency cap.
 
