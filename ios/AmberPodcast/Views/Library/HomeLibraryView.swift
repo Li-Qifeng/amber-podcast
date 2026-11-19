@@ -1522,7 +1522,7 @@ fileprivate struct HomeTileNewShowCard: View {
                     Spacer(minLength: 8)
 
                     // 3. Footer: centered author tag + subscribe button
-                    HStack(spacing: 10, alignment: .center) {
+                    HStack(alignment: .center, spacing: 10) {
                         HStack(spacing: 4) {
                             Image(systemName: "star.fill")
                                 .font(.system(size: 10))
@@ -1638,7 +1638,7 @@ fileprivate struct HomeTileChannelCard: View {
                     Spacer(minLength: 8)
 
                     // 3. Footer: centered genre tag + subscribe button
-                    HStack(spacing: 10, alignment: .center) {
+                    HStack(alignment: .center, spacing: 10) {
                         if let g = feed.genre, !g.isEmpty {
                             Text(g)
                                 .font(.system(size: 12, weight: .medium))
