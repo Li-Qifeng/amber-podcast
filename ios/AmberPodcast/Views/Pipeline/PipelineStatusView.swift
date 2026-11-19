@@ -89,6 +89,7 @@ public struct PipelineStatusView: View {
             ZStack {
                 AmberTheme.background.ignoresSafeArea()
 
+                ScrollViewReader { proxy in
                 ScrollView(.vertical, showsIndicators: false) {
                     VStack(alignment: .leading, spacing: 20) {
                         // 1. Today's throughput + 7-day trend
@@ -99,9 +100,11 @@ public struct PipelineStatusView: View {
 
                         // 3. Per-podcast groups + batch actions
                         feedsGroupedSection
+                            .id("pipe_feeds")
 
                         // 4. Engine & Infrastructure Info
                         infrastructureSection
+                            .id("pipe_infra")
 
                         // Bottom clearance for floating Dock & MiniPlayer
                         Color.clear.frame(height: 168)
@@ -111,6 +114,18 @@ public struct PipelineStatusView: View {
                 }
                 .refreshable {
                     await loadAll()
+                }
+                .onAppear {
+                    #if DEBUG
+                    if let anchor = UserDefaults.standard.string(forKey: "amberPipeAnchor"), !anchor.isEmpty {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 4.5) {
+                            withAnimation(.easeInOut(duration: 0.4)) {
+                                proxy.scrollTo(anchor, anchor: .top)
+                            }
+                        }
+                    }
+                    #endif
+                }
                 }
             }
             .navigationTitle("转储")

@@ -101,6 +101,17 @@ jobs:
             xcrun simctl io "$DEVICE_UUID" screenshot "screenshots/${anchor}.png"
           done
 
+          # Pipeline (转储) page — top console + scrolled per-feed section
+          xcrun simctl terminate "$DEVICE_UUID" com.refoxai.amberpodcast || true
+          xcrun simctl launch "$DEVICE_UUID" com.refoxai.amberpodcast -amberStartTab 2
+          sleep 8
+          xcrun simctl io "$DEVICE_UUID" screenshot screenshots/pipeline_top.png
+          xcrun simctl terminate "$DEVICE_UUID" com.refoxai.amberpodcast || true
+          sleep 1
+          xcrun simctl launch "$DEVICE_UUID" com.refoxai.amberpodcast -amberStartTab 2 -amberPipeAnchor pipe_feeds
+          sleep 11
+          xcrun simctl io "$DEVICE_UUID" screenshot screenshots/pipeline_feeds.png
+
           # Relaunch with a seeded now-playing state so the mini player and the
           # shared glass field with the dock can be inspected
           xcrun simctl terminate "$DEVICE_UUID" com.refoxai.amberpodcast || true
