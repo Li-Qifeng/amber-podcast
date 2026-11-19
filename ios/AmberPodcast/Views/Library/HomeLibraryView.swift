@@ -1239,7 +1239,7 @@ public struct HomeLibraryView: View {
 
 fileprivate func homeArtworkPlaceholder(width: CGFloat, height: CGFloat, title: String) -> some View {
     ZStack {
-        RoundedRectangle(cornerRadius: 14, style: .continuous)
+        RoundedRectangle(cornerRadius: AmberTheme.radiusCardShelf, style: .continuous)
             .fill(
                 LinearGradient(
                     colors: [AmberTheme.surfaceRaised, AmberTheme.surfaceRaised.opacity(0.72)],
@@ -1306,7 +1306,7 @@ fileprivate struct HomeTileLatestEpisodeCard: View {
     var body: some View {
         let rawCover = (episode.imageUrl?.isEmpty == false) ? episode.imageUrl! : feed.proxiedCoverUrl
         let coverUrl = URL(string: rawCover)
-        let artworkSize: CGFloat = min(cardWidth - 36, cardHeight * 0.44)
+        let artworkSize: CGFloat = min(cardWidth - 32, cardHeight * 0.50)
         let dateStr = AmberDate.relative(episode.pubDate)
         let synopsis = homeStripHTML(episode.shownotes)
 
@@ -1321,12 +1321,8 @@ fileprivate struct HomeTileLatestEpisodeCard: View {
                                 .resizable()
                                 .scaledToFill()
                                 .frame(width: artworkSize, height: artworkSize)
-                                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                        .stroke(Color.white.opacity(0.14), lineWidth: 0.8)
-                                )
-                                .shadow(color: Color.black.opacity(0.24), radius: 8, x: 0, y: 4)
+                                .clipShape(RoundedRectangle(cornerRadius: AmberTheme.radiusCardShelf, style: .continuous))
+                                .shadow(color: Color.black.opacity(0.12), radius: 4, x: 0, y: 2)
                                 .onAppear {
                                     if dominantColor == nil {
                                         dominantColor = AmberColorPalette.shared.dominantColor(for: uiImg, key: url.absoluteString)
@@ -1405,9 +1401,12 @@ fileprivate struct HomeTileLatestEpisodeCard: View {
                         } label: {
                             Image(systemName: "ellipsis")
                                 .font(.system(size: 13, weight: .semibold))
-                                .foregroundStyle(Color.white.opacity(0.9))
+                                .foregroundStyle(Color(red: 0.08, green: 0.08, blue: 0.10))
                                 .frame(width: 30, height: 30)
-                                .background(Color.white.opacity(0.16), in: Circle())
+                                .background(
+                                    Circle().fill(.ultraThinMaterial)
+                                        .overlay(Circle().fill(Color.white.opacity(0.94)))
+                                )
                         }
                         .buttonStyle(.plain)
                     }
@@ -1425,14 +1424,10 @@ fileprivate struct HomeTileLatestEpisodeCard: View {
                     startPoint: .top,
                     endPoint: .bottom
                 ),
-                in: RoundedRectangle(cornerRadius: 22, style: .continuous)
+                in: RoundedRectangle(cornerRadius: AmberTheme.radiusCardTile, style: .continuous)
             )
-            .overlay(
-                RoundedRectangle(cornerRadius: 22, style: .continuous)
-                    .stroke(Color.white.opacity(0.08), lineWidth: 0.8)
-            )
-            .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-            .contentShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: AmberTheme.radiusCardTile, style: .continuous))
+            .contentShape(RoundedRectangle(cornerRadius: AmberTheme.radiusCardTile, style: .continuous))
             .animation(.easeInOut(duration: 0.25), value: dominantColor)
             .task(id: coverUrl) {
                 if let u = coverUrl, let cached = AmberImageCache.shared.image(for: u) {
@@ -1457,7 +1452,7 @@ fileprivate struct HomeTileNewShowCard: View {
         let synopsis = homeStripHTML(feed.description)
         let tag = feed.genre ?? feed.editorialTag ?? "精选推荐"
         let coverUrl = URL(string: feed.proxiedCoverUrl)
-        let artworkSize: CGFloat = min(cardWidth - 36, cardHeight * 0.44)
+        let artworkSize: CGFloat = min(cardWidth - 32, cardHeight * 0.50)
 
         NavigationLink(destination: FeedDetailView(feed: feed)) {
             VStack(alignment: .leading, spacing: 0) {
@@ -1470,12 +1465,8 @@ fileprivate struct HomeTileNewShowCard: View {
                                 .resizable()
                                 .scaledToFill()
                                 .frame(width: artworkSize, height: artworkSize)
-                                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                        .stroke(Color.white.opacity(0.14), lineWidth: 0.8)
-                                )
-                                .shadow(color: Color.black.opacity(0.24), radius: 8, x: 0, y: 4)
+                                .clipShape(RoundedRectangle(cornerRadius: AmberTheme.radiusCardShelf, style: .continuous))
+                                .shadow(color: Color.black.opacity(0.12), radius: 4, x: 0, y: 2)
                                 .onAppear {
                                     if dominantColor == nil {
                                         dominantColor = AmberColorPalette.shared.dominantColor(for: uiImg, key: url.absoluteString)
@@ -1533,9 +1524,12 @@ fileprivate struct HomeTileNewShowCard: View {
                         } label: {
                             Image(systemName: isSubscribed ? "checkmark" : "plus")
                                 .font(.system(size: 13, weight: .bold))
-                                .foregroundStyle(Color.white)
-                                .frame(width: 32, height: 32)
-                                .background(Color.white.opacity(0.20), in: Circle())
+                                .foregroundStyle(Color(red: 0.08, green: 0.08, blue: 0.10))
+                                .frame(width: 30, height: 30)
+                                .background(
+                                    Circle().fill(.ultraThinMaterial)
+                                        .overlay(Circle().fill(Color.white.opacity(0.94)))
+                                )
                         }
                         .buttonStyle(.plain)
                     }
@@ -1554,14 +1548,10 @@ fileprivate struct HomeTileNewShowCard: View {
                     startPoint: .top,
                     endPoint: .bottom
                 ),
-                in: RoundedRectangle(cornerRadius: 22, style: .continuous)
+                in: RoundedRectangle(cornerRadius: AmberTheme.radiusCardTile, style: .continuous)
             )
-            .overlay(
-                RoundedRectangle(cornerRadius: 22, style: .continuous)
-                    .stroke(Color.white.opacity(0.08), lineWidth: 0.8)
-            )
-            .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-            .contentShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: AmberTheme.radiusCardTile, style: .continuous))
+            .contentShape(RoundedRectangle(cornerRadius: AmberTheme.radiusCardTile, style: .continuous))
             .animation(.easeInOut(duration: 0.25), value: dominantColor)
             .task(id: coverUrl) {
                 if let u = coverUrl, let cached = AmberImageCache.shared.image(for: u) {
@@ -1586,7 +1576,7 @@ fileprivate struct HomeTileChannelCard: View {
         let synopsis = homeStripHTML(feed.description)
         let slogan = !synopsis.isEmpty ? synopsis : (feed.genre.map { "\($0) 领域优质播客" } ?? "探索优质音频节目")
         let coverUrl = URL(string: feed.proxiedCoverUrl)
-        let artworkSize: CGFloat = min(cardWidth - 36, cardHeight * 0.44)
+        let artworkSize: CGFloat = min(cardWidth - 32, cardHeight * 0.50)
 
         NavigationLink(destination: FeedDetailView(feed: feed)) {
             VStack(alignment: .leading, spacing: 0) {
@@ -1599,12 +1589,8 @@ fileprivate struct HomeTileChannelCard: View {
                                 .resizable()
                                 .scaledToFill()
                                 .frame(width: artworkSize, height: artworkSize)
-                                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                        .stroke(Color.white.opacity(0.14), lineWidth: 0.8)
-                                )
-                                .shadow(color: Color.black.opacity(0.24), radius: 8, x: 0, y: 4)
+                                .clipShape(RoundedRectangle(cornerRadius: AmberTheme.radiusCardShelf, style: .continuous))
+                                .shadow(color: Color.black.opacity(0.12), radius: 4, x: 0, y: 2)
                                 .onAppear {
                                     if dominantColor == nil {
                                         dominantColor = AmberColorPalette.shared.dominantColor(for: uiImg, key: url.absoluteString)
@@ -1656,9 +1642,12 @@ fileprivate struct HomeTileChannelCard: View {
                         } label: {
                             Image(systemName: isSubscribed ? "checkmark" : "plus")
                                 .font(.system(size: 13, weight: .bold))
-                                .foregroundStyle(Color.white)
-                                .frame(width: 32, height: 32)
-                                .background(Color.white.opacity(0.20), in: Circle())
+                                .foregroundStyle(Color(red: 0.08, green: 0.08, blue: 0.10))
+                                .frame(width: 30, height: 30)
+                                .background(
+                                    Circle().fill(.ultraThinMaterial)
+                                        .overlay(Circle().fill(Color.white.opacity(0.94)))
+                                )
                         }
                         .buttonStyle(.plain)
                     }
@@ -1677,14 +1666,10 @@ fileprivate struct HomeTileChannelCard: View {
                     startPoint: .top,
                     endPoint: .bottom
                 ),
-                in: RoundedRectangle(cornerRadius: 22, style: .continuous)
+                in: RoundedRectangle(cornerRadius: AmberTheme.radiusCardTile, style: .continuous)
             )
-            .overlay(
-                RoundedRectangle(cornerRadius: 22, style: .continuous)
-                    .stroke(Color.white.opacity(0.08), lineWidth: 0.8)
-            )
-            .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-            .contentShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: AmberTheme.radiusCardTile, style: .continuous))
+            .contentShape(RoundedRectangle(cornerRadius: AmberTheme.radiusCardTile, style: .continuous))
             .animation(.easeInOut(duration: 0.25), value: dominantColor)
             .task(id: coverUrl) {
                 if let u = coverUrl, let cached = AmberImageCache.shared.image(for: u) {

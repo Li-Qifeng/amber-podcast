@@ -77,6 +77,7 @@ public enum AmberTheme {
     public static let radiusCardRow: CGFloat = 12.0         // List row cards
     public static let radiusCardShelf: CGFloat = 14.0       // 16:9 Shelf cards
     public static let radiusCoverHero: CGFloat = 18.0       // Hero media artwork
+    public static let radiusCardTile: CGFloat = 20.0        // Large home tile cards (latest / new show / channel)
     public static let radiusDock: CGFloat = 28.0            // Floating Dock (Physical Capsule)
     
     // 4px Spacing Grid System & Screen Proportions
