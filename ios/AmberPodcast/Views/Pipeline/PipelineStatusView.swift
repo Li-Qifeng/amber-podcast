@@ -174,7 +174,7 @@ public struct PipelineStatusView: View {
             .overlay(alignment: .bottom) {
                 if let toast = toastMessage {
                     Text(toast)
-                        .font(.system(size: 12.5, weight: .medium, design: .rounded))
+                        .font(.system(size: 12.5, weight: .medium))
                         .foregroundStyle(AmberTheme.labelPrimary)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 10)
@@ -191,12 +191,12 @@ public struct PipelineStatusView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text("转储概览")
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .font(.system(size: 15, weight: .semibold))
                     .foregroundStyle(AmberTheme.labelPrimary)
                 Spacer()
                 if let s = store.statsData {
                     Text("成功率 \(Int((s.successRate * 100).rounded()))%")
-                        .font(.system(size: 11, weight: .semibold, design: .rounded))
+                        .font(.system(size: 11, weight: .semibold))
                         .foregroundStyle(s.successRate >= 0.9 ? AmberTheme.accentElectric : Color.orange)
                 }
             }
@@ -205,11 +205,11 @@ public struct PipelineStatusView: View {
                 statTile(icon: "flame.fill", title: "今日转储",
                          value: "\(store.statsData?.todayDumped ?? 0)", tint: AmberTheme.primaryAmber)
                 statTile(icon: "clock.fill", title: "平均耗时",
-                         value: avgDurationText, tint: Color.cyan)
+                         value: avgDurationText, tint: AmberTheme.labelSecondary)
                 statTile(icon: "checkmark.seal.fill", title: "就绪归档",
                          value: "\(store.statsData?.totalReady ?? 0)", tint: AmberTheme.accentElectric)
                 statTile(icon: "internaldrive.fill", title: "存储占用",
-                         value: storageText, tint: Color.green)
+                         value: storageText, tint: AmberTheme.labelSecondary)
             }
 
             if let trend = store.statsData?.trend, !trend.isEmpty {
@@ -237,7 +237,8 @@ public struct PipelineStatusView: View {
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(tint)
             Text(value)
-                .font(.system(size: 19, weight: .bold, design: .rounded))
+                .font(.system(size: 19, weight: .bold))
+                .monospacedDigit()
                 .foregroundStyle(AmberTheme.labelPrimary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
@@ -278,7 +279,7 @@ public struct PipelineStatusView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text("任务队列")
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .font(.system(size: 15, weight: .semibold))
                     .foregroundStyle(AmberTheme.labelPrimary)
                 Spacer()
                 if let c = store.queueData?.counts {
@@ -293,7 +294,7 @@ public struct PipelineStatusView: View {
                                 Image(systemName: "pause.circle.fill")
                                     .font(.system(size: 11))
                                 Text("全部暂停")
-                                    .font(.system(size: 10.5, weight: .medium, design: .rounded))
+                                    .font(.system(size: 10.5, weight: .medium))
                             }
                             .foregroundStyle(Color.orange)
                             .padding(.horizontal, 8)
@@ -346,7 +347,7 @@ public struct PipelineStatusView: View {
                 } label: {
                     HStack(spacing: 4) {
                         Text(tab.0)
-                            .font(.system(size: 11.5, weight: queueTab == idx ? .semibold : .regular, design: .rounded))
+                            .font(.system(size: 11.5, weight: queueTab == idx ? .semibold : .regular))
                         if tab.1 > 0 {
                             Text("\(tab.1)")
                                 .font(.system(size: 9.5, weight: .bold, design: .monospaced))
@@ -359,7 +360,7 @@ public struct PipelineStatusView: View {
                     .background(
                         ZStack {
                             if queueTab == idx {
-                                Capsule().fill(Color.white.opacity(0.14))
+                                Capsule().fill(AmberTheme.primaryAmber.opacity(0.18))
                             }
                         }
                     )
@@ -405,7 +406,7 @@ public struct PipelineStatusView: View {
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(item.title)
-                    .font(.system(size: 12.5, weight: .medium, design: .rounded))
+                    .font(.system(size: 12.5, weight: .medium))
                     .foregroundStyle(AmberTheme.labelPrimary)
                     .lineLimit(1)
                 HStack(spacing: 6) {
@@ -432,7 +433,7 @@ public struct PipelineStatusView: View {
 
             if queueTab == 0 {
                 Text("\(item.progress)%")
-                    .font(.system(size: 11.5, weight: .bold, design: .rounded))
+                    .font(.system(size: 11.5, weight: .bold))
                     .foregroundStyle(AmberTheme.primaryAmber)
                 actionButton(icon: "stop.circle.fill", tint: Color.orange) { cancelTask(item) }
             } else if queueTab == 1 {
@@ -478,7 +479,7 @@ public struct PipelineStatusView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text("按播客分类")
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .font(.system(size: 15, weight: .semibold))
                     .foregroundStyle(AmberTheme.labelPrimary)
                 Spacer()
                 if let groups = store.statusData?.feeds, !groups.isEmpty {
@@ -501,7 +502,7 @@ public struct PipelineStatusView: View {
                         .foregroundStyle(AmberTheme.labelTertiary)
                     VStack(alignment: .leading, spacing: 3) {
                         Text("暂无转储数据")
-                            .font(.system(size: 13, weight: .medium, design: .rounded))
+                            .font(.system(size: 13, weight: .medium))
                             .foregroundStyle(AmberTheme.labelPrimary)
                         Text("订阅播客并在单集详情中点击“AI 双语精译”，即可排队处理。")
                             .font(.system(size: 11))
@@ -531,7 +532,7 @@ public struct PipelineStatusView: View {
                     withAnimation(AmberTheme.quickSpring) { statusFilter = opt.0 }
                 } label: {
                     Text(opt.1)
-                        .font(.system(size: 11, weight: selected ? .semibold : .regular, design: .rounded))
+                        .font(.system(size: 11, weight: selected ? .semibold : .regular))
                         .foregroundStyle(selected ? AmberTheme.labelPrimary : AmberTheme.labelSecondary)
                         .padding(.horizontal, 9)
                         .padding(.vertical, 5)
@@ -568,7 +569,7 @@ public struct PipelineStatusView: View {
                 feedCover(group.coverUrl)
                 VStack(alignment: .leading, spacing: 4) {
                     Text(group.feedTitle)
-                        .font(.system(size: 14, weight: .semibold, design: .rounded))
+                        .font(.system(size: 14, weight: .semibold))
                         .foregroundStyle(AmberTheme.labelPrimary)
                         .lineLimit(1)
                     HStack(spacing: 6) {
@@ -591,7 +592,7 @@ public struct PipelineStatusView: View {
                         Image(systemName: "square.stack.3d.down.right.fill")
                             .font(.system(size: 10, weight: .semibold))
                         Text("全部转储")
-                            .font(.system(size: 10.5, weight: .medium, design: .rounded))
+                            .font(.system(size: 10.5, weight: .medium))
                     }
                     .foregroundStyle(AmberTheme.primaryAmber)
                     .padding(.horizontal, 8)
@@ -603,16 +604,13 @@ public struct PipelineStatusView: View {
             }
 
             Toggle(isOn: autoDumpBinding(group)) {
-                HStack(spacing: 5) {
-                    Image(systemName: "wand.and.stars")
-                        .font(.system(size: 11))
-                        .foregroundStyle(AmberTheme.primaryAmber)
-                    Text("自动转储新单集")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(AmberTheme.labelPrimary)
-                }
+                Text("自动转储新单集")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(AmberTheme.labelSecondary)
             }
             .tint(AmberTheme.primaryAmber)
+
+            Divider().overlay(AmberTheme.borderHairline)
 
             if notable.isEmpty {
                 Text("暂无转储单集")
@@ -674,7 +672,7 @@ public struct PipelineStatusView: View {
 
     private func statusBadge(_ text: String, color: Color) -> some View {
         Text(text)
-            .font(.system(size: 9.5, weight: .semibold, design: .rounded))
+            .font(.system(size: 9.5, weight: .semibold))
             .foregroundStyle(color)
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
@@ -687,7 +685,7 @@ public struct PipelineStatusView: View {
                 .frame(width: 20)
             VStack(alignment: .leading, spacing: 2) {
                 Text(ep.title)
-                    .font(.system(size: 12.5, weight: .medium, design: .rounded))
+                    .font(.system(size: 12.5, weight: .medium))
                     .foregroundStyle(AmberTheme.labelPrimary)
                     .lineLimit(1)
                 Text(ep.statusDescription)
@@ -698,7 +696,7 @@ public struct PipelineStatusView: View {
             Spacer()
             if ep.isProcessing {
                 Text("\(ep.progress)%")
-                    .font(.system(size: 12, weight: .bold, design: .rounded))
+                    .font(.system(size: 12, weight: .bold))
                     .foregroundStyle(AmberTheme.primaryAmber)
                 Button {
                     cancelTask(episodeId: ep.id, title: ep.title)
@@ -770,9 +768,12 @@ public struct PipelineStatusView: View {
             } else if ep.status == "failed" {
                 Image(systemName: "exclamationmark.circle.fill")
                     .foregroundStyle(Color.red)
-            } else {
+            } else if ep.status == "ready" {
                 Image(systemName: "checkmark.circle.fill")
                     .foregroundStyle(AmberTheme.accentElectric)
+            } else {
+                Image(systemName: "circle")
+                    .foregroundStyle(AmberTheme.labelTertiary)
             }
         }
         .font(.system(size: 14))
@@ -794,7 +795,7 @@ public struct PipelineStatusView: View {
     private var infrastructureSection: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("流水线架构状态")
-                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                .font(.system(size: 15, weight: .semibold))
                 .foregroundStyle(AmberTheme.labelPrimary)
 
             VStack(spacing: 0) {
