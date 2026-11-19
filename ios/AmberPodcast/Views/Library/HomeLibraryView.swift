@@ -2,6 +2,11 @@ import Foundation
 import SwiftUI
 import UIKit
 
+/// Tile cards (latest / new show / channel) are dark artwork cards with white ink.
+/// The fallback must stay dark even before the cover's dominant colour loads or in
+/// light mode — otherwise white titles/menu glyphs wash out on a light surface.
+private let homeTileBaseDark = Color(red: 0.13, green: 0.13, blue: 0.15)
+
 public struct HomeLibraryView: View {
     @State private var feeds: [PodcastFeed] = []
     @State private var recentEpisodes: [Episode] = []
@@ -1371,7 +1376,7 @@ fileprivate struct HomeTileLatestEpisodeCard: View {
                             progress: liveProgress,
                             durationText: homeFormatDuration(Double(episode.duration)),
                             tintColor: AmberTheme.primaryAmber,
-                            cardBackgroundColor: dominantColor ?? AmberTheme.surfaceRaised
+                            cardBackgroundColor: dominantColor ?? homeTileBaseDark
                         ) {
                             onPlay()
                         }
@@ -1414,8 +1419,8 @@ fileprivate struct HomeTileLatestEpisodeCard: View {
             .background(
                 LinearGradient(
                     colors: [
-                        dominantColor ?? AmberTheme.surfaceRaised,
-                        (dominantColor ?? AmberTheme.surfaceRaised).opacity(0.85)
+                        dominantColor ?? homeTileBaseDark,
+                        (dominantColor ?? homeTileBaseDark).opacity(0.85)
                     ],
                     startPoint: .top,
                     endPoint: .bottom
@@ -1543,8 +1548,8 @@ fileprivate struct HomeTileNewShowCard: View {
             .background(
                 LinearGradient(
                     colors: [
-                        dominantColor ?? AmberTheme.surfaceRaised,
-                        (dominantColor ?? AmberTheme.surfaceRaised).opacity(0.85)
+                        dominantColor ?? homeTileBaseDark,
+                        (dominantColor ?? homeTileBaseDark).opacity(0.85)
                     ],
                     startPoint: .top,
                     endPoint: .bottom
@@ -1666,8 +1671,8 @@ fileprivate struct HomeTileChannelCard: View {
             .background(
                 LinearGradient(
                     colors: [
-                        dominantColor ?? AmberTheme.surfaceRaised,
-                        (dominantColor ?? AmberTheme.surfaceRaised).opacity(0.85)
+                        dominantColor ?? homeTileBaseDark,
+                        (dominantColor ?? homeTileBaseDark).opacity(0.85)
                     ],
                     startPoint: .top,
                     endPoint: .bottom
