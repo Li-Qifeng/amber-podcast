@@ -122,7 +122,7 @@ public struct HomeLibraryView: View {
                     .onAppear {
                         #if DEBUG
                         if let anchor = UserDefaults.standard.string(forKey: "amberHomeAnchor"), !anchor.isEmpty {
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 4.5) {
                                 withAnimation(.easeInOut(duration: 0.4)) {
                                     proxy.scrollTo(anchor, anchor: .top)
                                 }

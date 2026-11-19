@@ -97,7 +97,7 @@ jobs:
             xcrun simctl terminate "$DEVICE_UUID" com.refoxai.amberpodcast || true
             sleep 1
             xcrun simctl launch "$DEVICE_UUID" com.refoxai.amberpodcast -amberHomeAnchor "$anchor"
-            sleep 8
+            sleep 11
             xcrun simctl io "$DEVICE_UUID" screenshot "screenshots/${anchor}.png"
           done
 
