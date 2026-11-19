@@ -598,7 +598,7 @@ async def _subscribe_impl(req: SubscribeRequest):
             feed_url=url,
             cover_url=feed_info["cover_url"],
             description=feed_info["description"],
-            auto_translate=1 if req.auto_translate else 0
+            auto_translate=1 if req.auto_translate else _int_setting("auto_translate_default", 0, minimum=0)
         )
         for ep in data.get("episodes", []):
             db.upsert_episode(
@@ -1084,6 +1084,7 @@ def get_pipeline_status(token: str = Depends(verify_token)):
                 "feed_id": fid,
                 "feed_title": meta.get("title", "未知播客"),
                 "cover_url": meta.get("cover_url", ""),
+                "auto_translate": meta.get("auto_translate", 0),
                 "episodes": [],
             }
         by_feed[fid]["episodes"].append(enrich(ep))

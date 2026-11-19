@@ -408,3 +408,44 @@ def test_abort_if_cancelled_restores_idle():
     assert "abort_ep" not in server_mod._cancelled_episodes
     assert server_mod._abort_if_cancelled("abort_ep") is False
 
+
+def test_pipeline_status_exposes_per_feed_auto_translate():
+    headers = {"Authorization": f"Bearer {AUTH_TOKEN}"}
+    db.upsert_feed(feed_id="feed_status_at", source_type="apple_rss", title="StatusAT",
+                   author="T", feed_url="https://example.com/status-at",
+                   cover_url="", description="", auto_translate=1)
+    db.upsert_episode(episode_id="status_at_ep", feed_id="feed_status_at", title="e",
+                      audio_url="https://e/s.mp3", pub_date="Wed, 11 Nov 2026 10:00:00 GMT")
+    r = client.get("/api/v1/pipeline/status", headers=headers)
+    assert r.status_code == 200
+    grp = [g for g in r.json()["feeds"] if g["feed_id"] == "feed_status_at"][0]
+    assert grp["auto_translate"] == 1
+
+
+def test_rss_subscribe_respects_auto_translate_default(monkeypatch):
+    headers = {"Authorization": f"Bearer {AUTH_TOKEN}"}
+
+    async def fake_fetch(feed_url, feed_id):
+        return {"feed": {"title": "RSS Default", "author": "A", "cover_url": "", "description": ""},
+                "episodes": []}
+
+    monkeypatch.setattr(server_mod.apple_agg, "fetch_and_parse_feed", fake_fetch)
+    try:
+        client.put("/api/v1/settings", json={"auto_translate_default": "0"}, headers=headers)
+        r = client.post("/api/v1/feeds/subscribe",
+                        json={"url": "https://example.com/rss-default-off", "auto_translate": False},
+                        headers=headers)
+        assert r.status_code == 200
+        f = db.get_feed(r.json()["feed"]["id"])
+        assert f is not None and f["auto_translate"] == 0
+
+        client.put("/api/v1/settings", json={"auto_translate_default": "1"}, headers=headers)
+        r2 = client.post("/api/v1/feeds/subscribe",
+                         json={"url": "https://example.com/rss-default-on", "auto_translate": False},
+                         headers=headers)
+        assert r2.status_code == 200
+        f2 = db.get_feed(r2.json()["feed"]["id"])
+        assert f2 is not None and f2["auto_translate"] == 1
+    finally:
+        client.put("/api/v1/settings", json={"auto_translate_default": "0"}, headers=headers)
+

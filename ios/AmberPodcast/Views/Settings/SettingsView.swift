@@ -25,7 +25,6 @@ public struct SettingsView: View {
     // AppStorage Settings
     @AppStorage("amber_default_track_mode") private var preferredTrackModeRaw: String = TrackMode.chinese.rawValue
     @AppStorage("amber_voice_timbre") private var voiceTimbre: String = "natural"
-    @AppStorage("amber_auto_translate_wifi") private var autoTranslateWifi: Bool = true
     @AppStorage("amber_skip_silence") private var skipSilence: Bool = false
     @AppStorage("amber_speech_boost") private var speechBoost: Bool = true
     @AppStorage("amber_auto_play_next") private var autoPlayNext: Bool = true
@@ -249,20 +248,6 @@ public struct SettingsView: View {
                     }
                     .tint(AmberTheme.primaryAmber)
                 }
-
-                Divider().background(Color.white.opacity(0.08))
-
-                Toggle(isOn: $autoTranslateWifi) {
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text("Wi-Fi 下自动转译新单集")
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundStyle(AmberTheme.labelPrimary)
-                        Text("订阅播客发布新单集时，由服务端自动触发 ASR 与中文 TTS 拼接")
-                            .font(.system(size: 11.5))
-                            .foregroundStyle(AmberTheme.labelTertiary)
-                    }
-                }
-                .tint(AmberTheme.primaryAmber)
             }
             .padding(16)
             .amberPlate(radius: AmberTheme.radiusCardRow)

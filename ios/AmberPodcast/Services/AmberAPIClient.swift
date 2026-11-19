@@ -230,6 +230,7 @@ public final class AmberAPIClient: ObservableObject {
         public let feedTitle: String
         public let coverUrl: String
         public let episodes: [Episode]
+        public let autoTranslate: Int
 
         public var id: String { feedId }
 
@@ -238,6 +239,16 @@ public final class AmberAPIClient: ObservableObject {
             case feedTitle = "feed_title"
             case coverUrl = "cover_url"
             case episodes
+            case autoTranslate = "auto_translate"
+        }
+
+        public init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            feedId = try c.decode(String.self, forKey: .feedId)
+            feedTitle = try c.decode(String.self, forKey: .feedTitle)
+            coverUrl = try c.decode(String.self, forKey: .coverUrl)
+            episodes = try c.decode([Episode].self, forKey: .episodes)
+            autoTranslate = try c.decodeIfPresent(Int.self, forKey: .autoTranslate) ?? 0
         }
     }
 

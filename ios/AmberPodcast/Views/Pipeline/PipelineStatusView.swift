@@ -65,6 +65,7 @@ public struct PipelineStatusView: View {
     @State private var isLoading: Bool = false
     @State private var errorMessage: String? = nil
     @State private var showSettingsSheet: Bool = false
+    @State private var autoDumpOverrides: [String: Bool] = [:]
 
     // Queue console state
     @State private var queueTab: Int = 0              // 0 running / 1 queued / 2 failed / 3 completed
@@ -586,6 +587,18 @@ public struct PipelineStatusView: View {
                 .disabled(busyEpisodeId != nil)
             }
 
+            Toggle(isOn: autoDumpBinding(group)) {
+                HStack(spacing: 5) {
+                    Image(systemName: "wand.and.stars")
+                        .font(.system(size: 11))
+                        .foregroundStyle(AmberTheme.primaryAmber)
+                    Text("自动转储新单集")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(AmberTheme.labelPrimary)
+                }
+            }
+            .tint(AmberTheme.primaryAmber)
+
             if notable.isEmpty {
                 Text("暂无转储单集")
                     .font(.system(size: 11))
@@ -601,6 +614,20 @@ public struct PipelineStatusView: View {
         }
         .padding(14)
         .amberPlate(radius: 12)
+    }
+
+    /// Per-feed auto-dump switch on the dump page. Optimistically reflects the tap,
+    /// then persists to the server's per-feed policy (feeds.auto_translate).
+    private func autoDumpBinding(_ group: AmberAPIClient.PipelineFeedGroup) -> Binding<Bool> {
+        Binding(
+            get: { autoDumpOverrides[group.feedId] ?? (group.autoTranslate == 1) },
+            set: { newVal in
+                autoDumpOverrides[group.feedId] = newVal
+                Task {
+                    try? await apiClient.setFeedAutoTranslate(feedId: group.feedId, enabled: newVal)
+                }
+            }
+        )
     }
 
     private func feedCover(_ url: String) -> some View {
