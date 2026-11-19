@@ -1466,15 +1466,6 @@ async def ci_deploy_webhook(bg_tasks: BackgroundTasks, payload: Optional[Dict[st
             # 2. Sign with zsign
             cert_pass = Path("/root/ios-re/airstore-pro/data/certs/default/pass.txt").read_text().strip()
             out_ipa = "/root/ios-re/airstore-pro/data/studio/amber-podcast/amber-podcast_signed.ipa"
-            build_num = "36"
-            try:
-                import re
-                txt = Path("/root/projects/amber-podcast/ios/project.yml").read_text()
-                m = re.search(r'CURRENT_PROJECT_VERSION:\s*"([^"]+)"', txt)
-                if m:
-                    build_num = m.group(1)
-            except Exception:
-                pass
 
             cmd = [
                 "zsign",
@@ -1483,7 +1474,6 @@ async def ci_deploy_webhook(bg_tasks: BackgroundTasks, payload: Optional[Dict[st
                 "-m", "/root/ios-re/airstore-pro/data/certs/default/dev.mobileprovision",
                 "-b", "com.ioslgm.46542",
                 "-n", "Amber 播客",
-                "-r", build_num,
                 "-P", "-z", "1",
                 "-o", out_ipa,
                 dist_ipa
@@ -1505,6 +1495,29 @@ async def ci_deploy_webhook(bg_tasks: BackgroundTasks, payload: Optional[Dict[st
             # a missing projects.json used to leave it unbound -> NameError killed
             # the whole deployment notification.
             sz = round(os.path.getsize(out_ipa) / (1024 * 1024), 2)
+            # Auto-refresh the store changelog from recent user-facing commits so it
+            # never goes stale (the old webhook only bumped version/size/date).
+            changelog = ""
+            try:
+                import re as _re2
+                log = subprocess.run(
+                    ["git", "-C", "/root/projects/amber-podcast", "log", "--pretty=%s", "-15"],
+                    capture_output=True, text=True, timeout=10
+                ).stdout.strip().splitlines()
+                picked = []
+                for s in log:
+                    if not _re2.match(r"^(feat|fix|perf)", s):
+                        continue
+                    s = _re2.sub(r"^(feat|fix|perf)(\([^)]*\))?:\s*", "", s)
+                    s = _re2.sub(r"\s*\[snap\]\s*", " ", s)
+                    s = _re2.sub(r"\s*\(Build \d+\)\s*", "", s).strip()
+                    if s:
+                        picked.append(s)
+                    if len(picked) >= 6:
+                        break
+                changelog = "\n".join(f"{i+1}. {x}" for i, x in enumerate(picked))
+            except Exception:
+                pass
             if os.path.exists(p_json):
                 d = json.load(open(p_json))
                 for item in d:
@@ -1512,6 +1525,8 @@ async def ci_deploy_webhook(bg_tasks: BackgroundTasks, payload: Optional[Dict[st
                         item["version"] = version
                         item["size_mb"] = sz
                         item["updated_at"] = datetime.now().strftime("%m-%d %H:%M")
+                        if changelog:
+                            item["changelog"] = changelog
                 json.dump(d, open(p_json, "w"), ensure_ascii=False, indent=2)
 
             logger.info(f"Automated AirStore deployment succeeded for Amber Podcast v{version}!")
