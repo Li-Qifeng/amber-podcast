@@ -75,6 +75,7 @@ public struct HomeLibraryView: View {
                     // collapse tracking, so the nav bar + blur stuttered on the
                     // first upward scroll. Geometry now comes from a fixed screen
                     // size instead of a live proxy.
+                    ScrollViewReader { proxy in
                     ScrollView(.vertical, showsIndicators: false) {
                         VStack(alignment: .leading, spacing: 0) {
                             AmberScrollTopProbe()
@@ -91,6 +92,7 @@ public struct HomeLibraryView: View {
 
                             // 3. 你可能错过了 (Apple "You May Have Missed" paged group)
                             youMayHaveMissedShelf()
+                                .id("home_missed")
                                 .padding(.top, 28)
 
                             // 4. 我的播客
@@ -99,10 +101,12 @@ public struct HomeLibraryView: View {
 
                             // 5. 新节目推荐 (Apple "New Shows for You" adaptive tint card)
                             newShowsForYouShelf()
+                                .id("home_newshows")
                                 .padding(.top, 28)
 
                             // 6. 试试这些频道 (Apple "Channels to Try" tall card)
                             channelsToTryShelf()
+                                .id("home_channels")
                                 .padding(.top, 28)
 
                             // 7. 探索更多 (Apple "More to Discover" dual-row grid)
@@ -115,6 +119,18 @@ public struct HomeLibraryView: View {
                     }
                     .scrollBounceBehavior(.always, axes: .vertical)
                     .amberScrollObservable(tab: 0)
+                    .onAppear {
+                        #if DEBUG
+                        if let anchor = UserDefaults.standard.string(forKey: "amberHomeAnchor"), !anchor.isEmpty {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                                withAnimation(.easeInOut(duration: 0.4)) {
+                                    proxy.scrollTo(anchor, anchor: .top)
+                                }
+                            }
+                        }
+                        #endif
+                    }
+                    }
                 }
             }
             .navigationTitle("首页")

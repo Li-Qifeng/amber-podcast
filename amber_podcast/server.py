@@ -1498,26 +1498,31 @@ async def ci_deploy_webhook(bg_tasks: BackgroundTasks, payload: Optional[Dict[st
             # Auto-refresh the store changelog from recent user-facing commits so it
             # never goes stale (the old webhook only bumped version/size/date).
             changelog = ""
-            try:
-                import re as _re2
-                log = subprocess.run(
-                    ["git", "-C", "/root/projects/amber-podcast", "log", "--pretty=%s", "-15"],
-                    capture_output=True, text=True, timeout=10
-                ).stdout.strip().splitlines()
-                picked = []
-                for s in log:
-                    if not _re2.match(r"^(feat|fix|perf)", s):
-                        continue
-                    s = _re2.sub(r"^(feat|fix|perf)(\([^)]*\))?:\s*", "", s)
-                    s = _re2.sub(r"\s*\[snap\]\s*", " ", s)
-                    s = _re2.sub(r"\s*\(Build \d+\)\s*", "", s).strip()
-                    if s:
-                        picked.append(s)
-                    if len(picked) >= 6:
-                        break
-                changelog = "\n".join(f"{i+1}. {x}" for i, x in enumerate(picked))
-            except Exception:
-                pass
+            # A curated, version-controlled changelog wins; fall back to recent commits.
+            curated = Path("/root/projects/amber-podcast/store_changelog.txt")
+            if curated.exists():
+                changelog = curated.read_text(encoding="utf-8").strip()
+            if not changelog:
+                try:
+                    import re as _re2
+                    log = subprocess.run(
+                        ["git", "-C", "/root/projects/amber-podcast", "log", "--pretty=%s", "-15"],
+                        capture_output=True, text=True, timeout=10
+                    ).stdout.strip().splitlines()
+                    picked = []
+                    for s in log:
+                        if not _re2.match(r"^(feat|fix|perf)", s):
+                            continue
+                        s = _re2.sub(r"^(feat|fix|perf)(\([^)]*\))?:\s*", "", s)
+                        s = _re2.sub(r"\s*\[snap\]\s*", " ", s)
+                        s = _re2.sub(r"\s*\(Build \d+\)\s*", "", s).strip()
+                        if s:
+                            picked.append(s)
+                        if len(picked) >= 6:
+                            break
+                    changelog = "\n".join(f"{i+1}. {x}" for i, x in enumerate(picked))
+                except Exception:
+                    pass
             if os.path.exists(p_json):
                 d = json.load(open(p_json))
                 for item in d:
