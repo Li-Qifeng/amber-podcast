@@ -708,7 +708,7 @@ public struct HomeLibraryView: View {
         let shows = newShowsForYou
         if !shows.isEmpty {
             let cardWidth = screenWidth * 0.70
-            let cardHeight = cardWidth * 1.5
+            let cardHeight = cardWidth * 1.34
 
             VStack(alignment: .leading, spacing: 16) {
                 sectionTitle("新节目推荐")
@@ -742,7 +742,7 @@ public struct HomeLibraryView: View {
         let channels = channelsToTry
         if !channels.isEmpty {
             let cardWidth = screenWidth * 0.70
-            let cardHeight = cardWidth * 1.5
+            let cardHeight = cardWidth * 1.34
 
             VStack(alignment: .leading, spacing: 16) {
                 sectionTitle("试试这些频道")
@@ -1466,7 +1466,6 @@ fileprivate struct HomeTileNewShowCard: View {
 
     var body: some View {
         let synopsis = homeStripHTML(feed.description)
-        let tag = feed.genre ?? feed.editorialTag ?? "精选推荐"
         let coverUrl = URL(string: feed.proxiedCoverUrl)
         let artworkSize: CGFloat = cardWidth - 36
 
@@ -1497,14 +1496,10 @@ fileprivate struct HomeTileNewShowCard: View {
                     Spacer()
                 }
                 .padding(.top, 16)
-                .padding(.bottom, 12)
+                .padding(.bottom, 10)
 
                 // 2. Metadata & Typography Section
                 VStack(alignment: .center, spacing: 5) {
-                    Text(tag)
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(Color.white.opacity(0.65))
-
                     Text(feed.title)
                         .font(.system(size: 17, weight: .bold))
                         .foregroundStyle(Color.white)
@@ -1515,7 +1510,7 @@ fileprivate struct HomeTileNewShowCard: View {
                         Text(synopsis)
                             .font(.system(size: 14, weight: .regular))
                             .foregroundStyle(Color.white.opacity(0.65))
-                            .lineLimit(2)
+                            .lineLimit(1)
                             .multilineTextAlignment(.center)
                     }
 
@@ -1550,7 +1545,7 @@ fileprivate struct HomeTileNewShowCard: View {
                     .padding(.top, 4)
                 }
                 .padding(.horizontal, 16)
-                .padding(.bottom, 16)
+                .padding(.bottom, 14)
             }
             .frame(width: cardWidth, height: cardHeight)
             .background(
@@ -1619,7 +1614,7 @@ fileprivate struct HomeTileChannelCard: View {
                     Spacer()
                 }
                 .padding(.top, 16)
-                .padding(.bottom, 12)
+                .padding(.bottom, 10)
 
                 // 2. Typography & Slogan
                 VStack(alignment: .center, spacing: 5) {
@@ -1632,7 +1627,7 @@ fileprivate struct HomeTileChannelCard: View {
                     Text(slogan)
                         .font(.system(size: 14, weight: .regular))
                         .foregroundStyle(Color.white.opacity(0.70))
-                        .lineLimit(2)
+                        .lineLimit(1)
                         .multilineTextAlignment(.center)
 
                     Spacer(minLength: 8)
@@ -1666,7 +1661,7 @@ fileprivate struct HomeTileChannelCard: View {
                     .padding(.top, 4)
                 }
                 .padding(.horizontal, 16)
-                .padding(.bottom, 16)
+                .padding(.bottom, 14)
             }
             .frame(width: cardWidth, height: cardHeight)
             .background(
