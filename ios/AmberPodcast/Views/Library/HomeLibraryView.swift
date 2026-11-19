@@ -331,7 +331,7 @@ public struct HomeLibraryView: View {
     // MARK: - 2. 继续收听 (same transparent row language as 你可能错过了)
     @ViewBuilder
     private func continueListeningShelf() -> some View {
-        let rows = recentEpisodes
+        let rows = continueListeningEpisodes
         if !rows.isEmpty {
             let pageWidth = screenWidth * 0.86
 
@@ -341,7 +341,7 @@ public struct HomeLibraryView: View {
 
                     Spacer()
 
-                    Text("最新 \(rows.count)")
+                    Text("进行中 \(rows.count)")
                         .font(.system(size: 11, weight: .medium, design: .monospaced))
                         .foregroundStyle(AmberTheme.labelTertiary)
                 }
@@ -487,9 +487,17 @@ public struct HomeLibraryView: View {
         return recommended
     }
 
-    /// Apple "You May Have Missed": followed shows, not yet finished.
+    /// "Continue Listening": only episodes the user actually started but hasn't
+    /// finished — never the whole recent window (that duplicated the Latest hero).
+    private var continueListeningEpisodes: [Episode] {
+        recentEpisodes.filter { $0.progress > 0 && $0.progress < 100 }
+    }
+
+    /// "You May Have Missed": unlistened drops NOT already featured in the Latest
+    /// carousel, so the newest episode never appears in three shelves at once.
     private var missedEpisodes: [Episode] {
-        Array(recentEpisodes.filter { $0.progress < 100 }.prefix(15))
+        let latestIds = Set(latestEpisodesList.map { $0.0.id })
+        return Array(recentEpisodes.filter { $0.progress == 0 && !latestIds.contains($0.id) }.prefix(15))
     }
 
     /// Apple "New Shows for You": the head of the genre-matched pool.
@@ -1353,8 +1361,10 @@ fileprivate struct HomeTileLatestEpisodeCard: View {
                             .multilineTextAlignment(.leading)
                     }
 
-                    // 3. Play Capsule directly following text (tight, unified grouping)
-                    HStack {
+                    Spacer(minLength: 8)
+
+                    // 3. Action row pinned to card bottom: play capsule (left) + more menu (right)
+                    HStack(alignment: .center) {
                         AppleExpandingPlayCapsule(
                             isPlaying: isPlayingThis,
                             isCurrent: player.currentEpisode?.id == episode.id,
@@ -1367,8 +1377,35 @@ fileprivate struct HomeTileLatestEpisodeCard: View {
                         }
 
                         Spacer()
+
+                        Menu {
+                            Button {
+                                onPlay()
+                            } label: {
+                                Label("立即播放", systemImage: "play.fill")
+                            }
+                            Button {
+                                Task { _ = try? await AmberAPIClient.shared.batchTranslate(episodeIds: [episode.id], onlyIdle: false) }
+                            } label: {
+                                Label("AI 双语精译", systemImage: "wand.and.stars")
+                            }
+                            ShareLink(item: episode.audioUrl) {
+                                Label("分享单集音频", systemImage: "square.and.arrow.up")
+                            }
+                            Button {
+                                UIPasteboard.general.string = feed.feedUrl
+                            } label: {
+                                Label("复制节目链接", systemImage: "link")
+                            }
+                        } label: {
+                            Image(systemName: "ellipsis")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(Color.white.opacity(0.9))
+                                .frame(width: 30, height: 30)
+                                .background(Color.white.opacity(0.16), in: Circle())
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .padding(.top, 14)
                 }
                 .padding(.horizontal, 16)
                 .padding(.bottom, 16)
@@ -1470,7 +1507,9 @@ fileprivate struct HomeTileNewShowCard: View {
                             .multilineTextAlignment(.leading)
                     }
 
-                    // 3. Bottom Bar: author on left, "+" subscribe on right
+                    Spacer(minLength: 8)
+
+                    // 3. Bottom Bar: author on left, "+" subscribe on right (pinned to card bottom)
                     HStack(alignment: .center) {
                         HStack(spacing: 4) {
                             Image(systemName: "star.fill")
@@ -1591,7 +1630,9 @@ fileprivate struct HomeTileChannelCard: View {
                         .lineLimit(2)
                         .multilineTextAlignment(.leading)
 
-                    // 3. Bottom Row: genre on left, "+" button on right
+                    Spacer(minLength: 8)
+
+                    // 3. Bottom Row: genre on left, "+" button on right (pinned to card bottom)
                     HStack(alignment: .center) {
                         if let g = feed.genre, !g.isEmpty {
                             Text(g)

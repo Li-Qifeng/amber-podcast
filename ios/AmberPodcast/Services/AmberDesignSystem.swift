@@ -408,22 +408,26 @@ public struct AppleExpandingPlayCapsule: View {
         return Color(uiColor: ui)
     }
 
-    /// The frosted glass is tinted toward the card colour; blend that tint with the
-    /// material's own base lightness to pick ink, so text always contrasts with what
-    /// actually shows through the capsule on both white and dark backgrounds.
+    /// Whether the card behind the capsule is light. The pill itself is drawn in
+    /// the OPPOSITE lightness so it stays clearly visible on dark artwork instead
+    /// of melting into the card.
     private var isLightCard: Bool {
-        let cardLum = AmberColorPalette.luminance(of: resolvedBackground)
-        let materialLum: CGFloat = colorScheme == .dark ? 0.10 : 0.90
-        let effective = 0.72 * cardLum + 0.28 * materialLum
-        return effective > 0.5
+        AmberColorPalette.luminance(of: resolvedBackground) > 0.5
+    }
+
+    /// Contrasting frosted fill: light pill on dark cards, dark pill on light cards.
+    private var capsuleFill: Color {
+        isLightCard
+            ? Color(red: 0.10, green: 0.10, blue: 0.12).opacity(0.88)
+            : Color.white.opacity(0.94)
     }
 
     private var ink: Color {
         if let fg = foregroundColor { return fg }
-        return isLightCard ? Color(red: 0.08, green: 0.08, blue: 0.10) : Color.white
+        return isLightCard ? Color.white : Color(red: 0.08, green: 0.08, blue: 0.10)
     }
 
-    private var inkTrack: Color { ink.opacity(0.22) }
+    private var inkTrack: Color { ink.opacity(0.25) }
     private var clampedProgress: CGFloat { CGFloat(min(max(progress, 0), 1)) }
 
     public var body: some View {
@@ -476,14 +480,14 @@ public struct AppleExpandingPlayCapsule: View {
             .padding(.horizontal, 11)
             .padding(.vertical, 5)
             .frame(minHeight: 28)
-            // Frosted glass tinted toward the card colour, no stroke — the material
-            // carries its own edge and the tint keeps ink contrast honest.
+            // Frosted glass with a contrasting fill so the pill pops on dark cards,
+            // no stroke — the material carries its own edge.
             .background(
                 Capsule()
                     .fill(.ultraThinMaterial)
-                    .overlay(Capsule().fill(resolvedBackground.opacity(0.72)))
+                    .overlay(Capsule().fill(capsuleFill))
             )
-            .shadow(color: Color.black.opacity(0.10), radius: 4, x: 0, y: 2)
+            .shadow(color: Color.black.opacity(0.18), radius: 5, x: 0, y: 2)
         }
         .buttonStyle(ApplePlayButtonStyle(scale: 0.96))
         .animation(.spring(response: 0.36, dampingFraction: 0.82), value: isPlaying)
