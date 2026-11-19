@@ -147,6 +147,15 @@ class Database:
                 (genre, feed_id),
             )
 
+    def set_feed_auto_translate(self, feed_id: str, enabled: bool) -> bool:
+        """Toggle a subscribed feed's auto-dump policy without re-fetching its RSS."""
+        with self.get_conn() as conn:
+            cur = conn.execute(
+                "UPDATE feeds SET auto_translate = ?, updated_at = ? WHERE id = ?",
+                (1 if enabled else 0, int(time.time()), feed_id),
+            )
+            return cur.rowcount > 0
+
     def get_feed(self, feed_id: str) -> Optional[Dict[str, Any]]:
         with self.get_conn() as conn:
             row = conn.execute("SELECT * FROM feeds WHERE id = ?", (feed_id,)).fetchone()

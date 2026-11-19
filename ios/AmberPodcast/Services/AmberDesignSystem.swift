@@ -396,10 +396,26 @@ public struct AppleExpandingPlayCapsule: View {
         self.action = action
     }
 
-    /// Card artwork luminance decides ink colour so the capsule never washes out.
+    @Environment(\.colorScheme) private var colorScheme
+
+    /// Resolve the card colour against the active light/dark scheme so a dynamic
+    /// surface (e.g. AmberTheme.surfaceRaised) yields a concrete luminance.
+    private var resolvedBackground: Color {
+        let base = cardBackgroundColor ?? AmberTheme.surfaceRaised
+        let ui = UIColor(base).resolvedColor(
+            with: UITraitCollection(userInterfaceStyle: colorScheme == .dark ? .dark : .light)
+        )
+        return Color(uiColor: ui)
+    }
+
+    /// The frosted glass is tinted toward the card colour; blend that tint with the
+    /// material's own base lightness to pick ink, so text always contrasts with what
+    /// actually shows through the capsule on both white and dark backgrounds.
     private var isLightCard: Bool {
-        guard let bg = cardBackgroundColor else { return false }
-        return AmberColorPalette.luminance(of: bg) > 0.55
+        let cardLum = AmberColorPalette.luminance(of: resolvedBackground)
+        let materialLum: CGFloat = colorScheme == .dark ? 0.10 : 0.90
+        let effective = 0.72 * cardLum + 0.28 * materialLum
+        return effective > 0.5
     }
 
     private var ink: Color {
@@ -407,8 +423,7 @@ public struct AppleExpandingPlayCapsule: View {
         return isLightCard ? Color(red: 0.08, green: 0.08, blue: 0.10) : Color.white
     }
 
-    private var inkDim: Color { ink.opacity(0.55) }
-    private var inkTrack: Color { ink.opacity(0.20) }
+    private var inkTrack: Color { ink.opacity(0.22) }
     private var clampedProgress: CGFloat { CGFloat(min(max(progress, 0), 1)) }
 
     public var body: some View {
@@ -434,20 +449,20 @@ public struct AppleExpandingPlayCapsule: View {
                 }
                 .frame(width: 13, height: 11)
 
-                // Plain hairline progress bar — only once the episode is loaded.
-                if isCurrent && clampedProgress > 0 {
+                // Plain progress bar — appears the instant playback starts.
+                if isPlaying || isCurrent {
                     GeometryReader { geo in
                         ZStack(alignment: .leading) {
                             Capsule()
                                 .fill(inkTrack)
-                                .frame(height: 2)
+                                .frame(height: 3.5)
                             Capsule()
                                 .fill(ink)
-                                .frame(width: max(2, geo.size.width * clampedProgress), height: 2)
+                                .frame(width: max(3.5, geo.size.width * clampedProgress), height: 3.5)
                         }
                         .frame(maxHeight: .infinity, alignment: .center)
                     }
-                    .frame(width: 46, height: 11)
+                    .frame(width: 34, height: 11)
                     .transition(.opacity.combined(with: .scale(scale: 0.85, anchor: .leading)))
                 }
 
@@ -461,8 +476,13 @@ public struct AppleExpandingPlayCapsule: View {
             .padding(.horizontal, 11)
             .padding(.vertical, 5)
             .frame(minHeight: 28)
-            // Frosted glass, no stroke — Apple's material carries its own edge.
-            .background(.ultraThinMaterial, in: Capsule())
+            // Frosted glass tinted toward the card colour, no stroke — the material
+            // carries its own edge and the tint keeps ink contrast honest.
+            .background(
+                Capsule()
+                    .fill(.ultraThinMaterial)
+                    .overlay(Capsule().fill(resolvedBackground.opacity(0.72)))
+            )
             .shadow(color: Color.black.opacity(0.10), radius: 4, x: 0, y: 2)
         }
         .buttonStyle(ApplePlayButtonStyle(scale: 0.96))

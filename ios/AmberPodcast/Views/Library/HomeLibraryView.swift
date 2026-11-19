@@ -289,7 +289,8 @@ public struct HomeLibraryView: View {
                             isCurrent: isCurrent,
                             progress: liveProgress,
                             durationText: formatDuration(Double(ep.duration)),
-                            tintColor: AmberTheme.primaryAmber
+                            tintColor: AmberTheme.primaryAmber,
+                            cardBackgroundColor: AmberTheme.surfaceRaised
                         ) {
                             playEpisode(ep, feed: feed)
                         }
@@ -643,7 +644,8 @@ public struct HomeLibraryView: View {
                     isCurrent: isCurrent,
                     progress: liveProgress,
                     durationText: formatDuration(remaining),
-                    tintColor: AmberTheme.primaryAmber
+                    tintColor: AmberTheme.primaryAmber,
+                    cardBackgroundColor: AmberTheme.background
                 ) {
                     if let f = feed {
                         playEpisode(episode, feed: f)
@@ -1366,7 +1368,7 @@ fileprivate struct HomeTileLatestEpisodeCard: View {
 
                         Spacer()
                     }
-                    .padding(.top, 6)
+                    .padding(.top, 14)
                 }
                 .padding(.horizontal, 16)
                 .padding(.bottom, 16)

@@ -190,8 +190,10 @@ public struct FeedDetailView: View {
     // MARK: - Subscription Check
     private func checkSubscriptionStatus() async {
         if let feeds = try? await AmberAPIClient.shared.listFeeds() {
+            let matched = feeds.first { $0.id == feed.id || (!feed.feedUrl.isEmpty && $0.feedUrl == feed.feedUrl) }
             await MainActor.run {
-                self.isSubscribed = feeds.contains { $0.id == feed.id || (!feed.feedUrl.isEmpty && $0.feedUrl == feed.feedUrl) }
+                self.isSubscribed = matched != nil
+                if let m = matched { self.autoTranslate = m.autoTranslate == 1 }
             }
         }
     }
@@ -355,6 +357,26 @@ public struct FeedDetailView: View {
                         .foregroundStyle(AmberTheme.labelSecondary)
                         .lineSpacing(4)
                         .lineLimit(3)
+                }
+
+                if isSubscribed {
+                    Toggle(isOn: $autoTranslate) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("订阅后自动转储新单集")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundStyle(AmberTheme.labelPrimary)
+                            Text("每发布一集新单集即自动转储，仅限订阅之后发布的内容")
+                                .font(.system(size: 11))
+                                .foregroundStyle(AmberTheme.labelTertiary)
+                        }
+                    }
+                    .tint(AmberTheme.primaryAmber)
+                    .onChange(of: autoTranslate) { newValue in
+                        Task {
+                            try? await AmberAPIClient.shared.setFeedAutoTranslate(feedId: feed.id, enabled: newValue)
+                        }
+                    }
+                    .padding(.top, 10)
                 }
             }
             .padding(.horizontal, 16)

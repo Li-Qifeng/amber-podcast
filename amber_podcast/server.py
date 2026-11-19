@@ -6,7 +6,7 @@ import hashlib
 import re
 from contextlib import asynccontextmanager
 from email.utils import parsedate_to_datetime
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Set
 from pathlib import Path
 from fastapi import FastAPI, Depends, HTTPException, Header, Query, BackgroundTasks, status
 from fastapi.responses import JSONResponse, FileResponse, StreamingResponse, RedirectResponse
@@ -113,11 +113,13 @@ def _bool_setting(key: str, fallback: bool = False) -> bool:
 async def lifespan(app):
     poller = asyncio.create_task(_poll_loop())
     genre_backfiller = asyncio.create_task(_backfill_feed_genres())
+    scheduler = asyncio.create_task(_pipeline_scheduler())
     try:
         yield
     finally:
         poller.cancel()
         genre_backfiller.cancel()
+        scheduler.cancel()
 
 
 app = FastAPI(title="Amber Podcast API", version="0.1.0", lifespan=lifespan)
@@ -133,6 +135,11 @@ app.add_middleware(
 db = Database()
 apple_agg = ApplePodcastAggregator()
 xyz_agg = XiaoyuzhouAggregator()
+
+# Episodes whose in-flight pipeline task must abort at the next step boundary.
+_cancelled_episodes: Set[str] = set()
+# Episodes with a launched pipeline task (single source of truth for the scheduler).
+_inflight: Set[str] = set()
 
 
 async def _poll_loop():
@@ -227,6 +234,7 @@ def _enqueue_pipeline(episode_id: str) -> bool:
     if _active_pipeline_count() >= limit:
         return False
     db.update_episode_status(episode_id, status="pending", progress=0)
+    _inflight.add(episode_id)
     asyncio.create_task(run_pipeline_task(episode_id))
     return True
 
@@ -248,6 +256,40 @@ def _queue_auto_translations(episode_ids: List[str]) -> int:
         if _enqueue_pipeline(eid):
             queued += 1
     return queued
+
+
+def _abort_if_cancelled(episode_id: str) -> bool:
+    """True when the user paused/cancelled this episode; restore idle so the
+    running task stops cleanly instead of overwriting status back to ready."""
+    if episode_id in _cancelled_episodes:
+        _cancelled_episodes.discard(episode_id)
+        db.update_episode_status(episode_id, status="idle", progress=0)
+        return True
+    return False
+
+
+async def _pipeline_scheduler():
+    """Drain pending episodes up to the concurrency cap. A bulk 'dump all' marks
+    rows pending; this loop launches them gradually instead of stampeding the box."""
+    while True:
+        try:
+            limit = _int_setting("max_concurrent_pipelines", 1)
+            if len(_inflight) < limit:
+                pending = db.list_episodes_by_statuses(["pending"], 1000)
+                pending.sort(key=lambda e: e.get("updated_at") or 0)
+                for ep in pending:
+                    if len(_inflight) >= limit:
+                        break
+                    eid = ep["id"]
+                    if eid in _inflight or eid in _cancelled_episodes:
+                        continue
+                    _inflight.add(eid)
+                    asyncio.create_task(run_pipeline_task(eid))
+        except asyncio.CancelledError:
+            raise
+        except Exception:
+            logger.exception("pipeline scheduler tick failed")
+        await asyncio.sleep(2)
 
 
 archiver = EpisodeArchiver()
@@ -795,6 +837,10 @@ async def run_pipeline_task(episode_id: str):
     """Background worker executing the full ASR -> Translate -> TTS -> Alignment -> Archive pipeline."""
     ep = db.get_episode(episode_id)
     if not ep:
+        _inflight.discard(episode_id)
+        return
+    if _abort_if_cancelled(episode_id):
+        _inflight.discard(episode_id)
         return
 
     db.mark_dump_started(episode_id)
@@ -875,6 +921,8 @@ async def run_pipeline_task(episode_id: str):
             with open(mapping_path, "w", encoding="utf-8") as f:
                 json.dump(full_mapping, f, ensure_ascii=False, indent=2)
 
+            if _abort_if_cancelled(episode_id):
+                return
             db.update_episode_status(episode_id, status="synthesizing", progress=90)
             archiver.archive_episode_bundle(
                 episode_id=episode_id,
@@ -889,17 +937,23 @@ async def run_pipeline_task(episode_id: str):
             return
 
         # Step 2: ASR Transcription (Foreign Podcast)
+        if _abort_if_cancelled(episode_id):
+            return
         db.update_episode_status(episode_id, status="transcribing", progress=25)
         asr_engine = ASREngine()
         asr_segments = await asr_engine.transcribe_audio_file(audio_path)
 
         # Step 3: LLM Oral Translation & Chapters
+        if _abort_if_cancelled(episode_id):
+            return
         db.update_episode_status(episode_id, status="translating", progress=50)
         translator = TranslatorEngine()
         trans_segments = await translator.translate_segments(asr_segments)
         chapters_notes = await translator.generate_chapters_and_notes(asr_segments)
 
         # Step 4: TTS Synthesis & Alignment
+        if _abort_if_cancelled(episode_id):
+            return
         db.update_episode_status(episode_id, status="synthesizing", progress=75)
         # Use EdgeTTSProvider as default reliable multi-speaker synthesis engine
         tts_provider = EdgeTTSProvider()
@@ -907,6 +961,8 @@ async def run_pipeline_task(episode_id: str):
         dual_bundle = await aligner.build_dual_track_bundle(episode_id, trans_segments, work_dir=work_dir)
 
         # Step 5: Archive to Google Drive
+        if _abort_if_cancelled(episode_id):
+            return
         db.update_episode_status(episode_id, status="synthesizing", progress=90)
         archiver.archive_episode_bundle(
             episode_id=episode_id,
@@ -923,6 +979,9 @@ async def run_pipeline_task(episode_id: str):
 
     except Exception as e:
         db.update_episode_status(episode_id, status="failed", progress=0, error_message=str(e))
+    finally:
+        _inflight.discard(episode_id)
+        _cancelled_episodes.discard(episode_id)
 
 @app.post("/api/v1/episodes/{episode_id}/translate")
 async def trigger_translation(
@@ -992,7 +1051,6 @@ async def trigger_translation(
         return {"status": ep["status"], "progress": ep["progress"], "message": "Translation already in progress"}
 
     db.update_episode_status(episode_id, status="pending", progress=0)
-    bg_tasks.add_task(run_pipeline_task, episode_id)
     return {"status": "pending", "episode_id": episode_id, "message": "Translation task queued"}
 
 @app.get("/api/v1/pipeline/status")
@@ -1210,7 +1268,6 @@ async def batch_translate(
             skipped += 1
             continue
         db.update_episode_status(eid, status="pending", progress=0)
-        bg_tasks.add_task(run_pipeline_task, eid)
         queued += 1
 
     return {
@@ -1228,8 +1285,32 @@ def cancel_episode_translation(episode_id: str, token: str = Depends(verify_toke
         raise HTTPException(status_code=404, detail="Episode not found")
     if ep["status"] not in _QUEUE_STATUSES:
         return {"status": ep["status"], "episode_id": episode_id, "message": "Task is not running"}
+    _cancelled_episodes.add(episode_id)
     db.update_episode_status(episode_id, status="idle", progress=0)
     return {"status": "idle", "episode_id": episode_id, "message": "Task cancelled"}
+
+
+@app.post("/api/v1/pipeline/cancel-all")
+def cancel_all_pipeline(token: str = Depends(verify_token)):
+    """Pause/clear the whole dump queue: abort running tasks and reset pending to idle."""
+    targets = db.list_episodes_by_statuses(_QUEUE_STATUSES, 1000)
+    for ep in targets:
+        _cancelled_episodes.add(ep["id"])
+        db.update_episode_status(ep["id"], status="idle", progress=0)
+    return {"cancelled": len(targets)}
+
+
+class AutoTranslateRequest(BaseModel):
+    enabled: bool
+
+
+@app.put("/api/v1/feeds/{feed_id}/auto-translate")
+def set_feed_auto_translate(feed_id: str, req: AutoTranslateRequest, token: str = Depends(verify_token)):
+    """Per-feed dump policy: auto-transcribe only episodes published after subscription."""
+    if not db.get_feed(feed_id):
+        raise HTTPException(status_code=404, detail="Feed not found")
+    db.set_feed_auto_translate(feed_id, req.enabled)
+    return {"feed_id": feed_id, "auto_translate": 1 if req.enabled else 0}
 
 
 @app.delete("/api/v1/episodes/{episode_id}/artifacts")

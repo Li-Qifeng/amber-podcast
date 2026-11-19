@@ -340,3 +340,71 @@ def test_enqueue_pipeline_respects_concurrency_cap():
 
     # default cap is 1 and one pipeline is already active -> refuse
     assert server_mod._enqueue_pipeline("cap_new") is False
+
+
+def test_set_feed_auto_translate_endpoint():
+    headers = {"Authorization": f"Bearer {AUTH_TOKEN}"}
+    db.upsert_feed(feed_id="feed_policy", source_type="apple_rss", title="Policy",
+                   author="T", feed_url="https://example.com/policy",
+                   cover_url="", description="", auto_translate=0)
+    r = client.put("/api/v1/feeds/feed_policy/auto-translate", json={"enabled": True}, headers=headers)
+    assert r.status_code == 200
+    assert r.json()["auto_translate"] == 1
+    assert db.get_feed("feed_policy")["auto_translate"] == 1
+    r2 = client.put("/api/v1/feeds/feed_policy/auto-translate", json={"enabled": False}, headers=headers)
+    assert r2.json()["auto_translate"] == 0
+    assert db.get_feed("feed_policy")["auto_translate"] == 0
+    r3 = client.put("/api/v1/feeds/feed_missing/auto-translate", json={"enabled": True}, headers=headers)
+    assert r3.status_code == 404
+
+
+def test_cancel_all_resets_queue_to_idle():
+    headers = {"Authorization": f"Bearer {AUTH_TOKEN}"}
+    db.upsert_feed(feed_id="feed_cancelall", source_type="apple_rss", title="CA",
+                   author="T", feed_url="https://example.com/cancelall",
+                   cover_url="", description="")
+    for eid, st in [("ca_pending", "pending"), ("ca_running", "transcribing")]:
+        db.upsert_episode(episode_id=eid, feed_id="feed_cancelall", title=eid,
+                          audio_url="https://e/x.mp3", pub_date="Wed, 11 Nov 2026 10:00:00 GMT")
+        db.update_episode_status(eid, status=st)
+    r = client.post("/api/v1/pipeline/cancel-all", headers=headers)
+    assert r.status_code == 200
+    assert r.json()["cancelled"] >= 2
+    assert db.get_episode("ca_pending")["status"] == "idle"
+    assert db.get_episode("ca_running")["status"] == "idle"
+    assert "ca_running" in server_mod._cancelled_episodes
+
+
+def test_batch_translate_marks_pending_without_immediate_launch(monkeypatch):
+    headers = {"Authorization": f"Bearer {AUTH_TOKEN}"}
+    launched = []
+    monkeypatch.setattr(server_mod, "run_pipeline_task", lambda eid: launched.append(eid))
+    db.upsert_feed(feed_id="feed_batch", source_type="apple_rss", title="Batch",
+                   author="T", feed_url="https://example.com/batch",
+                   cover_url="", description="")
+    for i in range(3):
+        db.upsert_episode(episode_id=f"batch_{i}", feed_id="feed_batch", title=f"b{i}",
+                          audio_url="https://e/b.mp3", pub_date="Wed, 11 Nov 2026 10:00:00 GMT")
+    r = client.post("/api/v1/pipeline/batch-translate",
+                    json={"feed_id": "feed_batch", "only_idle": True}, headers=headers)
+    assert r.status_code == 200
+    assert r.json()["queued"] == 3
+    # batch must NOT launch tasks directly; the capped scheduler drains pending
+    assert launched == []
+    for i in range(3):
+        assert db.get_episode(f"batch_{i}")["status"] == "pending"
+
+
+def test_abort_if_cancelled_restores_idle():
+    db.upsert_feed(feed_id="feed_abort", source_type="apple_rss", title="Abort",
+                   author="T", feed_url="https://example.com/abort",
+                   cover_url="", description="")
+    db.upsert_episode(episode_id="abort_ep", feed_id="feed_abort", title="a",
+                      audio_url="https://e/a.mp3", pub_date="Wed, 11 Nov 2026 10:00:00 GMT")
+    db.update_episode_status("abort_ep", status="transcribing")
+    server_mod._cancelled_episodes.add("abort_ep")
+    assert server_mod._abort_if_cancelled("abort_ep") is True
+    assert db.get_episode("abort_ep")["status"] == "idle"
+    assert "abort_ep" not in server_mod._cancelled_episodes
+    assert server_mod._abort_if_cancelled("abort_ep") is False
+

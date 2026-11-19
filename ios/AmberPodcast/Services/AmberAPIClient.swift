@@ -397,6 +397,28 @@ public final class AmberAPIClient: ObservableObject {
         }
     }
 
+    /// Pause/clear the entire dump queue (running + pending) in one shot.
+    public func cancelAllPipeline() async throws -> Int {
+        let req = try makeRequest(endpoint: "/api/v1/pipeline/cancel-all", method: "POST")
+        let (data, resp) = try await session.data(for: req)
+        guard (resp as? HTTPURLResponse)?.statusCode == 200 else {
+            throw URLError(.badServerResponse)
+        }
+        struct Res: Codable { let cancelled: Int }
+        return (try? JSONDecoder().decode(Res.self, from: data))?.cancelled ?? 0
+    }
+
+    /// Per-feed dump policy: auto-transcribe only episodes published after subscription.
+    public func setFeedAutoTranslate(feedId: String, enabled: Bool) async throws {
+        struct Body: Codable { let enabled: Bool }
+        let bodyData = try JSONEncoder().encode(Body(enabled: enabled))
+        let req = try makeRequest(endpoint: "/api/v1/feeds/\(feedId)/auto-translate", method: "PUT", body: bodyData)
+        let (_, resp) = try await session.data(for: req)
+        guard (resp as? HTTPURLResponse)?.statusCode == 200 else {
+            throw URLError(.badServerResponse)
+        }
+    }
+
     public func deleteEpisodeArtifacts(episodeId: String) async throws {
         let req = try makeRequest(endpoint: "/api/v1/episodes/\(episodeId)/artifacts", method: "DELETE")
         let (_, resp) = try await session.data(for: req)

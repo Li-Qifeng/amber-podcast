@@ -269,6 +269,24 @@ public struct PipelineStatusView: View {
                     Text("\(c.running) 进行 · \(c.queued) 排队")
                         .font(.system(size: 10.5))
                         .foregroundStyle(AmberTheme.labelTertiary)
+                    if c.running + c.queued > 0 {
+                        Button {
+                            cancelAllTasks()
+                        } label: {
+                            HStack(spacing: 3) {
+                                Image(systemName: "pause.circle.fill")
+                                    .font(.system(size: 11))
+                                Text("全部暂停")
+                                    .font(.system(size: 10.5, weight: .medium, design: .rounded))
+                            }
+                            .foregroundStyle(Color.orange)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color.orange.opacity(0.14), in: Capsule())
+                        }
+                        .buttonStyle(TactileButtonStyle(scale: 0.94))
+                        .disabled(busyEpisodeId != nil)
+                    }
                 }
             }
 
@@ -401,6 +419,8 @@ public struct PipelineStatusView: View {
                     .font(.system(size: 11.5, weight: .bold, design: .rounded))
                     .foregroundStyle(AmberTheme.primaryAmber)
                 actionButton(icon: "stop.circle.fill", tint: Color.orange) { cancelTask(item) }
+            } else if queueTab == 1 {
+                actionButton(icon: "xmark.circle.fill", tint: Color.orange) { cancelTask(item) }
             } else if queueTab == 2 {
                 actionButton(icon: "arrow.clockwise.circle.fill", tint: AmberTheme.primaryAmber) { retryTask(item) }
             } else if queueTab == 3 {
@@ -814,6 +834,15 @@ public struct PipelineStatusView: View {
         Task {
             try? await apiClient.cancelEpisodeTask(episodeId: episodeId)
             await refreshAfterAction("已取消：\(title)")
+        }
+    }
+
+    private func cancelAllTasks() {
+        impactFeedback.impactOccurred()
+        busyEpisodeId = "all"
+        Task {
+            let n = (try? await apiClient.cancelAllPipeline()) ?? 0
+            await refreshAfterAction("已暂停全部任务（\(n)）")
         }
     }
 
