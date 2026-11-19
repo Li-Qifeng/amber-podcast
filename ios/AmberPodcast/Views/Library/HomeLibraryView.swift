@@ -708,7 +708,7 @@ public struct HomeLibraryView: View {
         let shows = newShowsForYou
         if !shows.isEmpty {
             let cardWidth = screenWidth * 0.70
-            let cardHeight = cardWidth * 4.0 / 3.0
+            let cardHeight = cardWidth * 1.5
 
             VStack(alignment: .leading, spacing: 16) {
                 sectionTitle("新节目推荐")
@@ -742,7 +742,7 @@ public struct HomeLibraryView: View {
         let channels = channelsToTry
         if !channels.isEmpty {
             let cardWidth = screenWidth * 0.70
-            let cardHeight = cardWidth * 4.0 / 3.0
+            let cardHeight = cardWidth * 1.5
 
             VStack(alignment: .leading, spacing: 16) {
                 sectionTitle("试试这些频道")
@@ -1468,10 +1468,10 @@ fileprivate struct HomeTileNewShowCard: View {
         let synopsis = homeStripHTML(feed.description)
         let tag = feed.genre ?? feed.editorialTag ?? "精选推荐"
         let coverUrl = URL(string: feed.proxiedCoverUrl)
-        let artworkSize: CGFloat = min(cardWidth - 32, cardHeight * 0.50)
+        let artworkSize: CGFloat = cardWidth - 36
 
         NavigationLink(destination: FeedDetailView(feed: feed)) {
-            VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .center, spacing: 0) {
                 // 1. Artwork Section
                 HStack {
                     Spacer()
@@ -1500,7 +1500,7 @@ fileprivate struct HomeTileNewShowCard: View {
                 .padding(.bottom, 12)
 
                 // 2. Metadata & Typography Section
-                VStack(alignment: .leading, spacing: 5) {
+                VStack(alignment: .center, spacing: 5) {
                     Text(tag)
                         .font(.system(size: 13, weight: .semibold))
                         .foregroundStyle(Color.white.opacity(0.65))
@@ -1509,20 +1509,20 @@ fileprivate struct HomeTileNewShowCard: View {
                         .font(.system(size: 17, weight: .bold))
                         .foregroundStyle(Color.white)
                         .lineLimit(1)
-                        .multilineTextAlignment(.leading)
+                        .multilineTextAlignment(.center)
 
                     if !synopsis.isEmpty {
                         Text(synopsis)
                             .font(.system(size: 14, weight: .regular))
                             .foregroundStyle(Color.white.opacity(0.65))
                             .lineLimit(2)
-                            .multilineTextAlignment(.leading)
+                            .multilineTextAlignment(.center)
                     }
 
                     Spacer(minLength: 8)
 
-                    // 3. Bottom Bar: author on left, "+" subscribe on right (pinned to card bottom)
-                    HStack(alignment: .center) {
+                    // 3. Footer: centered author tag + subscribe button
+                    HStack(spacing: 10, alignment: .center) {
                         HStack(spacing: 4) {
                             Image(systemName: "star.fill")
                                 .font(.system(size: 10))
@@ -1532,8 +1532,6 @@ fileprivate struct HomeTileNewShowCard: View {
                                 .foregroundStyle(Color.white.opacity(0.70))
                                 .lineLimit(1)
                         }
-
-                        Spacer()
 
                         Button {
                             onToggleSubscribe()
@@ -1592,10 +1590,10 @@ fileprivate struct HomeTileChannelCard: View {
         let synopsis = homeStripHTML(feed.description)
         let slogan = !synopsis.isEmpty ? synopsis : (feed.genre.map { "\($0) 领域优质播客" } ?? "探索优质音频节目")
         let coverUrl = URL(string: feed.proxiedCoverUrl)
-        let artworkSize: CGFloat = min(cardWidth - 32, cardHeight * 0.50)
+        let artworkSize: CGFloat = cardWidth - 36
 
         NavigationLink(destination: FeedDetailView(feed: feed)) {
-            VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .center, spacing: 0) {
                 // 1. Channel Logo Artwork
                 HStack {
                     Spacer()
@@ -1624,23 +1622,23 @@ fileprivate struct HomeTileChannelCard: View {
                 .padding(.bottom, 12)
 
                 // 2. Typography & Slogan
-                VStack(alignment: .leading, spacing: 5) {
+                VStack(alignment: .center, spacing: 5) {
                     Text(feed.title)
                         .font(.system(size: 17, weight: .bold))
                         .foregroundStyle(Color.white)
                         .lineLimit(1)
-                        .multilineTextAlignment(.leading)
+                        .multilineTextAlignment(.center)
 
                     Text(slogan)
                         .font(.system(size: 14, weight: .regular))
                         .foregroundStyle(Color.white.opacity(0.70))
                         .lineLimit(2)
-                        .multilineTextAlignment(.leading)
+                        .multilineTextAlignment(.center)
 
                     Spacer(minLength: 8)
 
-                    // 3. Bottom Row: genre on left, "+" button on right (pinned to card bottom)
-                    HStack(alignment: .center) {
+                    // 3. Footer: centered genre tag + subscribe button
+                    HStack(spacing: 10, alignment: .center) {
                         if let g = feed.genre, !g.isEmpty {
                             Text(g)
                                 .font(.system(size: 12, weight: .medium))
@@ -1650,8 +1648,6 @@ fileprivate struct HomeTileChannelCard: View {
                                 .font(.system(size: 12, weight: .medium))
                                 .foregroundStyle(Color.white.opacity(0.65))
                         }
-
-                        Spacer()
 
                         Button {
                             onToggleSubscribe()
