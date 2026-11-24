@@ -98,3 +98,34 @@ def test_xiaoyuzhou_parser():
     assert ep["audio_url"] == "https://media.xyzcdn.net/643cdf/test_audio.m4a"
     assert ep["duration"] == 3420
     assert "05:10 具身智能的突破" in ep["shownotes"]
+
+
+XYZ_PODCAST_PAGE = """<html><body><script id="__NEXT_DATA__" type="application/json">
+{"props":{"pageProps":{"podcast":{"type":"PODCAST","pid":"5e4ee557418a84a0466737b7",
+"title":"忽左忽右","author":"JustPod","description":"desc",
+"image":{"largePicUrl":"https://image.xyzcdn.net/cover.jpg"},
+"episodes":[
+ {"type":"EPISODE","eid":"6b0004dea4a79edf137c38cb","pid":"5e4ee557418a84a0466737b7",
+  "title":"518 傅剑锋漫谈","description":"shownotes here","shownotes":null,"duration":5556,
+  "enclosure":{"url":"https://media.xyzcdn.net/a.m4a"},
+  "media":{"source":{"mode":"PUBLIC","url":"https://media.xyzcdn.net/a.m4a"}},"pubDate":"2026-11-20T09:00:00.000Z"}
+]}}}}</script></body></html>"""
+
+
+def test_xiaoyuzhou_podcast_page_reads_nested_episodes():
+    """The live podcast page nests episodes under pageProps.podcast.episodes.
+    Reading pageProps.episodes directly silently yields zero episodes — a feed
+    that looks subscribed but never shows an episode."""
+    agg = XiaoyuzhouAggregator()
+    parsed = agg.parse_podcast_page(XYZ_PODCAST_PAGE)
+
+    assert parsed["feed"]["title"] == "忽左忽右"
+    assert parsed["feed"]["source_type"] == "xiaoyuzhou"
+    assert parsed["feed"]["cover_url"] == "https://image.xyzcdn.net/cover.jpg"
+    assert len(parsed["episodes"]) == 1
+    ep = parsed["episodes"][0]
+    assert ep["guid"] == "6b0004dea4a79edf137c38cb"
+    assert ep["title"] == "518 傅剑锋漫谈"
+    assert ep["audio_url"] == "https://media.xyzcdn.net/a.m4a"
+    assert ep["duration"] == 5556
+    assert ep["shownotes"] == "shownotes here"  # falls back when shownotes is null

@@ -97,6 +97,14 @@ class XiaoyuzhouAggregator:
             resp.raise_for_status()
             html = resp.text
 
+        return self.parse_podcast_page(html)
+
+    def parse_podcast_page(self, html: str) -> Dict[str, Any]:
+        """Parse a Xiaoyuzhou podcast page into feed info + episode list.
+
+        The live page nests episodes under pageProps.podcast.episodes; the
+        older flat pageProps.episodes shape is kept as a fallback.
+        """
         data = self.parse_next_data(html)
         if not data:
             raise ValueError("Could not find __NEXT_DATA__ in Xiaoyuzhou podcast page")
@@ -116,7 +124,8 @@ class XiaoyuzhouAggregator:
         }
 
         episodes = []
-        for ep in page_props.get("episodes", []):
+        raw_episodes = podcast.get("episodes") or page_props.get("episodes") or []
+        for ep in raw_episodes:
             eid = ep.get("eid", "")
             media = ep.get("media", {})
             audio_url = ""
