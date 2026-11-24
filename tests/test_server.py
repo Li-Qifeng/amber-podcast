@@ -464,3 +464,124 @@ def test_health_reports_real_app_version():
     assert body["status"] == "ok"
     assert body["version"] == mv
     assert body["build"] == cb
+
+
+# --- discover: 50-item shelves + latest_episode spotlight ---
+
+
+def _fake_shelf_items(count: int) -> list:
+    return [
+        {
+            "id": str(900000 + i),
+            "collection_id": str(900000 + i),
+            "source_type": "apple_rss",
+            "title": f"Shelf Show {i}",
+            "author": "A",
+            "feed_url": f"https://example.com/shelf-{i}",
+            "cover_url": "",
+            "description": "",
+            "genre": "科技",
+            "track_count": 0,
+            "auto_translate": 0,
+        }
+        for i in range(count)
+    ]
+
+
+def _patch_discover(monkeypatch, shelf_items, latest_impl):
+    async def fake_top(country, limit=20):
+        return []  # empty -> curated fallback lists, no network
+
+    async def fake_genre(country, gid, limit=20):
+        return list(shelf_items)
+
+    monkeypatch.setattr(server_mod.apple_agg, "fetch_top_podcasts", fake_top)
+    monkeypatch.setattr(server_mod.apple_agg, "fetch_top_by_genre", fake_genre)
+    monkeypatch.setattr(server_mod.apple_agg, "fetch_latest_episode", latest_impl)
+
+
+def test_discover_categories_return_50_items_with_latest_episode(monkeypatch):
+    async def fake_latest(feed_url, feed_id):
+        return {
+            "id": f"{feed_id}_ep1",
+            "title": "Latest Ep",
+            "duration": 1234,
+            "pub_date": "Thu, 12 Nov 2026 10:00:00 GMT",
+            "audio_url": "https://e/latest.mp3",
+        }
+
+    _patch_discover(monkeypatch, _fake_shelf_items(50), fake_latest)
+    headers = {"Authorization": f"Bearer {AUTH_TOKEN}"}
+    resp = client.get("/api/v1/discover", headers=headers)
+    assert resp.status_code == 200, resp.text
+    data = resp.json()
+    # Contract unchanged: same top-level keys (additions only).
+    assert set(data) == {"featured", "top_chinese", "top_global", "categories"}
+    cats = data["categories"]
+    assert len(cats) == len(server_mod.GENRE_SHELVES)
+    for cat in cats:
+        assert len(cat["items"]) == 50
+        top = cat["items"][0]
+        assert top["latest_episode"]["title"] == "Latest Ep"
+        assert top["latest_episode"]["duration"] == 1234
+        assert top["latest_episode"]["pub_date"] == "Thu, 12 Nov 2026 10:00:00 GMT"
+        assert top["latest_episode"]["audio_url"] == "https://e/latest.mp3"
+        assert top["latest_episode"]["id"] == f"{top['id']}_ep1"
+        # Only the #1 show carries the spotlight field.
+        assert "latest_episode" not in cat["items"][1]
+
+
+def test_discover_latest_episode_failure_omits_field_per_category(monkeypatch):
+    calls = {"n": 0}
+
+    async def failing_latest(feed_url, feed_id):
+        calls["n"] += 1
+        raise RuntimeError("feed dead")
+
+    _patch_discover(monkeypatch, _fake_shelf_items(50), failing_latest)
+    headers = {"Authorization": f"Bearer {AUTH_TOKEN}"}
+    resp = client.get("/api/v1/discover", headers=headers)
+    assert resp.status_code == 200, resp.text
+    cats = resp.json()["categories"]
+    assert len(cats) == len(server_mod.GENRE_SHELVES)
+    for cat in cats:
+        assert len(cat["items"]) == 50  # shelf itself unaffected
+        assert "latest_episode" not in cat["items"][0]
+    assert calls["n"] == len(cats)  # every shelf attempted independently
+
+
+def test_fetch_latest_episode_picks_newest_by_pub_date_and_caches():
+    from amber_podcast.aggregator.itunes import ApplePodcastAggregator
+
+    agg = ApplePodcastAggregator()
+    calls = {"n": 0}
+
+    async def fake_fetch(url, feed_id):
+        calls["n"] += 1
+        return {"feed": {"id": feed_id}, "episodes": [
+            {"id": f"{feed_id}_old", "title": "Old", "audio_url": "https://e/old.mp3",
+             "duration": 60, "pub_date": "Wed, 11 Nov 2026 10:00:00 GMT", "guid": "g1"},
+            {"id": f"{feed_id}_new", "title": "New", "audio_url": "https://e/new.mp3",
+             "duration": 120, "pub_date": "Thu, 12 Nov 2026 10:00:00 GMT", "guid": "g2"},
+        ]}
+
+    agg.fetch_and_parse_feed = fake_fetch
+    first = asyncio.run(agg.fetch_latest_episode("https://example.com/rss", "feed_le"))
+    second = asyncio.run(agg.fetch_latest_episode("https://example.com/rss", "feed_le"))
+    assert calls["n"] == 1  # second call served from the independent cache
+    assert first == second
+    assert first["title"] == "New"  # by pubDate, not document order
+    assert first["duration"] == 120
+    assert set(first) == {"id", "title", "duration", "pub_date", "audio_url"}
+
+
+def test_fetch_latest_episode_never_fatal():
+    from amber_podcast.aggregator.itunes import ApplePodcastAggregator
+
+    agg = ApplePodcastAggregator()
+
+    async def boom(url, feed_id):
+        raise RuntimeError("network down")
+
+    agg.fetch_and_parse_feed = boom
+    assert asyncio.run(agg.fetch_latest_episode("https://example.com/dead", "feed_dead")) is None

@@ -11,6 +11,7 @@ public struct FullPlayerView: View {
     @State private var scrubTime: Double = 0.0
     @State private var showSpeedSheet: Bool = false
     @State private var showNoDualTrackAlert: Bool = false
+    @State private var showMissingChineseAlert: Bool = false
     @State private var dragOffsetY: CGFloat = 0.0
 
     @Namespace private var modeNamespace
@@ -85,6 +86,16 @@ public struct FullPlayerView: View {
             Button("好", role: .cancel) {}
         } message: {
             Text("当前单集尚未生成 AI 双轨配音与对齐字幕。已为您切换至「字幕」面板，可一键发起极速转译。")
+        }
+        .alert("提示", isPresented: $showMissingChineseAlert) {
+            Button("好", role: .cancel) {}
+        } message: {
+            Text("译文音频尚未就绪，已自动切换回「原声」播放。")
+        }
+        .onReceive(player.$missingChineseAudioHint) { raised in
+            guard raised else { return }
+            player.missingChineseAudioHint = false
+            showMissingChineseAlert = true
         }
     }
 

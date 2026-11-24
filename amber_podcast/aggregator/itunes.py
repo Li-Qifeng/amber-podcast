@@ -4,6 +4,7 @@ import re
 import asyncio
 import time
 import hashlib
+from email.utils import parsedate_to_datetime
 from typing import List, Dict, Any, Optional
 from urllib.parse import quote
 
@@ -15,8 +16,11 @@ class ApplePodcastAggregator:
     def __init__(self, timeout: float = 15.0):
         self.timeout = timeout
         self._top_cache: Dict[str, Dict[str, Any]] = {}  # {country: {"time": ts, "data": [...]}}
-        self._genre_cache: Dict[str, Dict[str, Any]] = {}  # {"cn:1318": {"time": ts, "data": [...]}}
+        self._genre_cache: Dict[str, Dict[str, Any]] = {}  # {"cn:1318:50": {"time": ts, "data": [...]}}
+        self._latest_ep_cache: Dict[str, Dict[str, Any]] = {}  # {feed_url: {"time": ts, "data": {...}|None}}
         self._cache_ttl = 3600 * 6  # 6 hours
+        self._latest_ep_ttl = 3600 * 6  # latest_episode cache (independent, >= 6h)
+        self._latest_ep_fail_ttl = 900  # negative cache for dead feeds
 
     async def lookup_podcasts_batch(self, ids: List[str]) -> List[Dict[str, Any]]:
         """Batch lookup podcast metadata from iTunes API in chunks of 50.
@@ -125,7 +129,9 @@ class ApplePodcastAggregator:
         applemarketingtools feed does not), which is what gives us real
         category shelves instead of just one global chart.
         """
-        cache_key = f"{country}:{genre_id}"
+        # Limit is part of the key: growing a shelf (20 -> 50 entries) must
+        # never be served truncated from an older cached 20-entry list.
+        cache_key = f"{country}:{genre_id}:{limit}"
         now = time.time()
         cached = self._genre_cache.get(cache_key)
         if cached and now - cached["time"] < self._cache_ttl and cached["data"]:
@@ -154,6 +160,67 @@ class ApplePodcastAggregator:
         if cached and cached["data"]:
             return cached["data"][:limit]
         return []
+
+    @staticmethod
+    def _pick_latest_episode(episodes: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+        """Newest episode of a parsed feed by pubDate; document order breaks ties.
+
+        Podcast RSS is usually newest-first but not guaranteed, so episodes
+        with a parseable pubDate sort by timestamp; unparseable or missing
+        dates rank last instead of being dropped.
+        """
+        if not episodes:
+            return None
+
+        def ts(ep: Dict[str, Any]) -> float:
+            try:
+                return parsedate_to_datetime(ep.get("pub_date") or "").timestamp()
+            except Exception:
+                return 0.0
+
+        return max(episodes, key=ts)
+
+    async def fetch_latest_episode(self, feed_url: str, feed_id: str) -> Optional[Dict[str, Any]]:
+        """Latest episode of one channel RSS, for discover shelf spotlights.
+
+        Never raises — a dead feed just yields None so /discover omits the
+        field instead of failing. Successes live in an independent cache
+        (>= 6h TTL). A failed refresh keeps serving the last known good entry
+        even when expired (same convention as fetch_top_by_genre); a hard
+        failure is negatively cached briefly so every /discover request does
+        not re-hit a dead feed.
+        """
+        cache_key = feed_url or feed_id
+        now = time.time()
+        cached = self._latest_ep_cache.get(cache_key)
+        if cached:
+            ttl = self._latest_ep_fail_ttl if cached["data"] is None else self._latest_ep_ttl
+            if now - cached["time"] < ttl:
+                return dict(cached["data"]) if cached["data"] else None
+
+        data: Optional[Dict[str, Any]] = None
+        try:
+            parsed = await self.fetch_and_parse_feed(feed_url, feed_id)
+            latest = self._pick_latest_episode(parsed.get("episodes") or [])
+            if latest:
+                data = {
+                    "id": latest.get("id"),
+                    "title": latest.get("title"),
+                    "duration": latest.get("duration", 0),
+                    "pub_date": latest.get("pub_date", ""),
+                    "audio_url": latest.get("audio_url", ""),
+                }
+        except Exception:
+            data = None
+
+        if data is not None:
+            self._latest_ep_cache[cache_key] = {"time": now, "data": data}
+            return dict(data)
+
+        if cached and cached["data"]:
+            return dict(cached["data"])
+        self._latest_ep_cache[cache_key] = {"time": now, "data": None}
+        return None
 
     async def search_podcasts(self, query: str, limit: int = 15, country: Optional[str] = None) -> List[Dict[str, Any]]:
         """Search Apple Podcasts Directory API for shows, with multi-region support (CN + US)."""

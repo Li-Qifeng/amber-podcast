@@ -32,6 +32,11 @@ public final class DualTrackAudioPlayer: ObservableObject {
     /// view can present the full player. Reset to false once consumed.
     @Published public var requestFullPlayer: Bool = false
 
+    /// One-shot signal: a user-requested Chinese-dependent track had no
+    /// translation audio, so playback fell back to original. FullPlayerView
+    /// consumes it to show a single hint, then resets it to false.
+    @Published public var missingChineseAudioHint: Bool = false
+
     // Alignment and artifacts
     @Published public var timingSegments: [TimingSegment] = []
     @Published public var fullMapping: [FullMappingSegment] = []
@@ -114,6 +119,20 @@ public final class DualTrackAudioPlayer: ObservableObject {
     }
     #endif
 
+    // MARK: - Stream URL Helper
+    private func makeChineseStreamURL(episodeId: String, streamEndpoint: String?) -> URL? {
+        let endpoint = streamEndpoint ?? "/api/v1/episodes/\(episodeId)/stream/chinese"
+        let fullStreamUrlString: String
+        if endpoint.lowercased().hasPrefix("http://") || endpoint.lowercased().hasPrefix("https://") {
+            fullStreamUrlString = endpoint
+        } else {
+            let base = AmberAPIClient.shared.serverBaseUrl.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+            let path = endpoint.hasPrefix("/") ? endpoint : "/\(endpoint)"
+            fullStreamUrlString = "\(base)\(path)"
+        }
+        return URL(string: fullStreamUrlString)
+    }
+
     // MARK: - Load & Play Episode
     public func loadEpisode(
         episode: Episode,
@@ -146,16 +165,7 @@ public final class DualTrackAudioPlayer: ObservableObject {
 
         // 2. Prepare Chinese audio player ONLY IF timing sync / artifacts exist
         if !self.timingSegments.isEmpty {
-            let streamEndpoint = artifacts?.streaming.streamEndpoint ?? "/api/v1/episodes/\(episode.id)/stream/chinese"
-            let fullStreamUrlString: String
-            if streamEndpoint.lowercased().hasPrefix("http://") || streamEndpoint.lowercased().hasPrefix("https://") {
-                fullStreamUrlString = streamEndpoint
-            } else {
-                let base = AmberAPIClient.shared.serverBaseUrl.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
-                let endpoint = streamEndpoint.hasPrefix("/") ? streamEndpoint : "/\(streamEndpoint)"
-                fullStreamUrlString = "\(base)\(endpoint)"
-            }
-            if let zhUrl = URL(string: fullStreamUrlString) {
+            if let zhUrl = makeChineseStreamURL(episodeId: episode.id, streamEndpoint: artifacts?.streaming.streamEndpoint) {
                 let item = AVPlayerItem(url: zhUrl)
                 self.chinesePlayer = AVPlayer(playerItem: item)
                 self.chinesePlayer?.automaticallyWaitsToMinimizeStalling = true
@@ -163,6 +173,9 @@ public final class DualTrackAudioPlayer: ObservableObject {
         } else {
             self.chinesePlayer = nil
         }
+
+        // Keep track mode in sync with the audio that actually exists
+        enforceChineseTrackAvailability()
 
         // Attach periodic time observer to the active player
         attachTimeObserver()
@@ -194,21 +207,13 @@ public final class DualTrackAudioPlayer: ObservableObject {
                 self.articleMarkdown = a.articleMarkdown
 
                 if !self.timingSegments.isEmpty && self.chinesePlayer == nil {
-                    let streamEndpoint = a.streaming.streamEndpoint ?? "/api/v1/episodes/\(episode.id)/stream/chinese"
-                    let fullStreamUrlString: String
-                    if streamEndpoint.lowercased().hasPrefix("http://") || streamEndpoint.lowercased().hasPrefix("https://") {
-                        fullStreamUrlString = streamEndpoint
-                    } else {
-                        let base = AmberAPIClient.shared.serverBaseUrl.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
-                        let endpoint = streamEndpoint.hasPrefix("/") ? streamEndpoint : "/\(streamEndpoint)"
-                        fullStreamUrlString = "\(base)\(endpoint)"
-                    }
-                    if let zhUrl = URL(string: fullStreamUrlString) {
+                    if let zhUrl = self.makeChineseStreamURL(episodeId: episode.id, streamEndpoint: a.streaming.streamEndpoint) {
                         let item = AVPlayerItem(url: zhUrl)
                         self.chinesePlayer = AVPlayer(playerItem: item)
                         self.chinesePlayer?.automaticallyWaitsToMinimizeStalling = true
                     }
                 }
+                self.enforceChineseTrackAvailability()
             }
         }
     }
@@ -237,6 +242,9 @@ public final class DualTrackAudioPlayer: ObservableObject {
             if resumeTime > 0 {
                 seek(to: resumeTime)
             }
+            // Process-death restore rebuilds players but artifacts were never
+            // persisted — re-fetch in the background without blocking playback.
+            recoverArtifactsIfNeeded(for: episode)
             return
         }
         guard let player = activePlayer else { return }
@@ -245,6 +253,52 @@ public final class DualTrackAudioPlayer: ObservableObject {
         isPlaying = true
         updateNowPlayingInfo()
         startProgressSync()
+    }
+
+    /// A Chinese-dependent mode is only servable while the Chinese player
+    /// exists. If translation audio is missing, auto-revert to original so the
+    /// UI never shows a misleading 中文/交替 state. Silent — the one-shot hint
+    /// is reserved for explicit user requests.
+    private func enforceChineseTrackAvailability() {
+        guard trackMode != .original, chinesePlayer == nil else { return }
+        trackMode = .original
+    }
+
+    // MARK: - Artifact Recovery After Process Death
+    /// After process death the persisted-state restore rebuilds
+    /// currentEpisode/currentFeed but timing segments, mapping, chapters and the
+    /// Chinese player are gone. Original audio starts immediately; artifacts are
+    /// re-fetched here and the Chinese player rebuilt once they arrive.
+    private func recoverArtifactsIfNeeded(for episode: Episode) {
+        guard timingSegments.isEmpty, fullMapping.isEmpty, chapters.isEmpty, episode.isReady else { return }
+        let episodeId = episode.id
+        Task { [weak self] in
+            guard let self = self else { return }
+            guard let artifacts = try? await AmberAPIClient.shared.fetchArtifacts(episodeId: episodeId),
+                  !artifacts.fullMapping.isEmpty else { return }
+            // Drop a stale response if the user loaded another episode meanwhile.
+            guard self.currentEpisode?.id == episodeId else { return }
+            self.applyRecoveredArtifacts(artifacts)
+        }
+    }
+
+    /// Applies re-fetched artifacts without interrupting the playing original
+    /// track: no stop, no seek, no mode change — the user stays in control.
+    private func applyRecoveredArtifacts(_ artifacts: EpisodeArtifacts) {
+        timingSegments = artifacts.timingSync
+        fullMapping = artifacts.fullMapping
+        chapters = artifacts.chapters
+        articleMarkdown = artifacts.articleMarkdown
+        guard !timingSegments.isEmpty, let episode = currentEpisode else { return }
+        if chinesePlayer == nil,
+           let zhUrl = makeChineseStreamURL(episodeId: episode.id, streamEndpoint: artifacts.streaming.streamEndpoint) {
+            let item = AVPlayerItem(url: zhUrl)
+            chinesePlayer = AVPlayer(playerItem: item)
+            chinesePlayer?.automaticallyWaitsToMinimizeStalling = true
+            attachTimeObserver()
+        }
+        enforceChineseTrackAvailability()
+        updateNowPlayingInfo()
     }
 
     public func pause() {
@@ -324,6 +378,17 @@ public final class DualTrackAudioPlayer: ObservableObject {
     // MARK: - Instant Zero-Gap Track Switching
     public func switchTrackMode(to newMode: TrackMode) {
         guard newMode != self.trackMode else { return }
+
+        // Requesting a Chinese-dependent track without translation audio is not
+        // servable — fall back to original and surface a one-shot hint instead
+        // of silently playing the wrong track (alternating without the Chinese
+        // player would stall into silence after the first en sentence).
+        if newMode != .original && chinesePlayer == nil {
+            missingChineseAudioHint = true
+            enforceChineseTrackAvailability()
+            return
+        }
+
         hapticFeedback.impactOccurred()
 
         let wasPlaying = self.isPlaying
@@ -396,18 +461,25 @@ public final class DualTrackAudioPlayer: ObservableObject {
     }
 
     // MARK: - Segment Lookup
+    /// Single source of truth for which timeline a mode reads — the
+    /// closest-fallback must agree with the main range scan (alternating
+    /// follows isAlternatingPlayingEn).
+    private func timingRange(for mode: TrackMode, in segment: TimingSegment) -> TimingRange {
+        (mode == .original || (mode == .alternating && isAlternatingPlayingEn)) ? segment.en : segment.zh
+    }
+
     public func findSegmentIndex(forTime time: Double, inMode mode: TrackMode) -> Int? {
         guard !timingSegments.isEmpty else { return nil }
         for (idx, seg) in timingSegments.enumerated() {
-            let range = (mode == .original || (mode == .alternating && isAlternatingPlayingEn)) ? seg.en : seg.zh
+            let range = timingRange(for: mode, in: seg)
             if time >= range.start && time <= range.end {
                 return idx
             }
         }
         // Fallback closest
         return timingSegments.enumerated().min(by: { a, b in
-            let rA = (mode == .original) ? a.element.en : a.element.zh
-            let rB = (mode == .original) ? b.element.en : b.element.zh
+            let rA = timingRange(for: mode, in: a.element)
+            let rB = timingRange(for: mode, in: b.element)
             return abs(rA.start - time) < abs(rB.start - time)
         })?.offset
     }

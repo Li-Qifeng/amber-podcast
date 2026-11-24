@@ -360,6 +360,19 @@ async def search_podcasts(
 
 _ephemeral_feed_cache: Dict[str, Dict[str, Any]] = {}
 
+
+async def _fetch_shelf_latest_episode(category: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """Latest episode of a discover shelf's top show; None on any failure."""
+    items = category.get("items") or []
+    if not items:
+        return None
+    top = items[0]
+    feed_url = top.get("feed_url")
+    if not feed_url:
+        return None
+    return await apple_agg.fetch_latest_episode(feed_url, str(top.get("id") or ""))
+
+
 @app.get("/api/v1/discover")
 async def get_discover_feed(token: str = Depends(verify_token)):
     """Curated and real-time Apple Podcasts discovery feed with featured carousels, top Chinese/global charts."""
@@ -493,8 +506,9 @@ async def get_discover_feed(token: str = Depends(verify_token)):
 
     # 3. Genre shelves — real Apple categories (legacy RSS accepts genre=<id>).
     #    Gathered concurrently; a dead genre is skipped, never fatal.
+    #    limit=50: Apple RSS serves 50 entries per genre shelf (tested).
     genre_results = await asyncio.gather(
-        *[apple_agg.fetch_top_by_genre("cn", gid, 200) for _, gid in GENRE_SHELVES],
+        *[apple_agg.fetch_top_by_genre("cn", gid, 50) for _, gid in GENRE_SHELVES],
         return_exceptions=True,
     )
     categories = []
@@ -502,6 +516,23 @@ async def get_discover_feed(token: str = Depends(verify_token)):
         if isinstance(items, BaseException) or not items:
             continue
         categories.append({"id": str(gid), "name": genre_name, "items": items})
+
+    # 4. latest_episode for each shelf's #1 show, fetched concurrently from
+    #    the channel RSS with its own cache inside the aggregator. A dead feed
+    #    only omits that one field — never fatal, and one shelf's failure must
+    #    not affect the other shelves.
+    latest_results = await asyncio.gather(
+        *[_fetch_shelf_latest_episode(category) for category in categories],
+        return_exceptions=True,
+    )
+    for category, latest in zip(categories, latest_results):
+        top = category["items"][0]
+        if isinstance(latest, BaseException) or not latest:
+            # Cached shelf dicts may still carry the field from a previous
+            # request; failure now means the field must be absent.
+            top.pop("latest_episode", None)
+            continue
+        top["latest_episode"] = latest
 
     # Save to ephemeral cache to help episode preview resolution
     for item in featured + top_cn + top_us + [i for c in categories for i in c["items"]]:
