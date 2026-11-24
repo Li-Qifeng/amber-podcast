@@ -466,7 +466,7 @@ def test_health_reports_real_app_version():
     assert body["build"] == cb
 
 
-# --- discover: 50-item shelves + latest_episode spotlight ---
+# --- discover: full-depth shelves + latest_episode spotlight ---
 
 
 def _fake_shelf_items(count: int) -> list:
@@ -500,7 +500,7 @@ def _patch_discover(monkeypatch, shelf_items, latest_impl):
     monkeypatch.setattr(server_mod.apple_agg, "fetch_latest_episode", latest_impl)
 
 
-def test_discover_categories_return_50_items_with_latest_episode(monkeypatch):
+def test_discover_categories_return_full_depth_with_latest_episode(monkeypatch):
     async def fake_latest(feed_url, feed_id):
         return {
             "id": f"{feed_id}_ep1",
@@ -510,7 +510,7 @@ def test_discover_categories_return_50_items_with_latest_episode(monkeypatch):
             "audio_url": "https://e/latest.mp3",
         }
 
-    _patch_discover(monkeypatch, _fake_shelf_items(50), fake_latest)
+    _patch_discover(monkeypatch, _fake_shelf_items(200), fake_latest)
     headers = {"Authorization": f"Bearer {AUTH_TOKEN}"}
     resp = client.get("/api/v1/discover", headers=headers)
     assert resp.status_code == 200, resp.text
@@ -520,7 +520,7 @@ def test_discover_categories_return_50_items_with_latest_episode(monkeypatch):
     cats = data["categories"]
     assert len(cats) == len(server_mod.GENRE_SHELVES)
     for cat in cats:
-        assert len(cat["items"]) == 50
+        assert len(cat["items"]) == 200
         top = cat["items"][0]
         assert top["latest_episode"]["title"] == "Latest Ep"
         assert top["latest_episode"]["duration"] == 1234
@@ -538,14 +538,14 @@ def test_discover_latest_episode_failure_omits_field_per_category(monkeypatch):
         calls["n"] += 1
         raise RuntimeError("feed dead")
 
-    _patch_discover(monkeypatch, _fake_shelf_items(50), failing_latest)
+    _patch_discover(monkeypatch, _fake_shelf_items(200), failing_latest)
     headers = {"Authorization": f"Bearer {AUTH_TOKEN}"}
     resp = client.get("/api/v1/discover", headers=headers)
     assert resp.status_code == 200, resp.text
     cats = resp.json()["categories"]
     assert len(cats) == len(server_mod.GENRE_SHELVES)
     for cat in cats:
-        assert len(cat["items"]) == 50  # shelf itself unaffected
+        assert len(cat["items"]) == 200  # shelf itself unaffected
         assert "latest_episode" not in cat["items"][0]
     assert calls["n"] == len(cats)  # every shelf attempted independently
 

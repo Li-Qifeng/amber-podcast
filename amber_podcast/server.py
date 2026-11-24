@@ -506,9 +506,9 @@ async def get_discover_feed(token: str = Depends(verify_token)):
 
     # 3. Genre shelves — real Apple categories (legacy RSS accepts genre=<id>).
     #    Gathered concurrently; a dead genre is skipped, never fatal.
-    #    limit=50: Apple RSS serves 50 entries per genre shelf (tested).
+    #    limit=200: Apple legacy RSS caps at 200 per genre shelf — pull the max.
     genre_results = await asyncio.gather(
-        *[apple_agg.fetch_top_by_genre("cn", gid, 50) for _, gid in GENRE_SHELVES],
+        *[apple_agg.fetch_top_by_genre("cn", gid, 200) for _, gid in GENRE_SHELVES],
         return_exceptions=True,
     )
     categories = []
