@@ -62,6 +62,7 @@ public struct LyricsSubtitleView: View {
                             seg: seg,
                             currentSegmentIndex: player.currentSegmentIndex,
                             trackMode: player.trackMode,
+                            currentTime: player.currentTime,
                             onTap: {
                                 impactFeedback.impactOccurred()
                                 let targetTime = (player.trackMode == .chinese) ? seg.zhRange.start : seg.enRange.start
@@ -287,6 +288,7 @@ private struct SubtitleSegmentRow: View {
     let seg: FullMappingSegment
     let currentSegmentIndex: Int
     let trackMode: TrackMode
+    let currentTime: Double
     let onTap: () -> Void
 
     private var isCurrent: Bool {
@@ -328,7 +330,7 @@ private struct SubtitleSegmentRow: View {
 
             // Primary Subtitle Typography
             if trackMode == .chinese {
-                Text(seg.zhDisplay)
+                Text(wordHighlighted(seg.zhDisplay, words: seg.zhWords))
                     .font(.system(size: isCurrent ? 25 : 19, weight: isCurrent ? .bold : .medium))
                     .foregroundStyle(isCurrent ? AmberTheme.labelPrimary : AmberTheme.labelSecondary.opacity(secondaryOpacity))
                     .lineSpacing(6)
@@ -341,7 +343,7 @@ private struct SubtitleSegmentRow: View {
                     .foregroundStyle(AmberTheme.labelTertiary.opacity(isCurrent ? 0.75 : 0.3))
                     .lineSpacing(3)
             } else {
-                Text(seg.enText)
+                Text(wordHighlighted(seg.enText, words: seg.enWords))
                     .font(.system(size: isCurrent ? 25 : 19, weight: isCurrent ? .bold : .medium))
                     .foregroundStyle(isCurrent ? AmberTheme.labelPrimary : AmberTheme.labelSecondary.opacity(secondaryOpacity))
                     .lineSpacing(6)
@@ -360,6 +362,30 @@ private struct SubtitleSegmentRow: View {
         .onTapGesture {
             onTap()
         }
+    }
+
+    /// Word-level highlight for the active line. Used only when the word
+    /// timestamps re-assemble the displayed text exactly (whitespace aside) —
+    /// otherwise the segment-level rendering stays authoritative, so a bad
+    /// word list can never corrupt what the user reads.
+    private func wordHighlighted(_ display: String, words: [WordTimestamp]?) -> AttributedString {
+        let plain = AttributedString(display)
+        guard isCurrent, let words, !words.isEmpty else { return plain }
+        guard Self.normalized(words.map(\.word).joined()) == Self.normalized(display) else { return plain }
+
+        var out = AttributedString()
+        for w in words {
+            var run = AttributedString(w.word)
+            run.foregroundColor = w.end <= currentTime
+                ? AmberTheme.labelPrimary
+                : AmberTheme.labelSecondary.opacity(0.55)
+            out += run
+        }
+        return out
+    }
+
+    private static func normalized(_ s: String) -> String {
+        s.filter { !$0.isWhitespace }
     }
 
     private func formatSeconds(_ seconds: Double) -> String {

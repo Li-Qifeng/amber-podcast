@@ -585,3 +585,29 @@ def test_fetch_latest_episode_never_fatal():
 
     agg.fetch_and_parse_feed = boom
     assert asyncio.run(agg.fetch_latest_episode("https://example.com/dead", "feed_dead")) is None
+
+
+# --- C1: per-word subtitle timings must survive into full_mapping ---
+
+
+def test_native_mapping_segment_keeps_word_timestamps():
+    """Chinese-native episodes: ASR words are the Chinese timeline — they must
+    land in zh_words so the player can highlight word by word. Dropping them
+    (previous behaviour) leaves the client with segment-level timing only."""
+    from amber_podcast.pipeline.asr import ASRSegment
+
+    seg = ASRSegment(
+        index=3, speaker="SPEAKER_00", text="今天我们聊聊产品设计",
+        start=10.0, end=14.5,
+        words=[
+            {"word": "今天", "start": 10.0, "end": 10.4},
+            {"word": "我们", "start": 10.4, "end": 10.9},
+        ],
+    )
+    m = server_mod._native_mapping_segment(3, seg)
+    assert m["index"] == 3
+    assert m["zh_display"] == "今天我们聊聊产品设计"
+    assert [w["word"] for w in m["zh_words"]] == ["今天", "我们"]
+    assert m["zh_words"][0]["start"] == 10.0
+    assert m["en_words"] is None  # no English track in a native episode
+    assert m["zh_range"] == {"start": 10.0, "end": 14.5}

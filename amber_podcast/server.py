@@ -875,6 +875,33 @@ def get_episode_detail(episode_id: str, token: str = Depends(verify_token)):
 
 # --- Asynchronous Pipeline Execution ---
 
+def _native_mapping_segment(idx: int, seg: Any) -> Dict[str, Any]:
+    """full_mapping entry for a Chinese-native episode.
+
+    The ASR words already sit on the Chinese timeline, so they become zh_words
+    and the client can highlight word by word. There is no English track, so
+    en_words stays None and zh_display/zh_spoken mirror the transcript.
+    """
+    start = getattr(seg, "start", 0.0)
+    end = getattr(seg, "end", 0.0)
+    text = getattr(seg, "text", "")
+    words = [
+        {"word": w.get("word", ""), "start": w.get("start", 0.0), "end": w.get("end", 0.0)}
+        for w in (getattr(seg, "words", None) or [])
+    ]
+    return {
+        "index": idx,
+        "speaker": getattr(seg, "speaker", "Speaker") or "Speaker",
+        "en_text": text,
+        "zh_display": text,
+        "zh_spoken": text,
+        "en_range": {"start": start, "end": end},
+        "zh_range": {"start": start, "end": end},
+        "en_words": None,
+        "zh_words": words or None
+    }
+
+
 async def run_pipeline_task(episode_id: str):
     """Background worker executing the full ASR -> Translate -> TTS -> Alignment -> Archive pipeline."""
     ep = db.get_episode(episode_id)
@@ -942,18 +969,7 @@ async def run_pipeline_task(episode_id: str):
                     "zh": {"start": start, "end": end}
                 }
                 timing_sync.append(t_seg)
-                m_seg = {
-                    "index": idx,
-                    "speaker": speaker,
-                    "en_text": text,
-                    "zh_display": text,
-                    "zh_spoken": text,
-                    "en_range": {"start": start, "end": end},
-                    "zh_range": {"start": start, "end": end},
-                    "en_words": None,
-                    "zh_words": None
-                }
-                full_mapping.append(m_seg)
+                full_mapping.append(_native_mapping_segment(idx, seg))
 
             timing_path = str(work_dir / "timing_sync.json")
             mapping_path = str(work_dir / "full_mapping.json")
