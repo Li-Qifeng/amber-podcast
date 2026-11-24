@@ -317,9 +317,20 @@ class ProgressUpdateRequest(BaseModel):
 
 # --- Endpoints ---
 
+def _app_version() -> Dict[str, str]:
+    """Shipped iOS version/build from ios/project.yml (single source of truth)."""
+    import re as _re
+    try:
+        proj = (Path(__file__).resolve().parent.parent / "ios" / "project.yml").read_text()
+        mv = _re.search(r'MARKETING_VERSION:\s*["\']?([^"\'\s]+)', proj)
+        cb = _re.search(r'CURRENT_PROJECT_VERSION:\s*["\']?([^"\'\s]+)', proj)
+        return {"version": mv.group(1) if mv else "unknown", "build": cb.group(1) if cb else "unknown"}
+    except Exception:
+        return {"version": "unknown", "build": "unknown"}
+
 @app.get("/health")
 def health():
-    return {"status": "ok", "app": "amber-podcast", "version": "0.1.0"}
+    return {"status": "ok", "app": "amber-podcast", **_app_version()}
 
 @app.api_route("/download/AmberPodcast.ipa", methods=["GET", "HEAD"])
 def download_ipa():

@@ -132,3 +132,16 @@ def test_playback_progress(db):
     )
     prog_finished = db.get_playback_progress("ep_101")
     assert prog_finished["is_finished"] == 1
+
+
+def test_update_episode_status_rejects_invalid(db):
+    """Guard: non-whitelisted status (e.g. NUL bytes seen in prod) must never be persisted."""
+    db.upsert_feed(feed_id="feed_guard", source_type="apple_rss", title="G", author="a",
+                   feed_url="https://x/rss", cover_url="", description="", auto_translate=0)
+    db.upsert_episode(episode_id="ep_guard", feed_id="feed_guard", title="t",
+                      audio_url="https://x/a.mp3")
+    db.update_episode_status("ep_guard", status="ready", progress=100)
+    for bad in ["\x00\x00\x00\x00\x00", "", "done", None]:
+        with pytest.raises(ValueError):
+            db.update_episode_status("ep_guard", status=bad, progress=0)
+    assert db.get_episode("ep_guard")["status"] == "ready"

@@ -449,3 +449,18 @@ def test_rss_subscribe_respects_auto_translate_default(monkeypatch):
     finally:
         client.put("/api/v1/settings", json={"auto_translate_default": "0"}, headers=headers)
 
+
+
+def test_health_reports_real_app_version():
+    """/health must expose the shipped iOS version from ios/project.yml, not a hardcoded 0.1.0."""
+    import re
+    from pathlib import Path
+    from starlette.testclient import TestClient
+    from amber_podcast.server import app
+    proj = (Path(__file__).resolve().parent.parent / "ios" / "project.yml").read_text()
+    mv = re.search(r'MARKETING_VERSION:\s*["\']?([^"\'\s]+)', proj).group(1)
+    cb = re.search(r'CURRENT_PROJECT_VERSION:\s*["\']?([^"\'\s]+)', proj).group(1)
+    body = TestClient(app).get("/health").json()
+    assert body["status"] == "ok"
+    assert body["version"] == mv
+    assert body["build"] == cb

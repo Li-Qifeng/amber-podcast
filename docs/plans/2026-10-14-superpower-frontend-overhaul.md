@@ -46,3 +46,22 @@
 
 ### Task 6: 编译、打包、签名与 AirStore 上架验证
 - **验证:** Git Push → GitHub Actions Xcode 16.1 编译 IPA → zsign 重签名注入 → AirStore Studio 更新 → 交付真机下载。
+
+---
+
+## 实际落地状态（2026-11-24 更新，以代码为准）
+
+> 本计划写于 10-14，原方向为「Liquid Glass + 黄金比例」。11 月中起实际方向调整为 **Apple 原生 + 去 AI 味**（无 hairline 描边、轻阴影、标准 SF 非圆体、统一圆角 token、统一按钮材质）。下列为各任务真实状态。
+
+- **T1 Design Tokens**：已完成（方向调整）。保留弹簧动画、嵌套圆角、按压反馈；0.75pt 菲涅尔高光描边按去 AI 味原则移除。新增 `radiusCardTile` 等圆角 token。
+- **T2 首页**：已完成（方案替换）。未采用 61.8% Hero / 16:9 / 2:3 海报流，改为 Apple Podcasts 式大卡（最新单集 / 新节目 / 频道三种卡 + 多条横滑 shelf），封面居中、长卡统一中轴。
+- **T3 底部栏**：已完成（方案替换）。iOS 26 走原生 `tabBarMinimizeBehavior` + `tabViewBottomAccessory`；旧系统自绘栏兜底（54pt 高、最宽 560）。
+- **T4 播放器**：已完成。封面播放缩放、背景虚化、独立 `SubtitleSegmentRow`、章节刻度与当前章节。**未做：逐词高亮（`en_words`/`zh_words` 仅在模型层）。**
+- **T5 详情/搜索/设置**：样式迁移完成；**去 AI 味未完成**（圆体字残留集中在 SearchView、播放器三件套、EpisodeRow、FeedDetail）。
+- **T6 CI → zsign → AirStore**：已完成并稳定。版本号以 `ios/project.yml` 为唯一来源；商店 changelog 读 `store_changelog.txt`。
+- **转储页（计划外）**：已完成去 AI 味（Build 55）。
+
+### 未完成 / 待验证
+- 逐词高亮字幕
+- 小宇宙聚合器无真实订阅数据验证
+- `CONTEXT.md` 写的「客户端直连 Google Drive 边缘地址」与实际「后端 `/stream/{track}` 转发」不一致，待定

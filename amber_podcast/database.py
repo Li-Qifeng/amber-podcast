@@ -254,8 +254,14 @@ class Database:
             ).fetchall()
             return [dict(r) for r in rows]
 
+    VALID_EPISODE_STATUSES = frozenset(
+        {"idle", "pending", "transcribing", "translating", "synthesizing", "ready", "failed"}
+    )
+
     def update_episode_status(self, episode_id: str, status: str, progress: int = 0,
                               error_message: str = "", gdrive_folder_id: str = "") -> None:
+        if status not in self.VALID_EPISODE_STATUSES:
+            raise ValueError(f"invalid episode status {status!r} for {episode_id}")
         now = int(time.time())
         with self.get_conn() as conn:
             conn.execute("""
