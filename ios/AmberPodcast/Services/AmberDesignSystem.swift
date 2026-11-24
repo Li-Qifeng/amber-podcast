@@ -74,6 +74,8 @@ public enum AmberTheme {
     // Strict Nested Squircle Radius Scale (Nested Radius: Outer - Padding = Inner)
     public static let radiusControl: CGFloat = 8.0          // Controls, small buttons, tags
     public static let radiusBadge: CGFloat = 6.0            // Micro badges, keycaps, time tags
+    public static let radiusMicro: CGFloat = 4.0            // Tiny inline chips (duration, speaker tags)
+    public static let radiusField: CGFloat = 10.0           // Text fields, inline setting cards
     public static let radiusCardRow: CGFloat = 12.0         // List row cards
     public static let radiusCardShelf: CGFloat = 14.0       // 16:9 Shelf cards
     public static let radiusCoverHero: CGFloat = 18.0       // Hero media artwork
@@ -713,10 +715,6 @@ public struct LightweightCardModifier: ViewModifier {
             .background(
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                     .fill(tint?.opacity(isPressed ? 0.16 : 0.08) ?? (isPressed ? AmberTheme.surfaceRaised : AmberTheme.surfaceCard))
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .strokeBorder(isPressed ? Color.white.opacity(0.14) : AmberTheme.borderHairline, lineWidth: 0.5)
             )
     }
 }

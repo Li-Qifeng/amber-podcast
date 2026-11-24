@@ -93,7 +93,7 @@ public struct NativeLibraryCatalogView: View {
                                 .padding(.vertical, 14)
                             }
                         }
-                        .background(AmberTheme.surfaceCard.opacity(0.85), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        .background(AmberTheme.surfaceCard.opacity(0.85), in: RoundedRectangle(cornerRadius: AmberTheme.radiusCardShelf, style: .continuous))
                         .padding(.horizontal, 16)
 
                         // Downloaded & Followed Channels
@@ -118,9 +118,9 @@ public struct NativeLibraryCatalogView: View {
                                                         Color(white: 0.15)
                                                     }
                                                     .frame(width: 44, height: 44)
-                                                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                                                    .clipShape(RoundedRectangle(cornerRadius: AmberTheme.radiusControl, style: .continuous))
                                                 } else {
-                                                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                                    RoundedRectangle(cornerRadius: AmberTheme.radiusControl, style: .continuous)
                                                         .fill(Color(white: 0.15))
                                                         .frame(width: 44, height: 44)
                                                         .overlay(
@@ -154,7 +154,7 @@ public struct NativeLibraryCatalogView: View {
                                         }
                                     }
                                 }
-                                .background(AmberTheme.surfaceCard.opacity(0.85), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                                .background(AmberTheme.surfaceCard.opacity(0.85), in: RoundedRectangle(cornerRadius: AmberTheme.radiusCardShelf, style: .continuous))
                                 .padding(.horizontal, 16)
                             }
                         }
@@ -214,9 +214,9 @@ public struct FeedListView: View {
                                     Color(white: 0.15)
                                 }
                                 .frame(width: 48, height: 48)
-                                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                                .clipShape(RoundedRectangle(cornerRadius: AmberTheme.radiusControl, style: .continuous))
                             } else {
-                                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                RoundedRectangle(cornerRadius: AmberTheme.radiusControl, style: .continuous)
                                     .fill(Color(white: 0.15))
                                     .frame(width: 48, height: 48)
                                     .overlay(

@@ -107,7 +107,7 @@ public struct LyricsSubtitleView: View {
 
                     VStack(spacing: 6) {
                         Text(statusTitle(activeStatus))
-                            .font(.system(size: 15, weight: .semibold, design: .rounded))
+                            .font(.system(size: 15, weight: .semibold))
                             .foregroundStyle(AmberTheme.labelPrimary)
 
                         Text("云端后台正在流水线处理，您可以继续收听原声。")
@@ -148,7 +148,7 @@ public struct LyricsSubtitleView: View {
 
                     VStack(spacing: 6) {
                         Text(isChinesePodcast ? "尚未提取 AI 中文字幕与速读笔记" : "尚未生成 AI 双轨配音与字幕")
-                            .font(.system(size: 15.5, weight: .semibold, design: .rounded))
+                            .font(.system(size: 15.5, weight: .semibold))
                             .foregroundStyle(AmberTheme.labelPrimary)
 
                         Text(isChinesePodcast ? "极速 ASR 逐句识别打轴 · 通义千问智能提炼章节与速读笔记 · 保留原声人质" : "极速 ASR 逐句打轴 · 通义千问口播台本译制 · 多角色拟真语音合成")
@@ -170,12 +170,12 @@ public struct LyricsSubtitleView: View {
                                     .font(.system(size: 12, weight: .bold))
                             }
                             Text(isChinesePodcast ? "一键提取原声中文字幕与速读笔记" : "一键生成双轨配音与逐句字幕")
-                                .font(.system(size: 13, weight: .medium, design: .rounded))
+                                .font(.system(size: 13, weight: .medium))
                         }
                         .foregroundStyle(Color.black)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 8.5)
-                        .background(Color.white, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        .background(Color.white, in: RoundedRectangle(cornerRadius: AmberTheme.radiusControl, style: .continuous))
                     }
                     .buttonStyle(TactileButtonStyle(scale: 0.96))
                     .disabled(isTriggering || player.currentEpisode == nil)
@@ -310,17 +310,13 @@ private struct SubtitleSegmentRow: View {
             // Speaker & Timestamp Tag
             HStack(spacing: 8) {
                 Text(seg.speaker)
-                    .font(.system(size: 11, weight: .medium, design: .rounded))
+                    .font(.system(size: 11, weight: .medium))
                     .foregroundStyle(isCurrent ? AmberTheme.primaryAmber : AmberTheme.labelTertiary)
                     .padding(.horizontal, 7)
                     .padding(.vertical, 2.5)
                     .background(
-                        RoundedRectangle(cornerRadius: 4, style: .continuous)
+                        RoundedRectangle(cornerRadius: AmberTheme.radiusMicro, style: .continuous)
                             .fill(isCurrent ? AmberTheme.primaryAmber.opacity(0.12) : AmberTheme.surfaceRaised)
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 4, style: .continuous)
-                            .strokeBorder(isCurrent ? AmberTheme.primaryAmber.opacity(0.25) : AmberTheme.borderHairline, lineWidth: 0.5)
                     )
 
                 Text(formatSeconds(trackMode == .chinese ? seg.zhRange.start : seg.enRange.start))
@@ -333,7 +329,7 @@ private struct SubtitleSegmentRow: View {
             // Primary Subtitle Typography
             if trackMode == .chinese {
                 Text(seg.zhDisplay)
-                    .font(.system(size: isCurrent ? 25 : 19, weight: isCurrent ? .bold : .medium, design: .rounded))
+                    .font(.system(size: isCurrent ? 25 : 19, weight: isCurrent ? .bold : .medium))
                     .foregroundStyle(isCurrent ? AmberTheme.labelPrimary : AmberTheme.labelSecondary.opacity(secondaryOpacity))
                     .lineSpacing(6)
                     .blur(radius: blurRadius)
@@ -346,7 +342,7 @@ private struct SubtitleSegmentRow: View {
                     .lineSpacing(3)
             } else {
                 Text(seg.enText)
-                    .font(.system(size: isCurrent ? 25 : 19, weight: isCurrent ? .bold : .medium, design: .rounded))
+                    .font(.system(size: isCurrent ? 25 : 19, weight: isCurrent ? .bold : .medium))
                     .foregroundStyle(isCurrent ? AmberTheme.labelPrimary : AmberTheme.labelSecondary.opacity(secondaryOpacity))
                     .lineSpacing(6)
                     .blur(radius: blurRadius)

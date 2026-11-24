@@ -259,7 +259,7 @@ public struct PipelineStatusView: View {
                     Text("\(point.count)")
                         .font(.system(size: 9, weight: .semibold, design: .monospaced))
                         .foregroundStyle(AmberTheme.labelTertiary)
-                    RoundedRectangle(cornerRadius: 3, style: .continuous)
+                    RoundedRectangle(cornerRadius: AmberTheme.radiusMicro, style: .continuous)
                         .fill(point.count > 0 ? AmberTheme.primaryAmber.opacity(0.75) : Color.white.opacity(0.08))
                         .frame(height: max(4, CGFloat(point.count) / CGFloat(peak) * 44))
                     Text(String(point.date.suffix(2)))
@@ -461,7 +461,7 @@ public struct PipelineStatusView: View {
             }
         }
         .frame(width: 34, height: 34)
-        .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: AmberTheme.radiusControl, style: .continuous))
     }
 
     private func actionButton(icon: String, tint: Color, action: @escaping () -> Void) -> some View {
@@ -660,7 +660,7 @@ public struct PipelineStatusView: View {
     }
 
     private var coverPlaceholder: some View {
-        RoundedRectangle(cornerRadius: 8, style: .continuous)
+        RoundedRectangle(cornerRadius: AmberTheme.radiusControl, style: .continuous)
             .fill(Color(white: 0.15))
             .frame(width: 40, height: 40)
             .overlay(

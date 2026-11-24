@@ -140,7 +140,7 @@ public struct SearchView: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 Text("识别到播客订阅链接")
-                    .font(.system(size: 12.5, weight: .semibold, design: .rounded))
+                    .font(.system(size: 12.5, weight: .semibold))
                     .foregroundStyle(AmberTheme.labelPrimary)
                 Text(query.trimmingCharacters(in: .whitespaces))
                     .font(.system(size: 10.5))
@@ -158,11 +158,11 @@ public struct SearchView: View {
                         .frame(width: 58, height: 26)
                 } else {
                     Text("直接订阅")
-                        .font(.system(size: 11, weight: .medium, design: .rounded))
+                        .font(.system(size: 11, weight: .medium))
                         .foregroundStyle(Color.black)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 4.5)
-                        .background(Color.white, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+                        .background(Color.white, in: RoundedRectangle(cornerRadius: AmberTheme.radiusBadge, style: .continuous))
                 }
             }
             .buttonStyle(TactileButtonStyle(scale: 0.96))
@@ -247,7 +247,7 @@ public struct SearchView: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .firstTextBaseline) {
                 Text("精彩聚焦")
-                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                    .font(.system(size: 22, weight: .bold))
                     .foregroundStyle(AmberTheme.labelPrimary)
                 Image(systemName: "chevron.right")
                     .font(.system(size: 14, weight: .semibold))
@@ -275,7 +275,7 @@ public struct SearchView: View {
             // Tag Pill
             HStack {
                 Text(item.editorialTag ?? "编辑精选")
-                    .font(.system(size: 10.5, weight: .bold, design: .rounded))
+                    .font(.system(size: 10.5, weight: .bold))
                     .foregroundStyle(AmberTheme.primaryAmber)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
@@ -294,7 +294,7 @@ public struct SearchView: View {
                     } else if isSub {
                         HStack(spacing: 3) {
                             Image(systemName: "checkmark").font(.system(size: 8, weight: .bold))
-                            Text("已订阅").font(.system(size: 10.5, weight: .medium, design: .rounded))
+                            Text("已订阅").font(.system(size: 10.5, weight: .medium))
                         }
                         .foregroundStyle(AmberTheme.accentElectric)
                         .padding(.horizontal, 8)
@@ -303,7 +303,7 @@ public struct SearchView: View {
                     } else {
                         HStack(spacing: 3) {
                             Image(systemName: "plus").font(.system(size: 8, weight: .bold))
-                            Text("订阅").font(.system(size: 10.5, weight: .medium, design: .rounded))
+                            Text("订阅").font(.system(size: 10.5, weight: .medium))
                         }
                         .foregroundStyle(Color.black)
                         .padding(.horizontal, 9)
@@ -323,7 +323,7 @@ public struct SearchView: View {
                             .frame(width: 58, height: 58)
                             .amberMediaCard(radius: 12)
                     } placeholder: {
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        RoundedRectangle(cornerRadius: AmberTheme.radiusCardRow, style: .continuous)
                             .fill(Color(white: 0.15))
                             .frame(width: 58, height: 58)
                     }
@@ -331,7 +331,7 @@ public struct SearchView: View {
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text(item.title)
-                        .font(.system(size: 15, weight: .bold, design: .rounded))
+                        .font(.system(size: 15, weight: .bold))
                         .foregroundStyle(AmberTheme.labelPrimary)
                         .lineLimit(1)
 
@@ -384,7 +384,7 @@ public struct SearchView: View {
                             .foregroundStyle(AmberTheme.labelSecondary)
                             .padding(.horizontal, 10)
                             .padding(.vertical, 5)
-                            .background(AmberTheme.surfaceRaised, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+                            .background(AmberTheme.surfaceRaised, in: RoundedRectangle(cornerRadius: AmberTheme.radiusBadge, style: .continuous))
                     }
                     .buttonStyle(TactileButtonStyle(scale: 0.96))
                 }
@@ -398,7 +398,7 @@ public struct SearchView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .firstTextBaseline) {
                 Text("中文热门精选")
-                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                    .font(.system(size: 22, weight: .bold))
                     .foregroundStyle(AmberTheme.labelPrimary)
                 Image(systemName: "chevron.right")
                     .font(.system(size: 14, weight: .semibold))
@@ -429,14 +429,14 @@ public struct SearchView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .firstTextBaseline) {
                 Text("全球双语焦点")
-                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                    .font(.system(size: 22, weight: .bold))
                     .foregroundStyle(AmberTheme.labelPrimary)
                 Image(systemName: "chevron.right")
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(AmberTheme.labelTertiary)
 
                 Text("双轨译制")
-                    .font(.system(size: 10, weight: .bold, design: .rounded))
+                    .font(.system(size: 10, weight: .bold))
                     .foregroundStyle(AmberTheme.accentElectric)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
@@ -474,11 +474,11 @@ public struct SearchView: View {
                                 CachedAsyncImage(url: url) { img in
                                     img.resizable().scaledToFill()
                                 } placeholder: {
-                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    RoundedRectangle(cornerRadius: AmberTheme.radiusCardRow, style: .continuous)
                                         .fill(Color(white: 0.14))
                                 }
                             } else {
-                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                RoundedRectangle(cornerRadius: AmberTheme.radiusCardRow, style: .continuous)
                                     .fill(Color(white: 0.14))
                                     .overlay(
                                         Image(systemName: "mic.fill")
@@ -488,11 +488,11 @@ public struct SearchView: View {
                             }
                         }
                     )
-                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .clipShape(RoundedRectangle(cornerRadius: AmberTheme.radiusCardRow, style: .continuous))
 
                 if let b = badge {
                     Text(b)
-                        .font(.system(size: 9, weight: .bold, design: .rounded))
+                        .font(.system(size: 9, weight: .bold))
                         .foregroundStyle(Color.black)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2.5)
@@ -502,7 +502,7 @@ public struct SearchView: View {
             }
 
             Text(item.title)
-                .font(.system(size: 13.5, weight: .semibold, design: .rounded))
+                .font(.system(size: 13.5, weight: .semibold))
                 .foregroundStyle(AmberTheme.labelPrimary)
                 .lineLimit(1)
 
@@ -518,7 +518,7 @@ public struct SearchView: View {
     private var categoryChipsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("热门分类专题")
-                .font(.system(size: 22, weight: .bold, design: .rounded))
+                .font(.system(size: 22, weight: .bold))
                 .foregroundStyle(AmberTheme.labelPrimary)
                 .padding(.horizontal, 20)
 
@@ -542,11 +542,11 @@ public struct SearchView: View {
                 .font(.system(size: 15, weight: .semibold))
                 .foregroundStyle(AmberTheme.primaryAmber)
                 .frame(width: 32, height: 32)
-                .background(AmberTheme.primaryAmber.opacity(0.12), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .background(AmberTheme.primaryAmber.opacity(0.12), in: RoundedRectangle(cornerRadius: AmberTheme.radiusControl, style: .continuous))
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(shelf.name)
-                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                    .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(AmberTheme.labelPrimary)
                 Text("\(shelf.items.count) 档节目")
                     .font(.system(size: 10.5))
@@ -573,12 +573,12 @@ public struct SearchView: View {
                         .frame(width: 52, height: 52)
                         .amberMediaCard(radius: 10)
                 } placeholder: {
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    RoundedRectangle(cornerRadius: AmberTheme.radiusField, style: .continuous)
                         .fill(Color(white: 0.12))
                         .frame(width: 52, height: 52)
                 }
             } else {
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                RoundedRectangle(cornerRadius: AmberTheme.radiusField, style: .continuous)
                     .fill(Color(white: 0.12))
                     .frame(width: 52, height: 52)
                     .overlay(
@@ -590,7 +590,7 @@ public struct SearchView: View {
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(item.title)
-                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                    .font(.system(size: 14, weight: .medium))
                     .foregroundStyle(AmberTheme.labelPrimary)
                     .lineLimit(1)
 
@@ -619,21 +619,21 @@ public struct SearchView: View {
                 } else if isSubscribed {
                     HStack(spacing: 3) {
                         Image(systemName: "checkmark").font(.system(size: 9, weight: .bold))
-                        Text("已订阅").font(.system(size: 11, weight: .medium, design: .rounded))
+                        Text("已订阅").font(.system(size: 11, weight: .medium))
                     }
                     .foregroundStyle(AmberTheme.accentElectric)
                     .padding(.horizontal, 9)
                     .padding(.vertical, 4.5)
-                    .background(AmberTheme.accentElectric.opacity(0.12), in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+                    .background(AmberTheme.accentElectric.opacity(0.12), in: RoundedRectangle(cornerRadius: AmberTheme.radiusBadge, style: .continuous))
                 } else {
                     HStack(spacing: 3) {
                         Image(systemName: "plus").font(.system(size: 9, weight: .bold))
-                        Text("订阅").font(.system(size: 11, weight: .medium, design: .rounded))
+                        Text("订阅").font(.system(size: 11, weight: .medium))
                     }
                     .foregroundStyle(Color.black)
                     .padding(.horizontal, 11)
                     .padding(.vertical, 4.5)
-                    .background(Color.white, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+                    .background(Color.white, in: RoundedRectangle(cornerRadius: AmberTheme.radiusBadge, style: .continuous))
                 }
             }
             .buttonStyle(TactileButtonStyle(scale: 0.96))
@@ -655,7 +655,7 @@ public struct SearchView: View {
 
             VStack(spacing: 6) {
                 Text("未找到相关播客")
-                    .font(.system(size: 16, weight: .semibold, design: .rounded))
+                    .font(.system(size: 16, weight: .semibold))
                     .foregroundStyle(AmberTheme.labelPrimary)
                 Text("请尝试更换搜索关键词，或检查拼写")
                     .font(.system(size: 13))
@@ -667,11 +667,11 @@ public struct SearchView: View {
                 hasSearched = false
             } label: {
                 Text("清空重试")
-                    .font(.system(size: 12.5, weight: .medium, design: .rounded))
+                    .font(.system(size: 12.5, weight: .medium))
                     .foregroundStyle(AmberTheme.primaryAmber)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 7)
-                    .background(AmberTheme.surfaceRaised, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+                    .background(AmberTheme.surfaceRaised, in: RoundedRectangle(cornerRadius: AmberTheme.radiusBadge, style: .continuous))
             }
             .padding(.top, 8)
             Spacer()

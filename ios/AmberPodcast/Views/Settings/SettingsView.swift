@@ -196,7 +196,7 @@ public struct SettingsView: View {
                                 .foregroundStyle(Color.green)
                         }
                         Text(isCheckingHealth ? "正在测试网关连通性..." : "测试连接并保存")
-                            .font(.system(size: 14, weight: .semibold, design: .rounded))
+                            .font(.system(size: 14, weight: .semibold))
                             .foregroundStyle(AmberTheme.primaryAmber)
                         Spacer()
                     }
@@ -445,7 +445,7 @@ public struct SettingsView: View {
                         .foregroundStyle(AmberTheme.labelPrimary)
                     Spacer()
                     Text("本地高速 NVMe (热) + GDrive (冷)")
-                        .font(.system(size: 12, weight: .semibold, design: .rounded))
+                        .font(.system(size: 12, weight: .semibold))
                         .foregroundStyle(AmberTheme.labelSecondary)
                 }
 
@@ -476,7 +476,7 @@ public struct SettingsView: View {
                     .foregroundStyle(AmberTheme.labelSecondary)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 4.5)
-                    .background(AmberTheme.surfaceRaised, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+                    .background(AmberTheme.surfaceRaised, in: RoundedRectangle(cornerRadius: AmberTheme.radiusBadge, style: .continuous))
                 }
             }
             .padding(16)
@@ -517,7 +517,7 @@ public struct SettingsView: View {
                 Link(destination: URL(string: "https://store.refoxai.com/studio/amber-podcast/")!) {
                     HStack {
                         Text("检查最新版本 (AirStore)")
-                            .font(.system(size: 14, weight: .semibold, design: .rounded))
+                            .font(.system(size: 14, weight: .semibold))
                             .foregroundStyle(AmberTheme.primaryAmber)
                         Spacer()
                         Image(systemName: "arrow.up.forward.app")

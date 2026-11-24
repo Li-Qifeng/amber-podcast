@@ -19,15 +19,8 @@ public struct AmberPlateModifier: ViewModifier {
     public func body(content: Content) -> some View {
         content
             .background(
-                AmberTheme.surfaceCard,
+                isActive ? AmberTheme.primaryAmber.opacity(0.10) : AmberTheme.surfaceCard,
                 in: RoundedRectangle(cornerRadius: radius, style: .continuous)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: radius, style: .continuous)
-                    .strokeBorder(
-                        isActive ? AmberTheme.primaryAmber.opacity(0.35) : AmberTheme.borderHairline,
-                        lineWidth: 0.5
-                    )
             )
     }
 }

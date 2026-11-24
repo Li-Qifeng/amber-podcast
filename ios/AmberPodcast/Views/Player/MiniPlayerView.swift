@@ -27,7 +27,7 @@ public struct MiniPlayerView: View {
                 // 2. Titles: Stable 2-line vertical stack (no height jumping)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(episode.title)
-                        .font(.system(size: 12.5, weight: .semibold, design: .rounded))
+                        .font(.system(size: 12.5, weight: .semibold))
                         .foregroundStyle(AmberTheme.labelPrimary)
                         .lineLimit(1)
 
@@ -139,7 +139,7 @@ public struct MiniPlayerView: View {
     }
 
     private var coverPlaceholder: some View {
-        RoundedRectangle(cornerRadius: 8, style: .continuous)
+        RoundedRectangle(cornerRadius: AmberTheme.radiusControl, style: .continuous)
             .fill(Color(white: 0.15))
             .frame(width: 38, height: 38)
             .overlay(
@@ -151,17 +151,13 @@ public struct MiniPlayerView: View {
 
     private var trackModeBadge: some View {
         Text(player.trackMode.title)
-            .font(.system(size: 9.5, weight: .medium, design: .rounded))
+            .font(.system(size: 9.5, weight: .medium))
             .foregroundStyle(player.trackMode == .chinese ? AmberTheme.primaryAmber : AmberTheme.labelTertiary)
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
             .background(
-                RoundedRectangle(cornerRadius: 4, style: .continuous)
+                RoundedRectangle(cornerRadius: AmberTheme.radiusMicro, style: .continuous)
                     .fill(player.trackMode == .chinese ? AmberTheme.primaryAmber.opacity(0.12) : AmberTheme.surfaceRaised)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 4, style: .continuous)
-                    .strokeBorder(player.trackMode == .chinese ? AmberTheme.primaryAmber.opacity(0.25) : AmberTheme.borderHairline, lineWidth: 0.5)
             )
     }
 

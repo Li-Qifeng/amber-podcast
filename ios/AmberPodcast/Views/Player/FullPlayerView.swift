@@ -160,7 +160,7 @@ public struct FullPlayerView: View {
                 // Podcast Channel Title
                 VStack(spacing: 2) {
                     Text(player.currentFeed?.title ?? "Amber 播客")
-                        .font(.system(size: 13, weight: .bold, design: .rounded))
+                        .font(.system(size: 13, weight: .bold))
                         .foregroundStyle(AmberTheme.labelSecondary)
                         .lineLimit(1)
                 }
@@ -255,7 +255,7 @@ public struct FullPlayerView: View {
                 } label: {
                     HStack(spacing: 5) {
                         Text(mode.title)
-                            .font(.system(size: 12, weight: isSelected ? .semibold : .regular, design: .rounded))
+                            .font(.system(size: 12, weight: isSelected ? .semibold : .regular))
                             .foregroundStyle(isSelected ? AmberTheme.labelPrimary : AmberTheme.labelSecondary)
                     }
                     .padding(.horizontal, 14)
@@ -345,7 +345,7 @@ public struct FullPlayerView: View {
                 if let ch = player.chapters.last(where: { effectiveTime >= $0.startSec }),
                    !ch.title.isEmpty, ch.title != "完整节目" {
                     Text(ch.title)
-                        .font(.system(size: 11, weight: .semibold, design: .rounded))
+                        .font(.system(size: 11, weight: .semibold))
                         .foregroundStyle(AmberTheme.primaryAmber)
                         .lineLimit(1)
                 }
@@ -365,7 +365,7 @@ public struct FullPlayerView: View {
             // Titles
             VStack(spacing: 4) {
                 Text(player.currentEpisode?.title ?? "未选择节目")
-                    .font(.system(size: 18, weight: .bold, design: .rounded))
+                    .font(.system(size: 18, weight: .bold))
                     .foregroundStyle(AmberTheme.labelPrimary)
                     .lineLimit(1)
                     .multilineTextAlignment(.center)
@@ -513,7 +513,7 @@ public struct FullPlayerView: View {
         } label: {
             HStack(spacing: 2) {
                 Text(formatSpeedText(Double(player.playbackRate)))
-                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .font(.system(size: 13, weight: .semibold))
                     .contentTransition(.numericText())
             }
             .foregroundStyle(AmberTheme.labelPrimary)

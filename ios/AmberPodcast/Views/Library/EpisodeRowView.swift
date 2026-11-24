@@ -71,7 +71,7 @@ public struct EpisodeRowView: View {
                 }
 
                 Text(episode.title)
-                    .font(.system(size: 15.5, weight: .semibold, design: .rounded))
+                    .font(.system(size: 15.5, weight: .semibold))
                     .foregroundStyle(isCurrentPlaying ? AmberTheme.primaryAmber : AmberTheme.labelPrimary)
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
@@ -96,7 +96,7 @@ public struct EpisodeRowView: View {
                         Image(systemName: isCurrentPlaying && player.isPlaying ? "pause.fill" : "play.fill")
                             .font(.system(size: 9.5, weight: .bold))
                         Text(isCurrentPlaying && player.isPlaying ? "暂停" : (currentStatus == "ready" ? "播放双轨" : "播放原声"))
-                            .font(.system(size: 11.5, weight: .medium, design: .rounded))
+                            .font(.system(size: 11.5, weight: .medium))
                     }
                     .padding(.horizontal, 12)
                     .padding(.vertical, 5.5)
@@ -104,11 +104,7 @@ public struct EpisodeRowView: View {
                         isCurrentPlaying ?
                         AmberTheme.primaryAmber :
                         (showsPlate ? AmberTheme.surfaceRaised : Color.primary.opacity(0.10)),
-                        in: RoundedRectangle(cornerRadius: 6, style: .continuous)
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 6, style: .continuous)
-                            .stroke(isCurrentPlaying ? AmberTheme.primaryAmber : AmberTheme.borderHairline, lineWidth: 0.5)
+                        in: RoundedRectangle(cornerRadius: AmberTheme.radiusBadge, style: .continuous)
                     )
                     .foregroundStyle(isCurrentPlaying ? Color.black : AmberTheme.labelPrimary)
                 }
@@ -128,15 +124,11 @@ public struct EpisodeRowView: View {
                                     .font(.system(size: 10, weight: .medium))
                             }
                             Text(currentStatus == "failed" ? "重试转译" : "生成双轨")
-                                .font(.system(size: 11.5, weight: .medium, design: .rounded))
+                                .font(.system(size: 11.5, weight: .medium))
                         }
                         .padding(.horizontal, 10)
                         .padding(.vertical, 5.5)
-                        .background(showsPlate ? AmberTheme.surfaceRaised : Color.primary.opacity(0.10), in: RoundedRectangle(cornerRadius: 6, style: .continuous))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                .strokeBorder(AmberTheme.borderHairline, lineWidth: 0.5)
-                        )
+                        .background(showsPlate ? AmberTheme.surfaceRaised : Color.primary.opacity(0.10), in: RoundedRectangle(cornerRadius: AmberTheme.radiusBadge, style: .continuous))
                         .foregroundStyle(AmberTheme.labelSecondary)
                     }
                     .buttonStyle(TactileButtonStyle(scale: 0.96))
@@ -168,12 +160,12 @@ public struct EpisodeRowView: View {
                 Image(systemName: "checkmark.circle.fill")
                     .font(.system(size: 9.5))
                 Text("双轨就绪")
-                    .font(.system(size: 10, weight: .medium, design: .rounded))
+                    .font(.system(size: 10, weight: .medium))
             }
             .foregroundStyle(AmberTheme.accentElectric)
             .padding(.horizontal, 6)
             .padding(.vertical, 2.5)
-            .background(AmberTheme.accentElectric.opacity(0.12), in: RoundedRectangle(cornerRadius: 4, style: .continuous))
+            .background(AmberTheme.accentElectric.opacity(0.12), in: RoundedRectangle(cornerRadius: AmberTheme.radiusMicro, style: .continuous))
 
         case "transcribing", "translating", "synthesizing", "pending":
             HStack(spacing: 4) {
@@ -185,19 +177,19 @@ public struct EpisodeRowView: View {
             .foregroundStyle(AmberTheme.primaryAmber)
             .padding(.horizontal, 6)
             .padding(.vertical, 2.5)
-            .background(AmberTheme.primaryAmber.opacity(0.12), in: RoundedRectangle(cornerRadius: 4, style: .continuous))
+            .background(AmberTheme.primaryAmber.opacity(0.12), in: RoundedRectangle(cornerRadius: AmberTheme.radiusMicro, style: .continuous))
 
         case "failed":
             HStack(spacing: 4) {
                 Image(systemName: "exclamationmark.circle.fill")
                     .font(.system(size: 9.5))
                 Text("转译失败")
-                    .font(.system(size: 10, weight: .medium, design: .rounded))
+                    .font(.system(size: 10, weight: .medium))
             }
             .foregroundStyle(Color.red.opacity(0.85))
             .padding(.horizontal, 6)
             .padding(.vertical, 2.5)
-            .background(Color.red.opacity(0.10), in: RoundedRectangle(cornerRadius: 4, style: .continuous))
+            .background(Color.red.opacity(0.10), in: RoundedRectangle(cornerRadius: AmberTheme.radiusMicro, style: .continuous))
 
         default:
             EmptyView()

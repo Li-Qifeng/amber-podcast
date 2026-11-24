@@ -284,7 +284,7 @@ public struct HomeLibraryView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         // Card title
                         Text(titleText)
-                            .font(.system(size: 16, weight: .bold, design: .rounded))
+                            .font(.system(size: 16, weight: .bold))
                             .foregroundStyle(AmberTheme.labelPrimary)
                             .lineLimit(2)
                             .multilineTextAlignment(.leading)
@@ -321,7 +321,7 @@ public struct HomeLibraryView: View {
                                 Image(systemName: "chevron.right")
                                     .font(.system(size: 10, weight: .bold))
                                 Text("查看节目")
-                                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                                    .font(.system(size: 12, weight: .semibold))
                             }
                             .foregroundStyle(AmberTheme.labelPrimary)
                             .padding(.horizontal, 13)
@@ -340,9 +340,9 @@ public struct HomeLibraryView: View {
             .padding(.bottom, 12)
         }
         .frame(width: cardWidth)
-        .background(AmberTheme.surfaceRaised, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .contentShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .background(AmberTheme.surfaceRaised, in: RoundedRectangle(cornerRadius: AmberTheme.radiusCardTile, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: AmberTheme.radiusCardTile, style: .continuous))
+        .contentShape(RoundedRectangle(cornerRadius: AmberTheme.radiusCardTile, style: .continuous))
     }
 
     private func coverPlaceholder(width: CGFloat, height: CGFloat, title: String) -> some View {
@@ -430,7 +430,7 @@ public struct HomeLibraryView: View {
                                     }
                                 }
                                 .frame(width: posterSize, height: posterSize)
-                                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                                .clipShape(RoundedRectangle(cornerRadius: AmberTheme.radiusCardRow, style: .continuous))
                                 .shadow(color: .black.opacity(0.18), radius: 6, y: 3)
 
                                 // Apple order: show name first, then genre/author（大一号至 14.5pt / 12.5pt）
@@ -622,7 +622,7 @@ public struct HomeLibraryView: View {
                 }
             }
             .frame(width: 80, height: 80)
-            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: AmberTheme.radiusField, style: .continuous))
 
             VStack(alignment: .leading, spacing: 4) {
                 // Localized date line (放大两号至 13pt)
@@ -812,10 +812,10 @@ public struct HomeLibraryView: View {
                     } placeholder: {
                         coverPlaceholder(width: 56, height: 56, title: feed.title)
                     }
-                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    .clipShape(RoundedRectangle(cornerRadius: AmberTheme.radiusControl, style: .continuous))
                 } else {
                     coverPlaceholder(width: 56, height: 56, title: feed.title)
-                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        .clipShape(RoundedRectangle(cornerRadius: AmberTheme.radiusControl, style: .continuous))
                 }
 
                 VStack(alignment: .leading, spacing: 3) {
@@ -901,7 +901,7 @@ public struct HomeLibraryView: View {
     private var welcomeHeader: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("开始你的播客之旅")
-                .font(.system(size: 28, weight: .bold, design: .rounded))
+                .font(.system(size: 28, weight: .bold))
                 .foregroundStyle(AmberTheme.labelPrimary)
 
             Text("订阅喜欢的节目，或从下面的推荐开始")
@@ -912,11 +912,11 @@ public struct HomeLibraryView: View {
                 showSubscribeSheet = true
             } label: {
                 Text("订阅播客")
-                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                    .font(.system(size: 13, weight: .medium))
                     .foregroundStyle(Color.black)
                     .padding(.horizontal, 20)
                     .padding(.vertical, 9)
-                    .background(Color.white, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    .background(Color.white, in: RoundedRectangle(cornerRadius: AmberTheme.radiusControl, style: .continuous))
             }
             .buttonStyle(TactileButtonStyle(scale: 0.96))
             .padding(.top, 6)
@@ -936,7 +936,7 @@ public struct HomeLibraryView: View {
             VStack(alignment: .leading, spacing: 14) {
                 HStack {
                     Text(title)
-                        .font(.system(size: 20, weight: .bold, design: .rounded))
+                        .font(.system(size: 20, weight: .bold))
                         .foregroundStyle(AmberTheme.labelPrimary)
 
                     Spacer()
@@ -978,7 +978,7 @@ public struct HomeLibraryView: View {
                                             .foregroundStyle(Color.white.opacity(0.85))
                                             .padding(.horizontal, 5)
                                             .padding(.vertical, 2)
-                                            .background(Color.black.opacity(0.70), in: RoundedRectangle(cornerRadius: 3, style: .continuous))
+                                            .background(Color.black.opacity(0.70), in: RoundedRectangle(cornerRadius: AmberTheme.radiusMicro, style: .continuous))
                                             .padding(6)
                                     }
                                     .frame(width: cardWidth, height: cardHeight)
@@ -1025,11 +1025,7 @@ public struct HomeLibraryView: View {
                         TextField("粘贴 Apple Podcasts / 小宇宙链接", text: $newUrlInput)
                             .font(.system(size: 14))
                             .padding(12)
-                            .background(AmberTheme.surfaceCard, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                    .strokeBorder(AmberTheme.borderHairline, lineWidth: 0.5)
-                            )
+                            .background(AmberTheme.surfaceCard, in: RoundedRectangle(cornerRadius: AmberTheme.radiusField, style: .continuous))
                             .autocorrectionDisabled()
                             .textInputAutocapitalization(.never)
                     }
@@ -1045,11 +1041,7 @@ public struct HomeLibraryView: View {
                     }
                     .tint(AmberTheme.primaryAmber)
                     .padding(12)
-                    .background(AmberTheme.surfaceCard, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .strokeBorder(AmberTheme.borderHairline, lineWidth: 0.5)
-                    )
+                    .background(AmberTheme.surfaceCard, in: RoundedRectangle(cornerRadius: AmberTheme.radiusField, style: .continuous))
 
                     if let err = errorMessage {
                         Text(err).font(.caption).foregroundStyle(Color.red)
@@ -1064,12 +1056,12 @@ public struct HomeLibraryView: View {
                             Spacer()
                             if isSubscribing { ProgressView().padding(.trailing, 6) }
                             Text(isSubscribing ? "正在解析..." : "确认订阅")
-                                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                                .font(.system(size: 14, weight: .semibold))
                                 .foregroundStyle(Color.black)
                             Spacer()
                         }
                         .padding(.vertical, 12)
-                        .background(Color.white, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                        .background(Color.white, in: RoundedRectangle(cornerRadius: AmberTheme.radiusField, style: .continuous))
                     }
                     .disabled(newUrlInput.trimmingCharacters(in: .whitespaces).isEmpty || isSubscribing)
                 }
@@ -1228,7 +1220,7 @@ public struct HomeLibraryView: View {
     private func sectionTitle(_ title: String) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 6) {
             Text(title)
-                .font(.system(size: 24, weight: .bold, design: .rounded))
+                .font(.system(size: 24, weight: .bold))
                 .foregroundStyle(AmberTheme.labelPrimary)
             Image(systemName: "chevron.right")
                 .font(.system(size: 15, weight: .semibold))
@@ -1702,7 +1694,7 @@ public struct AllChannelsListView: View {
                         .font(.system(size: 36, weight: .light))
                         .foregroundStyle(AmberTheme.labelTertiary)
                     Text("暂无订阅频道")
-                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                        .font(.system(size: 15, weight: .semibold))
                         .foregroundStyle(AmberTheme.labelPrimary)
                     Text("前往「发现」页面搜索并订阅您感兴趣的播客。")
                         .font(.system(size: 12.5))
@@ -1720,7 +1712,7 @@ public struct AllChannelsListView: View {
 
                                 VStack(alignment: .leading, spacing: 3) {
                                     Text(f.title)
-                                        .font(.system(size: 15.5, weight: .semibold, design: .rounded))
+                                        .font(.system(size: 15.5, weight: .semibold))
                                         .foregroundStyle(AmberTheme.labelPrimary)
                                         .lineLimit(1)
                                     Text(f.author.isEmpty ? "播客主" : f.author)

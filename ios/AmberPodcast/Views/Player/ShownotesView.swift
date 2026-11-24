@@ -51,7 +51,7 @@ public struct ShownotesView: View {
                                                     .foregroundStyle(AmberTheme.primaryAmber)
 
                                                 Text(block.text.isEmpty ? "跳转至此时间点" : block.text)
-                                                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                                                    .font(.system(size: 13, weight: .medium))
                                                     .foregroundStyle(AmberTheme.labelPrimary)
                                                     .lineLimit(2)
 
@@ -105,12 +105,12 @@ public struct ShownotesView: View {
                                     Image(systemName: "doc.plaintext")
                                         .font(.system(size: 10, weight: .medium))
                                     Text("全文脉络精读")
-                                        .font(.system(size: 11, weight: .medium, design: .rounded))
+                                        .font(.system(size: 11, weight: .medium))
                                 }
                                 .foregroundStyle(AmberTheme.primaryAmber)
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 3.5)
-                                .background(AmberTheme.primaryAmber.opacity(0.12), in: RoundedRectangle(cornerRadius: 4, style: .continuous))
+                                .background(AmberTheme.primaryAmber.opacity(0.12), in: RoundedRectangle(cornerRadius: AmberTheme.radiusMicro, style: .continuous))
 
                                 Text(player.articleMarkdown)
                                     .font(.system(size: 15, weight: .regular))
@@ -162,7 +162,7 @@ public struct ShownotesView: View {
                         .font(.system(size: 11, weight: .semibold))
                 }
                 Text(title)
-                    .font(.system(size: 12.5, weight: isSelected ? .bold : .medium, design: .rounded))
+                    .font(.system(size: 12.5, weight: isSelected ? .bold : .medium))
             }
             .foregroundStyle(isSelected ? AmberTheme.labelPrimary : AmberTheme.labelSecondary)
             .padding(.horizontal, 16)

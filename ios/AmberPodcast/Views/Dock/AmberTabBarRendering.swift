@@ -80,7 +80,7 @@ struct LegacyDockBar: View {
                         .scaleEffect(isSelected ? 1.04 : 1.0)
 
                     Text(item.title)
-                        .font(.system(size: 10, weight: isSelected ? .medium : .regular, design: .rounded))
+                        .font(.system(size: 10, weight: isSelected ? .medium : .regular))
                         .foregroundStyle(isSelected ? AmberTheme.primaryAmber : AmberTheme.labelTertiary)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)

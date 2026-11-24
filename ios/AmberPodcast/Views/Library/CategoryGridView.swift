@@ -54,14 +54,14 @@ public struct CategoryGridView: View {
                             fallback(feed)
                         }
                     }
-                    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    .clipShape(RoundedRectangle(cornerRadius: AmberTheme.radiusCoverHero, style: .continuous))
 
                 Text(feed.sourceType == "xiaoyuzhou" ? "小宇宙" : "Apple")
                     .font(.system(size: 8.5, weight: .regular))
                     .foregroundStyle(Color.white.opacity(0.85))
                     .padding(.horizontal, 5)
                     .padding(.vertical, 2)
-                    .background(Color.black.opacity(0.70), in: RoundedRectangle(cornerRadius: 3, style: .continuous))
+                    .background(Color.black.opacity(0.70), in: RoundedRectangle(cornerRadius: AmberTheme.radiusMicro, style: .continuous))
                     .padding(6)
             }
 
@@ -84,7 +84,7 @@ public struct CategoryGridView: View {
         ZStack {
             AmberTheme.surfaceCard
             Text(String(feed.title.prefix(1)))
-                .font(.system(size: 34, weight: .bold, design: .rounded))
+                .font(.system(size: 34, weight: .bold))
                 .foregroundStyle(AmberTheme.labelTertiary)
         }
     }

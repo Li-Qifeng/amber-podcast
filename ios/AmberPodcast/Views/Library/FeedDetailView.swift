@@ -41,7 +41,7 @@ public struct FeedDetailView: View {
                     // 2. Section Header: Episodes Count & Action
                     HStack(alignment: .firstTextBaseline) {
                         Text("全部单集")
-                            .font(.system(size: 20, weight: .bold, design: .rounded))
+                            .font(.system(size: 20, weight: .bold))
                             .foregroundStyle(AmberTheme.labelPrimary)
 
                         if isLoading {
@@ -54,7 +54,7 @@ public struct FeedDetailView: View {
                                 .foregroundStyle(AmberTheme.labelSecondary)
                                 .padding(.horizontal, 7)
                                 .padding(.vertical, 2.5)
-                                .background(AmberTheme.surfaceRaised, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+                                .background(AmberTheme.surfaceRaised, in: RoundedRectangle(cornerRadius: AmberTheme.radiusBadge, style: .continuous))
                         }
 
                         Spacer()
@@ -70,7 +70,7 @@ public struct FeedDetailView: View {
                                     .font(.system(size: 12, weight: .bold))
                                     .foregroundStyle(AmberTheme.primaryAmber)
                                 Text("发现 \(newEpisodesCount) 条新单集，轻触查看")
-                                    .font(.system(size: 12.5, weight: .semibold, design: .rounded))
+                                    .font(.system(size: 12.5, weight: .semibold))
                                     .foregroundStyle(AmberTheme.labelPrimary)
                                 Image(systemName: "arrow.up")
                                     .font(.system(size: 11, weight: .bold))
@@ -262,7 +262,7 @@ public struct FeedDetailView: View {
                             .resizable()
                             .scaledToFill()
                             .frame(width: 210, height: 210)
-                            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                            .clipShape(RoundedRectangle(cornerRadius: AmberTheme.radiusCardTile, style: .continuous))
                             .shadow(color: .black.opacity(0.30), radius: 18, y: 8)
                     } placeholder: {
                         coverPlaceholder(width: 210, height: 210)
@@ -276,7 +276,7 @@ public struct FeedDetailView: View {
 
             VStack(alignment: .leading, spacing: 10) {
                 Text(feed.title)
-                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                    .font(.system(size: 22, weight: .bold))
                     .foregroundStyle(AmberTheme.labelPrimary)
                     .lineLimit(2)
 
@@ -302,7 +302,7 @@ public struct FeedDetailView: View {
                             Image(systemName: player.currentEpisode?.id == episodes.first?.id && player.isPlaying ? "pause.fill" : "play.fill")
                                 .font(.system(size: 12, weight: .bold))
                             Text("最新单集")
-                                .font(.system(size: 14, weight: .bold, design: .rounded))
+                                .font(.system(size: 14, weight: .bold))
                         }
                         .foregroundStyle(Color.white)
                         .padding(.horizontal, 18)

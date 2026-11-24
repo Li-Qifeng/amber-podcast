@@ -28,11 +28,7 @@ public struct SubscribeSheet: View {
                         TextField("粘贴 Apple Podcasts / 小宇宙链接", text: $newUrlInput)
                             .font(.system(size: 14))
                             .padding(12)
-                            .background(AmberTheme.surfaceCard, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                    .strokeBorder(AmberTheme.borderHairline, lineWidth: 0.5)
-                            )
+                            .background(AmberTheme.surfaceCard, in: RoundedRectangle(cornerRadius: AmberTheme.radiusField, style: .continuous))
                             .autocorrectionDisabled()
                             .textInputAutocapitalization(.never)
                     }
@@ -52,7 +48,7 @@ public struct SubscribeSheet: View {
                             .tint(AmberTheme.primaryAmber)
                     }
                     .padding(12)
-                    .background(AmberTheme.surfaceCard, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .background(AmberTheme.surfaceCard, in: RoundedRectangle(cornerRadius: AmberTheme.radiusField, style: .continuous))
 
                     if let err = errorMessage {
                         Text(err)
@@ -72,7 +68,7 @@ public struct SubscribeSheet: View {
                                     .scaleEffect(0.8)
                             }
                             Text(isSubscribing ? "正在解析并订阅..." : "确认添加订阅")
-                                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                                .font(.system(size: 15, weight: .semibold))
                         }
                         .foregroundStyle(Color.black)
                         .frame(maxWidth: .infinity)
@@ -81,7 +77,7 @@ public struct SubscribeSheet: View {
                             newUrlInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                                 ? Color.white.opacity(0.3)
                                 : Color.white,
-                            in: RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            in: RoundedRectangle(cornerRadius: AmberTheme.radiusCardRow, style: .continuous)
                         )
                     }
                     .disabled(newUrlInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isSubscribing)
