@@ -171,7 +171,7 @@ public struct ShownotesView: View {
                 Group {
                     if isSelected {
                         Capsule()
-                            .fill(Color.white.opacity(0.16))
+                            .fill(AmberTheme.controlFill)
                             .matchedGeometryEffect(id: "ShownotesTabCapsule", in: tabNamespace)
                     }
                 }

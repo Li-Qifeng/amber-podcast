@@ -9,10 +9,22 @@ public struct FullPlayerView: View {
     @State private var currentCenterTab: Int = 0
     @State private var isScrubbing: Bool = false
     @State private var scrubTime: Double = 0.0
-    @State private var showSpeedSheet: Bool = false
     @State private var showNoDualTrackAlert: Bool = false
     @State private var showMissingChineseAlert: Bool = false
     @State private var dragOffsetY: CGFloat = 0.0
+
+    @AppStorage("amber_backward_interval") private var backwardInterval: Int = 15
+    @AppStorage("amber_forward_interval") private var forwardInterval: Int = 30
+
+    private static let allowedSkipIntervals: Set<Int> = [10, 15, 30, 45]
+
+    private var effectiveBackwardInterval: Int {
+        Self.allowedSkipIntervals.contains(backwardInterval) ? backwardInterval : 15
+    }
+
+    private var effectiveForwardInterval: Int {
+        Self.allowedSkipIntervals.contains(forwardInterval) ? forwardInterval : 30
+    }
 
     @Namespace private var modeNamespace
     @Namespace private var centerTabNamespace
@@ -79,9 +91,6 @@ public struct FullPlayerView: View {
                     }
             )
         }
-        .sheet(isPresented: $showSpeedSheet) {
-            speedSelectionSheet
-        }
         .alert("提示", isPresented: $showNoDualTrackAlert) {
             Button("好", role: .cancel) {}
         } message: {
@@ -132,7 +141,7 @@ public struct FullPlayerView: View {
         VStack(spacing: 6) {
             // Dismiss Grabber Pill
             Capsule()
-                .fill(Color.white.opacity(0.30))
+                .fill(AmberTheme.grabber)
                 .frame(width: 44, height: 5)
                 .padding(.top, 8)
                 .padding(.bottom, 4)
@@ -209,10 +218,6 @@ public struct FullPlayerView: View {
                             .scaledToFit()
                             .frame(width: size, height: size)
                             .clipShape(RoundedRectangle(cornerRadius: AmberTheme.radiusCoverHero, style: .continuous))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: AmberTheme.radiusCoverHero, style: .continuous)
-                                    .strokeBorder(LinearGradient(colors: [Color.white.opacity(0.35), Color.white.opacity(0.08)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 0.8)
-                            )
                             .shadow(color: Color.black.opacity(player.isPlaying ? 0.45 : 0.2),
                                     radius: player.isPlaying ? 28 : 12,
                                     y: player.isPlaying ? 16 : 6)
@@ -220,14 +225,14 @@ public struct FullPlayerView: View {
                             .animation(ForwardMotion.fluidSheet, value: player.isPlaying)
                     } placeholder: {
                         RoundedRectangle(cornerRadius: AmberTheme.radiusCoverHero, style: .continuous)
-                            .fill(Color(white: 0.12))
+                            .fill(AmberTheme.surfaceCard)
                             .frame(width: size, height: size)
                     }
                 } else {
                     RoundedRectangle(cornerRadius: AmberTheme.radiusCoverHero, style: .continuous)
-                        .fill(Color(white: 0.12))
+                        .fill(AmberTheme.surfaceCard)
                         .frame(width: size, height: size)
-                        .overlay(Image(systemName: "headphones").font(.system(size: 44)).foregroundStyle(.white.opacity(0.6)))
+                        .overlay(Image(systemName: "headphones").font(.system(size: 44)).foregroundStyle(AmberTheme.labelTertiary))
                 }
             }
             Spacer()
@@ -264,7 +269,7 @@ public struct FullPlayerView: View {
                         ZStack {
                             if isSelected {
                                 Capsule()
-                                    .fill(Color.white.opacity(0.22))
+                                    .fill(AmberTheme.controlFill)
                                     .matchedGeometryEffect(id: "TrackModeCapsule", in: modeNamespace)
                                     .shadow(color: Color.black.opacity(0.2), radius: 4, y: 2)
                             }
@@ -289,12 +294,12 @@ public struct FullPlayerView: View {
                 ZStack(alignment: .leading) {
                     // Track Background
                     Capsule()
-                        .fill(Color.white.opacity(0.15))
+                        .fill(AmberTheme.trackBackground)
                         .frame(height: isScrubbing ? 7 : 4)
 
                     // Active Glowing Progress
                     Capsule()
-                        .fill(player.trackMode == .chinese ? AmberTheme.primaryAmber : Color.white)
+                        .fill(player.trackMode == .chinese ? AmberTheme.primaryAmber : AmberTheme.labelPrimary)
                         .frame(width: max(0, min(barGeo.size.width, barGeo.size.width * CGFloat(progress))), height: isScrubbing ? 7 : 4)
 
                     // Apple Podcasts Style Chapter Marks (crisp vertical tick lines)
@@ -302,7 +307,7 @@ public struct FullPlayerView: View {
                         ForEach(player.chapters.filter { $0.startSec > 1.0 && $0.startSec < effectiveDuration }) { ch in
                             let ratio = CGFloat(ch.startSec / effectiveDuration)
                             Rectangle()
-                                .fill(Color.black.opacity(0.70))
+                                .fill(AmberTheme.background.opacity(0.70))
                                 .frame(width: 1.5, height: isScrubbing ? 7 : 4)
                                 .offset(x: barGeo.size.width * ratio - 0.75)
                         }
@@ -310,7 +315,7 @@ public struct FullPlayerView: View {
 
                     // Scrubber Thumb
                     Circle()
-                        .fill(Color.white)
+                        .fill(AmberTheme.labelPrimary)
                         .frame(width: isScrubbing ? 14 : 7, height: isScrubbing ? 14 : 7)
                         .shadow(color: Color.black.opacity(0.3), radius: 3, y: 1)
                         .offset(x: max(0, min(barGeo.size.width - (isScrubbing ? 14 : 7), barGeo.size.width * CGFloat(progress) - (isScrubbing ? 7 : 3.5))))
@@ -379,12 +384,12 @@ public struct FullPlayerView: View {
             // Controls: Skip 15s | Play/Pause | Skip 30s
             AmberGlassContainer(spacing: 20) {
                 HStack(spacing: 28) {
-                    // Skip backward 15s
+                    // Skip backward
                     Button {
-                        player.skipBackward(15)
+                        player.skipBackward(Double(effectiveBackwardInterval))
                         impactFeedback.impactOccurred()
                     } label: {
-                        Image(systemName: "gobackward.15")
+                        Image(systemName: "gobackward.\(effectiveBackwardInterval)")
                             .font(.system(size: 22, weight: .semibold))
                             .foregroundStyle(AmberTheme.labelPrimary)
                             .frame(width: 52, height: 52)
@@ -398,30 +403,30 @@ public struct FullPlayerView: View {
                     } label: {
                         ZStack {
                             Circle()
-                                .fill(Color.white)
+                                .fill(AmberTheme.ctaBackground)
                                 .frame(width: 72, height: 72)
                                 .shadow(color: Color.black.opacity(0.35), radius: 8, y: 4)
 
                             if player.isBuffering {
                                 ProgressView()
-                                    .progressViewStyle(CircularProgressViewStyle(tint: .black))
+                                    .progressViewStyle(CircularProgressViewStyle(tint: AmberTheme.ctaForeground))
                                     .scaleEffect(1.2)
                             } else {
                                 Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
                                     .font(.system(size: 28, weight: .bold))
-                                    .foregroundStyle(Color.black)
+                                    .foregroundStyle(AmberTheme.ctaForeground)
                                     .contentTransition(.symbolEffect(.replace))
                             }
                         }
                     }
                     .buttonStyle(ApplePlayButtonStyle(scale: 0.88))
 
-                    // Skip forward 30s
+                    // Skip forward
                     Button {
-                        player.skipForward(30)
+                        player.skipForward(Double(effectiveForwardInterval))
                         impactFeedback.impactOccurred()
                     } label: {
-                        Image(systemName: "goforward.30")
+                        Image(systemName: "goforward.\(effectiveForwardInterval)")
                             .font(.system(size: 22, weight: .semibold))
                             .foregroundStyle(AmberTheme.labelPrimary)
                             .frame(width: 52, height: 52)
@@ -546,38 +551,6 @@ public struct FullPlayerView: View {
             player.setPlaybackRate(1.0)
         }
         impactFeedback.impactOccurred()
-    }
-
-    // MARK: - Speed Selection Sheet
-    private var speedSelectionSheet: some View {
-        NavigationStack {
-            List {
-                ForEach([0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.5, 3.0], id: \.self) { rate in
-                    HStack {
-                        Text(String(format: "%.2fx", rate))
-                            .font(.system(size: 16, weight: .medium, design: .monospaced))
-                            .foregroundStyle(AmberTheme.labelPrimary)
-                        Spacer()
-                        if abs(player.playbackRate - Float(rate)) < 0.01 {
-                            Image(systemName: "checkmark")
-                                .font(.system(size: 14, weight: .bold))
-                                .foregroundStyle(AmberTheme.primaryAmber)
-                        }
-                    }
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        player.setPlaybackRate(Float(rate))
-                        showSpeedSheet = false
-                    }
-                    .listRowBackground(AmberTheme.glassSurface)
-                }
-            }
-            .scrollContentBackground(.hidden)
-            .background(AmberTheme.background)
-            .navigationTitle("播放速度")
-            .navigationBarTitleDisplayMode(.inline)
-        }
-        .presentationDetents([.medium])
     }
 
     // MARK: - Formatting Helpers
