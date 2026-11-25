@@ -121,12 +121,12 @@ jobs:
 
           # Capture settings and the full player
           xcrun simctl terminate "$DEVICE_UUID" com.refoxai.amberpodcast || true
-          xcrun simctl launch "$DEVICE_UUID" com.refoxai.amberpodcast -amberStartTab 2 -amberDemoNowPlaying
+          xcrun simctl launch "$DEVICE_UUID" com.refoxai.amberpodcast -amberOpenSettings -amberDemoPlaying
           sleep 4
           xcrun simctl io "$DEVICE_UUID" screenshot screenshots/screen_settings.png
 
           xcrun simctl terminate "$DEVICE_UUID" com.refoxai.amberpodcast || true
-          xcrun simctl launch "$DEVICE_UUID" com.refoxai.amberpodcast -amberOpenPlayer -amberDemoNowPlaying
+          xcrun simctl launch "$DEVICE_UUID" com.refoxai.amberpodcast -amberOpenPlayer -amberDemoPlaying
           sleep 4
           xcrun simctl io "$DEVICE_UUID" screenshot screenshots/screen_player.png
 
@@ -144,6 +144,32 @@ jobs:
           for i in $(seq -w 1 14); do
             xcrun simctl io "$DEVICE_UUID" screenshot "screenshots/tab_$i.png" > /dev/null 2>&1
           done
+
+          # Dark mode regression screenshots for core screens
+          xcrun simctl ui "$DEVICE_UUID" appearance dark
+          sleep 1
+
+          xcrun simctl terminate "$DEVICE_UUID" com.refoxai.amberpodcast || true
+          xcrun simctl launch "$DEVICE_UUID" com.refoxai.amberpodcast -amberAppearance dark
+          sleep 6
+          xcrun simctl io "$DEVICE_UUID" screenshot screenshots/dark_home.png
+
+          xcrun simctl terminate "$DEVICE_UUID" com.refoxai.amberpodcast || true
+          xcrun simctl launch "$DEVICE_UUID" com.refoxai.amberpodcast -amberStartTab 2 -amberAppearance dark
+          sleep 8
+          xcrun simctl io "$DEVICE_UUID" screenshot screenshots/dark_pipeline.png
+
+          xcrun simctl terminate "$DEVICE_UUID" com.refoxai.amberpodcast || true
+          xcrun simctl launch "$DEVICE_UUID" com.refoxai.amberpodcast -amberOpenPlayer -amberDemoPlaying -amberAppearance dark
+          sleep 4
+          xcrun simctl io "$DEVICE_UUID" screenshot screenshots/dark_player.png
+
+          xcrun simctl terminate "$DEVICE_UUID" com.refoxai.amberpodcast || true
+          xcrun simctl launch "$DEVICE_UUID" com.refoxai.amberpodcast -amberOpenSettings -amberAppearance dark
+          sleep 4
+          xcrun simctl io "$DEVICE_UUID" screenshot screenshots/dark_settings.png
+
+          xcrun simctl ui "$DEVICE_UUID" appearance light
 
           ls -lh screenshots/
 
