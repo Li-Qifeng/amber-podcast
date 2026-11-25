@@ -24,9 +24,6 @@ public struct SettingsView: View {
 
     // AppStorage Settings
     @AppStorage("amber_default_track_mode") private var preferredTrackModeRaw: String = TrackMode.chinese.rawValue
-    @AppStorage("amber_voice_timbre") private var voiceTimbre: String = "natural"
-    @AppStorage("amber_skip_silence") private var skipSilence: Bool = false
-    @AppStorage("amber_speech_boost") private var speechBoost: Bool = true
     @AppStorage("amber_auto_play_next") private var autoPlayNext: Bool = true
     @AppStorage("amber_forward_interval") private var forwardInterval: Int = 30
     @AppStorage("amber_backward_interval") private var backwardInterval: Int = 15
@@ -79,7 +76,7 @@ public struct SettingsView: View {
                     // Section 6: About & System Info
                     aboutSection
                 }
-                .padding(.horizontal, 20)
+                .padding(.horizontal, AmberTheme.pageMargin)
                 .padding(.top, 14)
                 .padding(.bottom, 60)
             }
@@ -90,6 +87,12 @@ public struct SettingsView: View {
             .onAppear {
                 self.serverUrl = apiClient.serverBaseUrl
                 self.authToken = apiClient.authToken
+            }
+            .onChange(of: backwardInterval) { _, _ in
+                player.updateSkipIntervals()
+            }
+            .onChange(of: forwardInterval) { _, _ in
+                player.updateSkipIntervals()
             }
             .alert(
                 healthResult?.ok == true ? "服务设置已保存" : "网关连接异常",
@@ -108,6 +111,7 @@ public struct SettingsView: View {
                     URLCache.shared.removeAllCachedResponses()
                     AmberImageCache.shared.clearAll()
                     UserDefaults.standard.removeObject(forKey: "amber_cached_library_json_v1")
+                    UserDefaults.standard.removeObject(forKey: "amber_cached_library_json_v2")
                     UserDefaults.standard.removeObject(forKey: "amber_cached_discover_json_v1")
                     let tmp = FileManager.default.temporaryDirectory
                     if let items = try? FileManager.default.contentsOfDirectory(at: tmp, includingPropertiesForKeys: nil) {
@@ -148,7 +152,7 @@ public struct SettingsView: View {
                         .minimumScaleFactor(0.75)
                 }
 
-                Divider().background(Color.white.opacity(0.08))
+                Divider().background(AmberTheme.divider)
 
                 HStack {
                     Text("认证令牌")
@@ -163,7 +167,7 @@ public struct SettingsView: View {
                         .foregroundStyle(AmberTheme.labelSecondary)
                 }
 
-                Divider().background(Color.white.opacity(0.08))
+                Divider().background(AmberTheme.divider)
 
                 Button {
                     impactFeedback.impactOccurred()
@@ -233,21 +237,6 @@ public struct SettingsView: View {
                     }
                     .tint(AmberTheme.primaryAmber)
                 }
-
-                Divider().background(Color.white.opacity(0.08))
-
-                HStack {
-                    Text("中文配音风格")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(AmberTheme.labelPrimary)
-                    Spacer()
-                    Picker("", selection: $voiceTimbre) {
-                        Text("自然日常 (Natural)").tag("natural")
-                        Text("专业播音 (Broadcast)").tag("broadcast")
-                        Text("主播克隆 (Voice Clone)").tag("clone")
-                    }
-                    .tint(AmberTheme.primaryAmber)
-                }
             }
             .padding(16)
             .amberPlate(radius: AmberTheme.radiusCardRow)
@@ -279,7 +268,7 @@ public struct SettingsView: View {
                 }
                 .tint(AmberTheme.primaryAmber)
 
-                Divider().background(Color.white.opacity(0.08))
+                Divider().background(AmberTheme.divider)
 
                 HStack {
                     Text("检查新集间隔")
@@ -298,7 +287,7 @@ public struct SettingsView: View {
                     .tint(AmberTheme.primaryAmber)
                 }
 
-                Divider().background(Color.white.opacity(0.08))
+                Divider().background(AmberTheme.divider)
 
                 HStack {
                     Text("同时转储数量")
@@ -361,7 +350,7 @@ public struct SettingsView: View {
                     .frame(width: 170)
                 }
 
-                Divider().background(Color.white.opacity(0.08))
+                Divider().background(AmberTheme.divider)
 
                 HStack {
                     Text("快进步长")
@@ -377,21 +366,7 @@ public struct SettingsView: View {
                     .frame(width: 170)
                 }
 
-                Divider().background(Color.white.opacity(0.08))
-
-                Toggle("智能跳过静音片段 (Trim Silence)", isOn: $skipSilence)
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundStyle(AmberTheme.labelPrimary)
-                    .tint(AmberTheme.primaryAmber)
-
-                Divider().background(Color.white.opacity(0.08))
-
-                Toggle("人声清晰度增强 (Speech Boost)", isOn: $speechBoost)
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundStyle(AmberTheme.labelPrimary)
-                    .tint(AmberTheme.primaryAmber)
-
-                Divider().background(Color.white.opacity(0.08))
+                Divider().background(AmberTheme.divider)
 
                 Toggle("播放完毕后自动连播下一集", isOn: $autoPlayNext)
                     .font(.system(size: 14, weight: .medium))
@@ -449,7 +424,7 @@ public struct SettingsView: View {
                         .foregroundStyle(AmberTheme.labelSecondary)
                 }
 
-                Divider().background(Color.white.opacity(0.08))
+                Divider().background(AmberTheme.divider)
 
                 HStack {
                     Text("封面图片加速")
@@ -461,7 +436,7 @@ public struct SettingsView: View {
                         .foregroundStyle(AmberTheme.primaryAmber)
                 }
 
-                Divider().background(Color.white.opacity(0.08))
+                Divider().background(AmberTheme.divider)
 
                 HStack {
                     Text("清理离线临时缓存")
@@ -500,7 +475,7 @@ public struct SettingsView: View {
                         .foregroundStyle(AmberTheme.labelSecondary)
                 }
 
-                Divider().background(Color.white.opacity(0.08))
+                Divider().background(AmberTheme.divider)
 
                 HStack {
                     Text("架构设计基准")
@@ -512,7 +487,7 @@ public struct SettingsView: View {
                         .foregroundStyle(AmberTheme.primaryAmber)
                 }
 
-                Divider().background(Color.white.opacity(0.08))
+                Divider().background(AmberTheme.divider)
 
                 Link(destination: URL(string: "https://store.refoxai.com/studio/amber-podcast/")!) {
                     HStack {
