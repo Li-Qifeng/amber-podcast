@@ -12,9 +12,17 @@ public final class LibraryStore: ObservableObject {
     @Published public var isLoading: Bool = false
 
     private let cacheKey = "amber_cached_library_json_v2"
+    private let legacyCacheKey = "amber_cached_library_json_v1"
 
     private init() {
         restoreFromCache()
+    }
+
+    private static func heroPair(
+        feeds: [PodcastFeed], heroEpisode: Episode?
+    ) -> (PodcastFeed?, Episode?) {
+        guard let ep = heroEpisode else { return (nil, nil) }
+        return (feeds.first(where: { $0.id == ep.feedId }) ?? feeds.first, ep)
     }
 
     public func restoreFromCache() {
@@ -24,9 +32,19 @@ public final class LibraryStore: ObservableObject {
            !lib.feeds.isEmpty {
             self.feeds = lib.feeds
             self.recentEpisodes = lib.recentEpisodes
-            self.heroFeed = lib.feeds.first
-            self.heroEpisode = lib.recentEpisodes.first
+            let hero = Self.heroPair(feeds: lib.feeds, heroEpisode: lib.heroEpisode)
+            self.heroFeed = hero.0
+            self.heroEpisode = hero.1
         }
+    }
+
+    public func refresh() async {
+        await loadData()
+    }
+
+    public func clearCache() {
+        UserDefaults.standard.removeObject(forKey: legacyCacheKey)
+        UserDefaults.standard.removeObject(forKey: cacheKey)
     }
 
     public func loadData() async {
@@ -43,8 +61,9 @@ public final class LibraryStore: ObservableObject {
                 #if DEBUG
                 self.feeds = PodcastFeed.samples
                 self.recentEpisodes = Episode.samples
-                self.heroFeed = PodcastFeed.samples.first
-                self.heroEpisode = Episode.samples.first
+                let hero = Self.heroPair(feeds: PodcastFeed.samples, heroEpisode: Episode.samples.first)
+                self.heroFeed = hero.0
+                self.heroEpisode = hero.1
                 #else
                 self.feeds = []
                 self.recentEpisodes = []
@@ -54,8 +73,9 @@ public final class LibraryStore: ObservableObject {
             } else {
                 self.feeds = lib.feeds
                 self.recentEpisodes = lib.recentEpisodes
-                self.heroFeed = lib.feeds.first
-                self.heroEpisode = lib.recentEpisodes.first
+                let hero = Self.heroPair(feeds: lib.feeds, heroEpisode: lib.heroEpisode)
+                self.heroFeed = hero.0
+                self.heroEpisode = hero.1
                 if let data = try? JSONEncoder().encode(lib), let str = String(data: data, encoding: .utf8) {
                     UserDefaults.standard.set(str, forKey: cacheKey)
                 }

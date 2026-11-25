@@ -8,20 +8,15 @@ import UIKit
 private let homeTileBaseDark = Color(red: 0.13, green: 0.13, blue: 0.15)
 
 public struct HomeLibraryView: View {
-    @State private var feeds: [PodcastFeed] = []
-    @State private var recentEpisodes: [Episode] = []
-    @State private var heroFeed: PodcastFeed? = nil
-    @State private var heroEpisode: Episode? = nil
-    @State private var isLoading: Bool = true
+    @ObservedObject private var libraryStore = LibraryStore.shared
     @State private var showSubscribeSheet: Bool = false
-    @State private var newUrlInput: String = ""
-    @State private var newAutoTranslate: Bool = false
-    @State private var isSubscribing: Bool = false
-    @State private var errorMessage: String? = nil
     @State private var discoverFeed: AmberAPIClient.DiscoverFeedResponse? = nil
     @State private var isLoadingDiscover: Bool = false
 
-    @AppStorage("amber_cached_library_json_v2") private var cachedLibraryJson: String = ""
+    private var feeds: [PodcastFeed] { libraryStore.feeds }
+    private var recentEpisodes: [Episode] { libraryStore.recentEpisodes }
+    private var heroFeed: PodcastFeed? { libraryStore.heroFeed }
+    private var heroEpisode: Episode? { libraryStore.heroEpisode }
 
     /// Fixed screen geometry. Read from UIScreen (not a live GeometryReader) so
     /// content never re-lays out when NavigationStack's large title collapses or
@@ -29,34 +24,10 @@ public struct HomeLibraryView: View {
     private var screenWidth: CGFloat { UIScreen.main.bounds.width }
     private var screenHeight: CGFloat { UIScreen.main.bounds.height }
 
-    /// The hero only shows an episode published *after* its feed was subscribed,
-    /// so a freshly added show never pushes its back-catalogue up top. The server
-    /// picks that episode (`hero_episode`); when nothing new has dropped yet it is
-    /// nil and the hero section collapses entirely. The artwork must still belong
-    /// to the feed that owns the episode, never feeds.first.
-    private static func heroPair(
-        feeds: [PodcastFeed], heroEpisode: Episode?
-    ) -> (PodcastFeed?, Episode?) {
-        guard let ep = heroEpisode else { return (nil, nil) }
-        return (feeds.first(where: { $0.id == ep.feedId }) ?? feeds.first, ep)
-    }
-
     @ObservedObject var player = DualTrackAudioPlayer.shared
     private let impactFeedback = UIImpactFeedbackGenerator(style: .light)
 
-    public init() {
-        if let raw = UserDefaults.standard.string(forKey: "amber_cached_library_json_v1"),
-           let data = raw.data(using: .utf8),
-           let lib = try? JSONDecoder().decode(AmberAPIClient.LibraryResponse.self, from: data),
-           !lib.feeds.isEmpty {
-            self._feeds = State(initialValue: lib.feeds)
-            self._recentEpisodes = State(initialValue: lib.recentEpisodes)
-            let hero = Self.heroPair(feeds: lib.feeds, heroEpisode: lib.heroEpisode)
-            self._heroFeed = State(initialValue: hero.0)
-            self._heroEpisode = State(initialValue: hero.1)
-            self._isLoading = State(initialValue: false)
-        }
-    }
+    public init() {}
 
     public var body: some View {
         NavigationStack {
@@ -65,7 +36,7 @@ public struct HomeLibraryView: View {
                 AmberTheme.background
                     .ignoresSafeArea()
 
-                if isLoading && feeds.isEmpty {
+                if libraryStore.isLoading && feeds.isEmpty {
                     loadingStateView
                 } else if feeds.isEmpty {
                     emptyStateView
@@ -144,7 +115,7 @@ public struct HomeLibraryView: View {
                 }
             }
             .sheet(isPresented: $showSubscribeSheet) {
-                subscribeSheet
+                SubscribeSheet()
             }
             .task {
                 await loadData()
@@ -222,127 +193,6 @@ public struct HomeLibraryView: View {
             .scrollTargetBehavior(.viewAligned)
             .scrollClipDisabled()
         }
-    }
-
-    // MARK: - Unified Apple-Pattern Hero Card (Shared by 最新单集 / 新节目推荐 / 试试这些频道)
-    /// A single self-contained dark container card. Passes `episode` for a dynamic
-    /// Apple expanding play capsule with sound wave and progress bar, or `nil` for a "查看节目" affordance.
-    private func unifiedHeroCard(
-        feed: PodcastFeed,
-        episode: Episode? = nil,
-        badgeText: String? = nil,
-        cardWidth: CGFloat
-    ) -> some View {
-        let artworkHeight = cardWidth * 0.68
-        let isCurrent = episode.map { player.currentEpisode?.id == $0.id } ?? false
-        let isPlayingThis = isCurrent && player.isPlaying
-        let liveProgress = isCurrent && player.duration > 0
-            ? (player.currentTime / player.duration)
-            : (episode.map { Double($0.progress) / 100.0 } ?? 0.0)
-        let titleText = episode?.title ?? feed.title
-        let synopsis = episode.map { stripHTML($0.shownotes) } ?? stripHTML(feed.description)
-        let badge = badgeText ?? (episode != nil ? "最新单集" : (feed.id.isEmpty ? "" : "节目"))
-
-        return VStack(alignment: .leading, spacing: 0) {
-            // Wide artwork flush to the container's top edge
-            NavigationLink(destination: FeedDetailView(feed: feed)) {
-                ZStack(alignment: .bottom) {
-                    if let url = URL(string: feed.proxiedCoverUrl), !feed.proxiedCoverUrl.isEmpty {
-                        CachedAsyncImage(url: url) { img in
-                            img
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: cardWidth, height: artworkHeight)
-                                .clipped()
-                        } placeholder: {
-                            coverPlaceholder(width: cardWidth, height: artworkHeight, title: feed.title)
-                        }
-                    } else {
-                        coverPlaceholder(width: cardWidth, height: artworkHeight, title: feed.title)
-                    }
-
-                    // Live progress bar along the artwork's bottom edge
-                    if liveProgress > 0 {
-                        GeometryReader { pGeo in
-                            ZStack(alignment: .leading) {
-                                Rectangle().fill(Color.white.opacity(0.12))
-                                Rectangle()
-                                    .fill(AmberTheme.primaryAmber)
-                                    .frame(width: pGeo.size.width * CGFloat(liveProgress))
-                            }
-                        }
-                        .frame(height: 3)
-                    }
-                }
-                .frame(width: cardWidth, height: artworkHeight)
-                .clipped()
-            }
-            .buttonStyle(.plain)
-
-            VStack(alignment: .leading, spacing: 6) {
-                NavigationLink(destination: FeedDetailView(feed: feed)) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        // Card title
-                        Text(titleText)
-                            .font(.system(size: 16, weight: .bold))
-                            .foregroundStyle(AmberTheme.labelPrimary)
-                            .lineLimit(2)
-                            .multilineTextAlignment(.leading)
-
-                        if !synopsis.isEmpty {
-                            Text(synopsis)
-                                .font(.system(size: 12, weight: .regular))
-                                .foregroundStyle(AmberTheme.labelSecondary)
-                                .lineLimit(2)
-                                .multilineTextAlignment(.leading)
-                        }
-                    }
-                }
-                .buttonStyle(.plain)
-
-                Spacer(minLength: 4)
-
-                // Bottom action capsule: Apple expanding play capsule for episodes, view for shows
-                HStack {
-                    if let ep = episode {
-                        AppleExpandingPlayCapsule(
-                            isPlaying: isPlayingThis,
-                            isCurrent: isCurrent,
-                            progress: liveProgress,
-                            durationText: formatDuration(Double(ep.duration)),
-                            tintColor: AmberTheme.primaryAmber,
-                            cardBackgroundColor: AmberTheme.surfaceRaised
-                        ) {
-                            playEpisode(ep, feed: feed)
-                        }
-                    } else {
-                        NavigationLink(destination: FeedDetailView(feed: feed)) {
-                            HStack(spacing: 5) {
-                                Image(systemName: "chevron.right")
-                                    .font(.system(size: 10, weight: .bold))
-                                Text("查看节目")
-                                    .font(.system(size: 12, weight: .semibold))
-                            }
-                            .foregroundStyle(AmberTheme.labelPrimary)
-                            .padding(.horizontal, 13)
-                            .padding(.vertical, 7)
-                            .background(Color.white.opacity(0.10), in: Capsule())
-                        }
-                        .buttonStyle(AmberNavCapsuleButtonStyle())
-                    }
-
-                    Spacer()
-                }
-                .padding(.top, 4)
-            }
-            .padding(.horizontal, 14)
-            .padding(.top, 10)
-            .padding(.bottom, 12)
-        }
-        .frame(width: cardWidth)
-        .background(AmberTheme.surfaceRaised, in: RoundedRectangle(cornerRadius: AmberTheme.radiusCardTile, style: .continuous))
-        .clipShape(RoundedRectangle(cornerRadius: AmberTheme.radiusCardTile, style: .continuous))
-        .contentShape(RoundedRectangle(cornerRadius: AmberTheme.radiusCardTile, style: .continuous))
     }
 
     private func coverPlaceholder(width: CGFloat, height: CGFloat, title: String) -> some View {
@@ -451,8 +301,7 @@ public struct HomeLibraryView: View {
                         .contextMenu {
                             Button(role: .destructive) {
                                 Task {
-                                    try? await AmberAPIClient.shared.deleteFeed(feedId: feed.id)
-                                    await loadData()
+                                    try? await libraryStore.deleteFeed(id: feed.id)
                                 }
                                 impactFeedback.impactOccurred()
                             } label: {
@@ -573,7 +422,7 @@ public struct HomeLibraryView: View {
                                     missedRow(episode: pages[pi][ei])
                                     if ei < pages[pi].count - 1 {
                                         Divider()
-                                            .background(Color.white.opacity(0.10))
+                                            .background(AmberTheme.divider)
                                             .padding(.leading, 104)
                                     }
                                 }
@@ -708,7 +557,7 @@ public struct HomeLibraryView: View {
         let shows = newShowsForYou
         if !shows.isEmpty {
             let cardWidth = screenWidth * 0.70
-            let cardHeight = cardWidth * 1.34
+            let cardHeight = cardWidth * 4.0 / 3.0
 
             VStack(alignment: .leading, spacing: 16) {
                 sectionTitle("新节目推荐")
@@ -742,7 +591,7 @@ public struct HomeLibraryView: View {
         let channels = channelsToTry
         if !channels.isEmpty {
             let cardWidth = screenWidth * 0.70
-            let cardHeight = cardWidth * 1.34
+            let cardHeight = cardWidth * 4.0 / 3.0
 
             VStack(alignment: .leading, spacing: 16) {
                 sectionTitle("试试这些频道")
@@ -913,10 +762,10 @@ public struct HomeLibraryView: View {
             } label: {
                 Text("订阅播客")
                     .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(Color.black)
+                    .foregroundStyle(AmberTheme.ctaForeground)
                     .padding(.horizontal, 20)
                     .padding(.vertical, 9)
-                    .background(Color.white, in: RoundedRectangle(cornerRadius: AmberTheme.radiusControl, style: .continuous))
+                    .background(AmberTheme.ctaBackground, in: RoundedRectangle(cornerRadius: AmberTheme.radiusControl, style: .continuous))
             }
             .buttonStyle(TactileButtonStyle(scale: 0.96))
             .padding(.top, 6)
@@ -1010,103 +859,12 @@ public struct HomeLibraryView: View {
         }
     }
 
-    // MARK: - Subscribe Sheet
-    private var subscribeSheet: some View {
-        NavigationStack {
-            ZStack {
-                AmberTheme.background.ignoresSafeArea()
-
-                VStack(spacing: 18) {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("RSS 订阅源或播客 URL")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundStyle(AmberTheme.labelSecondary)
-
-                        TextField("粘贴 Apple Podcasts / 小宇宙链接", text: $newUrlInput)
-                            .font(.system(size: 14))
-                            .padding(12)
-                            .background(AmberTheme.surfaceCard, in: RoundedRectangle(cornerRadius: AmberTheme.radiusField, style: .continuous))
-                            .autocorrectionDisabled()
-                            .textInputAutocapitalization(.never)
-                    }
-
-                    Toggle(isOn: $newAutoTranslate) {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("自动双轨转译")
-                                .font(.system(size: 14, weight: .medium))
-                            Text("新单集入库后生成中文配音与对齐字幕")
-                                .font(.system(size: 11))
-                                .foregroundStyle(AmberTheme.labelTertiary)
-                        }
-                    }
-                    .tint(AmberTheme.primaryAmber)
-                    .padding(12)
-                    .background(AmberTheme.surfaceCard, in: RoundedRectangle(cornerRadius: AmberTheme.radiusField, style: .continuous))
-
-                    if let err = errorMessage {
-                        Text(err).font(.caption).foregroundStyle(Color.red)
-                    }
-
-                    Spacer()
-
-                    Button {
-                        submitSubscription()
-                    } label: {
-                        HStack {
-                            Spacer()
-                            if isSubscribing { ProgressView().padding(.trailing, 6) }
-                            Text(isSubscribing ? "正在解析..." : "确认订阅")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundStyle(Color.black)
-                            Spacer()
-                        }
-                        .padding(.vertical, 12)
-                        .background(Color.white, in: RoundedRectangle(cornerRadius: AmberTheme.radiusField, style: .continuous))
-                    }
-                    .disabled(newUrlInput.trimmingCharacters(in: .whitespaces).isEmpty || isSubscribing)
-                }
-                .padding(20)
-            }
-            .navigationTitle("添加播客")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("取消") { showSubscribeSheet = false }
-                }
-            }
-        }
-        .presentationDetents([.medium])
-    }
-
     // MARK: - Helpers
-    private func restoreFromCache() {
-        guard feeds.isEmpty, !cachedLibraryJson.isEmpty,
-              let data = cachedLibraryJson.data(using: .utf8),
-              let lib = try? JSONDecoder().decode(AmberAPIClient.LibraryResponse.self, from: data),
-              !lib.feeds.isEmpty else {
-            return
-        }
-        self.feeds = lib.feeds
-        self.recentEpisodes = lib.recentEpisodes
-        let hero = Self.heroPair(feeds: lib.feeds, heroEpisode: lib.heroEpisode)
-        self.heroFeed = hero.0
-        self.heroEpisode = hero.1
-        self.isLoading = false
-    }
-
-    private func saveToCache(feeds: [PodcastFeed], recentEpisodes: [Episode], heroEpisode: Episode?) {
-        let lib = AmberAPIClient.LibraryResponse(feeds: feeds, recentEpisodes: recentEpisodes, heroEpisode: heroEpisode)
-        if let data = try? JSONEncoder().encode(lib), let str = String(data: data, encoding: .utf8) {
-            cachedLibraryJson = str
-        }
-    }
-
     private func toggleSubscribe(feed: PodcastFeed) {
         guard !feed.feedUrl.isEmpty else { return }
         Task {
             do {
-                _ = try await AmberAPIClient.shared.subscribe(url: feed.feedUrl, autoTranslate: false)
-                await loadData()
+                _ = try await libraryStore.subscribe(url: feed.feedUrl, autoTranslate: false)
             } catch {
                 print("Failed to toggle subscribe: \(error)")
             }
@@ -1114,51 +872,9 @@ public struct HomeLibraryView: View {
     }
 
     private func loadData() async {
-        // Instant restore from cache if memory is empty
-        if feeds.isEmpty {
-            restoreFromCache()
-            if feeds.isEmpty {
-                isLoading = true
-            }
-        }
-
-        // Kick off discover fetch for both subscribed and empty states (shared)
-        await loadDiscover()
-
-        do {
-            let lib = try await AmberAPIClient.shared.fetchLibrary()
-            await MainActor.run {
-                if lib.feeds.isEmpty {
-                    #if DEBUG
-                    self.feeds = PodcastFeed.samples
-                    self.recentEpisodes = Episode.samples
-                    let hero = Self.heroPair(feeds: PodcastFeed.samples, heroEpisode: Episode.samples.first)
-                    self.heroFeed = hero.0
-                    self.heroEpisode = hero.1
-                    #else
-                    self.feeds = []
-                    self.recentEpisodes = []
-                    self.heroFeed = nil
-                    self.heroEpisode = nil
-                    #endif
-                } else {
-                    self.feeds = lib.feeds
-                    self.recentEpisodes = lib.recentEpisodes
-                    let hero = Self.heroPair(feeds: lib.feeds, heroEpisode: lib.heroEpisode)
-                    self.heroFeed = hero.0
-                    self.heroEpisode = hero.1
-                    self.saveToCache(feeds: lib.feeds, recentEpisodes: lib.recentEpisodes, heroEpisode: lib.heroEpisode)
-                }
-                self.isLoading = false
-            }
-        } catch {
-            await MainActor.run {
-                if self.feeds.isEmpty {
-                    self.restoreFromCache()
-                }
-                self.isLoading = false
-            }
-        }
+        async let libraryTask: Void = libraryStore.refresh()
+        async let discoverTask: Void = loadDiscover()
+        _ = await (libraryTask, discoverTask)
     }
 
     /// Recommendation shelves for the empty state. Fetched once per appearance;
@@ -1190,42 +906,14 @@ public struct HomeLibraryView: View {
         }
     }
 
-    private func submitSubscription() {
-        let url = newUrlInput.trimmingCharacters(in: .whitespaces)
-        guard !url.isEmpty else { return }
-        isSubscribing = true
-        Task {
-            do {
-                try await AmberAPIClient.shared.subscribe(url: url, autoTranslate: newAutoTranslate)
-                await loadData()
-                await MainActor.run {
-                    self.isSubscribing = false
-                    self.showSubscribeSheet = false
-                    self.newUrlInput = ""
-                }
-            } catch {
-                await MainActor.run {
-                    self.errorMessage = "订阅失败: \(error.localizedDescription)"
-                    self.isSubscribing = false
-                }
-            }
-        }
-    }
-
     private func formatDuration(_ seconds: Double) -> String {
         homeFormatDuration(seconds)
     }
 
-    /// Apple "Title ›" section header language.
     private func sectionTitle(_ title: String) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: 6) {
-            Text(title)
-                .font(.system(size: 24, weight: .bold))
-                .foregroundStyle(AmberTheme.labelPrimary)
-            Image(systemName: "chevron.right")
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(AmberTheme.labelTertiary)
-        }
+        Text(title)
+            .font(.system(size: 24, weight: .bold))
+            .foregroundStyle(AmberTheme.labelPrimary)
     }
 
     private func stripHTML(_ text: String) -> String {
@@ -1344,7 +1032,7 @@ fileprivate struct HomeTileLatestEpisodeCard: View {
                     }
                     Spacer()
                 }
-                .padding(.top, 16)
+                .padding(.top, 22)
                 .padding(.bottom, 12)
 
                 // 2. Metadata & Action Section
@@ -1459,7 +1147,7 @@ fileprivate struct HomeTileNewShowCard: View {
     var body: some View {
         let synopsis = homeStripHTML(feed.description)
         let coverUrl = URL(string: feed.proxiedCoverUrl)
-        let artworkSize: CGFloat = cardWidth - 36
+        let artworkSize: CGFloat = min(cardWidth - 32, cardHeight * 0.50)
 
         NavigationLink(destination: FeedDetailView(feed: feed)) {
             VStack(alignment: .center, spacing: 0) {
@@ -1487,7 +1175,7 @@ fileprivate struct HomeTileNewShowCard: View {
                     }
                     Spacer()
                 }
-                .padding(.top, 16)
+                .padding(.top, 22)
                 .padding(.bottom, 10)
 
                 // 2. Metadata & Typography Section
@@ -1508,7 +1196,7 @@ fileprivate struct HomeTileNewShowCard: View {
 
                     Spacer(minLength: 8)
 
-                    // 3. Footer: centered author tag + subscribe button
+                    // 3. Footer: left-aligned author tag + right-aligned subscribe button
                     HStack(alignment: .center, spacing: 10) {
                         HStack(spacing: 4) {
                             Image(systemName: "star.fill")
@@ -1519,6 +1207,8 @@ fileprivate struct HomeTileNewShowCard: View {
                                 .foregroundStyle(Color.white.opacity(0.70))
                                 .lineLimit(1)
                         }
+
+                        Spacer()
 
                         Button {
                             onToggleSubscribe()
@@ -1537,7 +1227,7 @@ fileprivate struct HomeTileNewShowCard: View {
                     .padding(.top, 4)
                 }
                 .padding(.horizontal, 16)
-                .padding(.bottom, 14)
+                .padding(.bottom, 16)
             }
             .frame(width: cardWidth, height: cardHeight)
             .background(
@@ -1577,7 +1267,7 @@ fileprivate struct HomeTileChannelCard: View {
         let synopsis = homeStripHTML(feed.description)
         let slogan = !synopsis.isEmpty ? synopsis : (feed.genre.map { "\($0) 领域优质播客" } ?? "探索优质音频节目")
         let coverUrl = URL(string: feed.proxiedCoverUrl)
-        let artworkSize: CGFloat = cardWidth - 36
+        let artworkSize: CGFloat = min(cardWidth - 32, cardHeight * 0.50)
 
         NavigationLink(destination: FeedDetailView(feed: feed)) {
             VStack(alignment: .center, spacing: 0) {
@@ -1605,7 +1295,7 @@ fileprivate struct HomeTileChannelCard: View {
                     }
                     Spacer()
                 }
-                .padding(.top, 16)
+                .padding(.top, 22)
                 .padding(.bottom, 10)
 
                 // 2. Typography & Slogan
@@ -1624,17 +1314,21 @@ fileprivate struct HomeTileChannelCard: View {
 
                     Spacer(minLength: 8)
 
-                    // 3. Footer: centered genre tag + subscribe button
+                    // 3. Footer: left-aligned genre/author tag + right-aligned subscribe button
                     HStack(alignment: .center, spacing: 10) {
                         if let g = feed.genre, !g.isEmpty {
                             Text(g)
                                 .font(.system(size: 12, weight: .medium))
                                 .foregroundStyle(Color.white.opacity(0.65))
+                                .lineLimit(1)
                         } else if !feed.author.isEmpty {
                             Text(feed.author)
                                 .font(.system(size: 12, weight: .medium))
                                 .foregroundStyle(Color.white.opacity(0.65))
+                                .lineLimit(1)
                         }
+
+                        Spacer()
 
                         Button {
                             onToggleSubscribe()
@@ -1653,7 +1347,7 @@ fileprivate struct HomeTileChannelCard: View {
                     .padding(.top, 4)
                 }
                 .padding(.horizontal, 16)
-                .padding(.bottom, 14)
+                .padding(.bottom, 16)
             }
             .frame(width: cardWidth, height: cardHeight)
             .background(
@@ -1740,8 +1434,8 @@ public struct AllChannelsListView: View {
 
     private func channelCover(feed: PodcastFeed) -> some View {
         Group {
-            if let url = URL(string: feed.coverUrl), !feed.coverUrl.isEmpty {
-                AsyncImage(url: url) { img in
+            if let url = URL(string: feed.proxiedCoverUrl), !feed.proxiedCoverUrl.isEmpty {
+                CachedAsyncImage(url: url) { img in
                     img.resizable().scaledToFill()
                 } placeholder: {
                     coverPlaceholder
