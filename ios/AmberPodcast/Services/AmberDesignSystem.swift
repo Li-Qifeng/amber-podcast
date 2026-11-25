@@ -15,17 +15,17 @@ public enum AmberTheme {
     public static let surfaceDeep = Color(uiColor: UIColor { traits in
         traits.userInterfaceStyle == .dark
             ? UIColor(red: 0.05, green: 0.05, blue: 0.06, alpha: 1.0)
-            : UIColor(red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0)
+            : UIColor.systemGroupedBackground
     })
     public static let surfaceCard = Color(uiColor: UIColor { traits in
         traits.userInterfaceStyle == .dark
-            ? UIColor(red: 0.11, green: 0.11, blue: 0.13, alpha: 0.75)
-            : UIColor(red: 1.0, green: 1.0, blue: 1.0, alpha: 0.85)
+            ? UIColor(red: 0.11, green: 0.11, blue: 0.13, alpha: 0.88)
+            : UIColor.secondarySystemBackground
     })
     public static let surfaceRaised = Color(uiColor: UIColor { traits in
         traits.userInterfaceStyle == .dark
-            ? UIColor(red: 0.16, green: 0.16, blue: 0.18, alpha: 0.85)
-            : UIColor(red: 1.0, green: 1.0, blue: 1.0, alpha: 0.95)
+            ? UIColor(red: 0.16, green: 0.16, blue: 0.18, alpha: 0.92)
+            : UIColor.tertiarySystemFill
     })
     
     // Legacy Glass Surfaces (Quiet & Translucent)
@@ -69,6 +69,38 @@ public enum AmberTheme {
         traits.userInterfaceStyle == .dark
             ? UIColor(white: 1.0, alpha: 0.24)
             : UIColor(white: 1.0, alpha: 0.70)
+    })
+
+    // Adaptive Semantic Controls & Dividers
+    public static let divider = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(white: 1.0, alpha: 0.10)
+            : UIColor(white: 0.0, alpha: 0.10)
+    })
+    public static let ctaBackground = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(white: 1.0, alpha: 1.0)
+            : UIColor(red: 0.10, green: 0.10, blue: 0.12, alpha: 1.0)
+    })
+    public static let ctaForeground = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(white: 0.0, alpha: 1.0)
+            : UIColor(white: 1.0, alpha: 1.0)
+    })
+    public static let trackBackground = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(white: 1.0, alpha: 0.15)
+            : UIColor(white: 0.0, alpha: 0.12)
+    })
+    public static let controlFill = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(white: 1.0, alpha: 0.18)
+            : UIColor(white: 0.0, alpha: 0.08)
+    })
+    public static let grabber = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(white: 1.0, alpha: 0.30)
+            : UIColor(white: 0.0, alpha: 0.22)
     })
 
     // Strict Nested Squircle Radius Scale (Nested Radius: Outer - Padding = Inner)

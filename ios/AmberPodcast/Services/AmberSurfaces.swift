@@ -10,8 +10,8 @@ import SwiftUI
 // - `amberPlate`       : solid content surface — list rows, section cards.
 // - `amberMediaCard`   : clipped artwork surface — covers, 16:9 stills.
 
-/// Solid surface with a quiet hairline. `isActive` promotes the hairline to the
-/// accent so the playing row reads without a filled tint.
+/// Borderless solid surface. `isActive` applies a subtle accent tint so the
+/// playing row reads distinctly in both light and dark modes without a border.
 public struct AmberPlateModifier: ViewModifier {
     public var radius: CGFloat
     public var isActive: Bool
@@ -19,7 +19,7 @@ public struct AmberPlateModifier: ViewModifier {
     public func body(content: Content) -> some View {
         content
             .background(
-                isActive ? AmberTheme.primaryAmber.opacity(0.10) : AmberTheme.surfaceCard,
+                isActive ? AmberTheme.primaryAmber.opacity(0.14) : AmberTheme.surfaceCard,
                 in: RoundedRectangle(cornerRadius: radius, style: .continuous)
             )
     }
