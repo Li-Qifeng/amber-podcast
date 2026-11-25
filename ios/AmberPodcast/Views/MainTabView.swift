@@ -6,6 +6,8 @@ public struct MainTabView: View {
     @State private var showFullPlayer: Bool = false
 
     #if DEBUG
+    @State private var showDebugSettings: Bool = false
+
     /// Stretches the tab spring so headless frame capture can see mid-transition.
     private var demoTabsSlowMotion: Bool {
         ProcessInfo.processInfo.arguments.contains("-amberSlowMotion")
@@ -22,6 +24,20 @@ public struct MainTabView: View {
     public init() {}
 
     public var body: some View {
+        #if DEBUG
+        mainTabContent
+            .sheet(isPresented: $showDebugSettings) {
+                NavigationStack {
+                    SettingsView()
+                }
+            }
+        #else
+        mainTabContent
+        #endif
+    }
+
+    @ViewBuilder
+    private var mainTabContent: some View {
         Group {
             if #available(iOS 26.0, *) {
                 NativeApplePodcastTabView(
@@ -55,6 +71,9 @@ public struct MainTabView: View {
             }
             if ProcessInfo.processInfo.arguments.contains("-amberOpenPlayer") {
                 showFullPlayer = true
+            }
+            if ProcessInfo.processInfo.arguments.contains("-amberOpenSettings") {
+                showDebugSettings = true
             }
             if ProcessInfo.processInfo.arguments.contains("-amberDemoTabs") {
                 let interval: TimeInterval = demoTabsSlowMotion ? 4.0 : 1.5

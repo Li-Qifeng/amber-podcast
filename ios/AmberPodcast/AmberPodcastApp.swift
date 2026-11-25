@@ -28,6 +28,17 @@ struct AmberPodcastApp: App {
     @AppStorage("amber_appearance_mode") private var appearanceMode: String = "system"
 
     private var activeColorScheme: ColorScheme? {
+        #if DEBUG
+        let args = ProcessInfo.processInfo.arguments
+        if let idx = args.firstIndex(of: "-amberAppearance"), idx + 1 < args.count {
+            switch args[idx + 1].lowercased() {
+            case "dark": return .dark
+            case "light": return .light
+            case "system": return nil
+            default: break
+            }
+        }
+        #endif
         switch appearanceMode {
         case "dark": return .dark
         case "light": return .light
