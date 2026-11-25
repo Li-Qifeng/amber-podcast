@@ -122,7 +122,7 @@ public struct LyricsSubtitleView: View {
                     GeometryReader { geo in
                         ZStack(alignment: .leading) {
                             Capsule()
-                                .fill(Color.white.opacity(0.12))
+                                .fill(AmberTheme.trackBackground)
                                 .frame(height: 4)
 
                             Capsule()
@@ -152,7 +152,7 @@ public struct LyricsSubtitleView: View {
                             .font(.system(size: 15.5, weight: .semibold))
                             .foregroundStyle(AmberTheme.labelPrimary)
 
-                        Text(isChinesePodcast ? "极速 ASR 逐句识别打轴 · 通义千问智能提炼章节与速读笔记 · 保留原声人质" : "极速 ASR 逐句打轴 · 通义千问口播台本译制 · 多角色拟真语音合成")
+                        Text(isChinesePodcast ? "极速 ASR 逐句识别打轴 · 通义千问智能提炼章节与速读笔记 · 保留原声音质" : "极速 ASR 逐句打轴 · 通义千问口播台本译制 · 多角色拟真语音合成")
                             .font(.system(size: 12))
                             .foregroundStyle(AmberTheme.labelTertiary)
                             .multilineTextAlignment(.center)
@@ -165,6 +165,7 @@ public struct LyricsSubtitleView: View {
                         HStack(spacing: 6) {
                             if isTriggering {
                                 ProgressView()
+                                    .tint(AmberTheme.ctaForeground)
                                     .scaleEffect(0.7)
                             } else {
                                 Image(systemName: "waveform.badge.plus")
@@ -173,10 +174,10 @@ public struct LyricsSubtitleView: View {
                             Text(isChinesePodcast ? "一键提取原声中文字幕与速读笔记" : "一键生成双轨配音与逐句字幕")
                                 .font(.system(size: 13, weight: .medium))
                         }
-                        .foregroundStyle(Color.black)
+                        .foregroundStyle(AmberTheme.ctaForeground)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 8.5)
-                        .background(Color.white, in: RoundedRectangle(cornerRadius: AmberTheme.radiusControl, style: .continuous))
+                        .background(AmberTheme.ctaBackground, in: RoundedRectangle(cornerRadius: AmberTheme.radiusControl, style: .continuous))
                     }
                     .buttonStyle(TactileButtonStyle(scale: 0.96))
                     .disabled(isTriggering || player.currentEpisode == nil)

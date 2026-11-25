@@ -611,6 +611,24 @@ public final class DualTrackAudioPlayer: ObservableObject {
     }
 
     // MARK: - Lock Screen & Control Center
+    private static let allowedSkipIntervals: Set<Int> = [10, 15, 30, 45]
+
+    private func configuredBackwardInterval() -> Int {
+        let value = UserDefaults.standard.integer(forKey: "amber_backward_interval")
+        return Self.allowedSkipIntervals.contains(value) ? value : 15
+    }
+
+    private func configuredForwardInterval() -> Int {
+        let value = UserDefaults.standard.integer(forKey: "amber_forward_interval")
+        return Self.allowedSkipIntervals.contains(value) ? value : 30
+    }
+
+    public func updateSkipIntervals() {
+        let center = MPRemoteCommandCenter.shared()
+        center.skipBackwardCommand.preferredIntervals = [NSNumber(value: configuredBackwardInterval())]
+        center.skipForwardCommand.preferredIntervals = [NSNumber(value: configuredForwardInterval())]
+    }
+
     private func setupRemoteCommands() {
         let center = MPRemoteCommandCenter.shared()
 
@@ -626,14 +644,15 @@ public final class DualTrackAudioPlayer: ObservableObject {
             self?.togglePlayPause()
             return .success
         }
-        center.skipForwardCommand.preferredIntervals = [30]
+        updateSkipIntervals()
         center.skipForwardCommand.addTarget { [weak self] _ in
-            self?.skipForward(30)
+            guard let self = self else { return .commandFailed }
+            self.skipForward(Double(self.configuredForwardInterval()))
             return .success
         }
-        center.skipBackwardCommand.preferredIntervals = [15]
         center.skipBackwardCommand.addTarget { [weak self] _ in
-            self?.skipBackward(15)
+            guard let self = self else { return .commandFailed }
+            self.skipBackward(Double(self.configuredBackwardInterval()))
             return .success
         }
         center.changePlaybackPositionCommand.addTarget { [weak self] event in
@@ -682,16 +701,66 @@ public final class DualTrackAudioPlayer: ObservableObject {
     }
 
     // MARK: - Audio Interruptions & Route Changes
+    private func handlePlaybackDidFinish() {
+        let autoPlayNext = UserDefaults.standard.object(forKey: "amber_auto_play_next") as? Bool ?? true
+        guard autoPlayNext, let finishedEpisode = currentEpisode else {
+            pause()
+            seek(to: 0)
+            flushProgress(finished: true)
+            return
+        }
+
+        let resolvedFeed = currentFeed ?? LibraryStore.shared.feeds.first(where: { $0.id == finishedEpisode.feedId })
+        guard let resolvedFeed else {
+            pause()
+            seek(to: 0)
+            flushProgress(finished: true)
+            return
+        }
+
+        flushProgress(finished: true)
+
+        let targetFeedId = finishedEpisode.feedId.isEmpty ? resolvedFeed.id : finishedEpisode.feedId
+        let sameFeedRecent = LibraryStore.shared.recentEpisodes.filter { $0.feedId == targetFeedId }
+        if let currentIndex = sameFeedRecent.firstIndex(where: { $0.id == finishedEpisode.id }),
+           currentIndex + 1 < sameFeedRecent.count {
+            let nextEp = sameFeedRecent[currentIndex + 1]
+            Task { @MainActor [weak self] in
+                await self?.playNewEpisode(episode: nextEp, feed: resolvedFeed)
+            }
+            return
+        }
+
+        let finishedEpisodeId = finishedEpisode.id
+        let feedUrl = resolvedFeed.feedUrl.isEmpty ? nil : resolvedFeed.feedUrl
+        Task { @MainActor [weak self] in
+            guard let self = self else { return }
+            let remoteEpisodes = (try? await AmberAPIClient.shared.listEpisodes(feedId: targetFeedId, feedUrl: feedUrl)) ?? []
+            guard self.currentEpisode?.id == finishedEpisodeId else { return }
+
+            if let idx = remoteEpisodes.firstIndex(where: { $0.id == finishedEpisodeId }),
+               idx + 1 < remoteEpisodes.count {
+                await self.playNewEpisode(episode: remoteEpisodes[idx + 1], feed: resolvedFeed)
+            } else {
+                self.pause()
+                self.seek(to: 0)
+                self.flushProgress(finished: true)
+            }
+        }
+    }
+
     private func setupAudioNotifications() {
         NotificationCenter.default.addObserver(
             forName: .AVPlayerItemDidPlayToEndTime,
             object: nil,
             queue: .main
-        ) { [weak self] _ in
+        ) { [weak self] notification in
             guard let self = self else { return }
-            self.pause()
-            self.seek(to: 0)
-            self.flushProgress(finished: true)
+            guard let finishedItem = notification.object as? AVPlayerItem,
+                  finishedItem === self.activePlayer?.currentItem else {
+                return
+            }
+            self.handlePlaybackDidFinish()
         }
 
         NotificationCenter.default.addObserver(
