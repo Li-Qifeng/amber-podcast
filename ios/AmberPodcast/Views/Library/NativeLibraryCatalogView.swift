@@ -69,41 +69,18 @@ public struct NativeLibraryCatalogView: View {
                                 .padding(.horizontal, 16)
                                 .padding(.vertical, 14)
                             }
-
-                            Divider().background(AmberTheme.borderHairline).padding(.leading, 50)
-
-                            NavigationLink {
-                                DownloadedEpisodesListView()
-                            } label: {
-                                HStack {
-                                    Label {
-                                        Text("已下载")
-                                            .font(.system(size: 16, weight: .regular))
-                                            .foregroundStyle(AmberTheme.labelPrimary)
-                                    } icon: {
-                                        Image(systemName: "arrow.down.circle.fill")
-                                            .foregroundStyle(AmberTheme.primaryAmber)
-                                    }
-                                    Spacer()
-                                    Image(systemName: "chevron.right")
-                                        .font(.system(size: 13, weight: .semibold))
-                                        .foregroundStyle(AmberTheme.labelTertiary)
-                                }
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 14)
-                            }
                         }
                         .background(AmberTheme.surfaceCard.opacity(0.85), in: RoundedRectangle(cornerRadius: AmberTheme.radiusCardShelf, style: .continuous))
-                        .padding(.horizontal, 16)
+                        .padding(.horizontal, AmberTheme.pageMargin)
 
-                        // Downloaded & Followed Channels
+                        // Followed Channels
                         if !store.feeds.isEmpty {
                             VStack(alignment: .leading, spacing: 10) {
                                 Text("关注的播客")
                                     .font(.system(size: 13, weight: .semibold))
                                     .foregroundStyle(AmberTheme.labelSecondary)
                                     .textCase(.uppercase)
-                                    .padding(.horizontal, 20)
+                                    .padding(.horizontal, AmberTheme.pageMargin)
 
                                 VStack(spacing: 0) {
                                     ForEach(Array(store.feeds.enumerated()), id: \.element.id) { index, feed in
@@ -155,7 +132,7 @@ public struct NativeLibraryCatalogView: View {
                                     }
                                 }
                                 .background(AmberTheme.surfaceCard.opacity(0.85), in: RoundedRectangle(cornerRadius: AmberTheme.radiusCardShelf, style: .continuous))
-                                .padding(.horizontal, 16)
+                                .padding(.horizontal, AmberTheme.pageMargin)
                             }
                         }
 
@@ -302,28 +279,5 @@ public struct LatestEpisodesListView: View {
             }
             .padding(.vertical, 4)
         }
-    }
-}
-
-// MARK: - Downloaded Episodes List
-public struct DownloadedEpisodesListView: View {
-    public init() {}
-
-    public var body: some View {
-        ZStack {
-            AmberTheme.background.ignoresSafeArea()
-            VStack(spacing: 12) {
-                Image(systemName: "arrow.down.circle")
-                    .font(.system(size: 44, weight: .light))
-                    .foregroundStyle(AmberTheme.labelTertiary)
-                Text("暂无下载内容")
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundStyle(AmberTheme.labelSecondary)
-                Text("已下载供离线收听的单集将显示在这里")
-                    .font(.system(size: 13))
-                    .foregroundStyle(AmberTheme.labelTertiary)
-            }
-        }
-        .navigationTitle("已下载")
     }
 }

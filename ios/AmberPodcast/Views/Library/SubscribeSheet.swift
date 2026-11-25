@@ -5,10 +5,14 @@ public struct SubscribeSheet: View {
 
     @Environment(\.dismiss) private var dismiss
     @State private var newUrlInput: String = ""
-    @State private var autoTranslateNew: Bool = true
+    @State private var autoTranslateNew: Bool = false
     @State private var isSubscribing: Bool = false
     @State private var errorMessage: String? = nil
     private let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+
+    private var isSubmitDisabled: Bool {
+        newUrlInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isSubscribing
+    }
 
     public init(onSubscribed: ((PodcastFeed?) -> Void)? = nil) {
         self.onSubscribed = onSubscribed
@@ -66,21 +70,22 @@ public struct SubscribeSheet: View {
                             if isSubscribing {
                                 ProgressView()
                                     .scaleEffect(0.8)
+                                    .tint(AmberTheme.ctaForeground)
                             }
                             Text(isSubscribing ? "正在解析并订阅..." : "确认添加订阅")
                                 .font(.system(size: 15, weight: .semibold))
                         }
-                        .foregroundStyle(Color.black)
+                        .foregroundStyle(AmberTheme.ctaForeground)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
                         .background(
-                            newUrlInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                                ? Color.white.opacity(0.3)
-                                : Color.white,
+                            isSubmitDisabled
+                                ? AmberTheme.ctaBackground.opacity(0.35)
+                                : AmberTheme.ctaBackground,
                             in: RoundedRectangle(cornerRadius: AmberTheme.radiusCardRow, style: .continuous)
                         )
                     }
-                    .disabled(newUrlInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isSubscribing)
+                    .disabled(isSubmitDisabled)
                 }
                 .padding(20)
             }
@@ -95,6 +100,7 @@ public struct SubscribeSheet: View {
                 }
             }
         }
+        .presentationDetents([.medium, .large])
     }
 
     private func subscribeAction() {
