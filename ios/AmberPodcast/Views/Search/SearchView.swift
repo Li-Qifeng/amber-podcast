@@ -33,6 +33,7 @@ public struct SearchView: View {
             self._featuredShows = State(initialValue: res.featured)
             self._topChineseShows = State(initialValue: res.topChinese)
             self._topGlobalShows = State(initialValue: res.topGlobal)
+            self._categoryShelves = State(initialValue: res.categories ?? [])
             self._isDiscoverLoading = State(initialValue: false)
         }
     }
@@ -159,10 +160,10 @@ public struct SearchView: View {
                 } else {
                     Text("直接订阅")
                         .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(Color.black)
+                        .foregroundStyle(AmberTheme.ctaForeground)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 4.5)
-                        .background(Color.white, in: RoundedRectangle(cornerRadius: AmberTheme.radiusBadge, style: .continuous))
+                        .background(AmberTheme.ctaBackground, in: RoundedRectangle(cornerRadius: AmberTheme.radiusBadge, style: .continuous))
                 }
             }
             .buttonStyle(TactileButtonStyle(scale: 0.96))
@@ -171,7 +172,7 @@ public struct SearchView: View {
         .padding(.horizontal, 14)
         .padding(.vertical, 9)
         .amberPlate(radius: 10)
-        .padding(.horizontal, 20)
+        .padding(.horizontal, AmberTheme.pageMargin)
         .padding(.bottom, 8)
     }
 
@@ -198,11 +199,11 @@ public struct SearchView: View {
                     }
                 }
             }
-            .padding(.horizontal, 16)
+            .padding(.horizontal, AmberTheme.pageMargin)
             .padding(.bottom, 140)
         }
         .scrollBounceBehavior(.always, axes: .vertical)
-        .amberScrollObservable(tab: 2)
+        .amberScrollObservable(tab: 3)
     }
 
     // MARK: - Apple Podcasts Style Discovery Stream
@@ -239,7 +240,7 @@ public struct SearchView: View {
             .padding(.top, 6)
         }
         .scrollBounceBehavior(.always, axes: .vertical)
-        .amberScrollObservable(tab: 2)
+        .amberScrollObservable(tab: 3)
     }
 
     // MARK: - Section 1: Featured Carousel
@@ -249,11 +250,8 @@ public struct SearchView: View {
                 Text("精彩聚焦")
                     .font(.system(size: 22, weight: .bold))
                     .foregroundStyle(AmberTheme.labelPrimary)
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(AmberTheme.labelTertiary)
             }
-            .padding(.horizontal, 20)
+            .padding(.horizontal, AmberTheme.pageMargin)
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 14) {
@@ -264,7 +262,7 @@ public struct SearchView: View {
                         .buttonStyle(.plain)
                     }
                 }
-                .padding(.horizontal, 20)
+                .padding(.horizontal, AmberTheme.pageMargin)
             }
         }
     }
@@ -305,10 +303,10 @@ public struct SearchView: View {
                             Image(systemName: "plus").font(.system(size: 8, weight: .bold))
                             Text("订阅").font(.system(size: 10.5, weight: .medium))
                         }
-                        .foregroundStyle(Color.black)
+                        .foregroundStyle(AmberTheme.ctaForeground)
                         .padding(.horizontal, 9)
                         .padding(.vertical, 3.5)
-                        .background(Color.white, in: Capsule())
+                        .background(AmberTheme.ctaBackground, in: Capsule())
                     }
                 }
                 .buttonStyle(TactileButtonStyle(scale: 0.94))
@@ -371,7 +369,7 @@ public struct SearchView: View {
                         .foregroundStyle(AmberTheme.labelTertiary)
                 }
             }
-            .padding(.horizontal, 20)
+            .padding(.horizontal, AmberTheme.pageMargin)
 
             FlowLayout(spacing: 8) {
                 ForEach(recentSearches, id: \.self) { term in
@@ -389,7 +387,7 @@ public struct SearchView: View {
                     .buttonStyle(TactileButtonStyle(scale: 0.96))
                 }
             }
-            .padding(.horizontal, 20)
+            .padding(.horizontal, AmberTheme.pageMargin)
         }
     }
 
@@ -400,9 +398,6 @@ public struct SearchView: View {
                 Text("中文热门精选")
                     .font(.system(size: 22, weight: .bold))
                     .foregroundStyle(AmberTheme.labelPrimary)
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(AmberTheme.labelTertiary)
                 Spacer()
                 NavigationLink(destination: CategoryGridView(title: "中文热门精选", items: topChineseShows)) {
                     Text("全部")
@@ -410,7 +405,7 @@ public struct SearchView: View {
                         .foregroundStyle(AmberTheme.labelSecondary)
                 }
             }
-            .padding(.horizontal, 20)
+            .padding(.horizontal, AmberTheme.pageMargin)
 
             LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 16) {
                 ForEach(Array(topChineseShows.prefix(8))) { item in
@@ -420,7 +415,7 @@ public struct SearchView: View {
                     .buttonStyle(.plain)
                 }
             }
-            .padding(.horizontal, 20)
+            .padding(.horizontal, AmberTheme.pageMargin)
         }
     }
 
@@ -431,9 +426,6 @@ public struct SearchView: View {
                 Text("全球双语焦点")
                     .font(.system(size: 22, weight: .bold))
                     .foregroundStyle(AmberTheme.labelPrimary)
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(AmberTheme.labelTertiary)
 
                 Text("双轨译制")
                     .font(.system(size: 10, weight: .bold))
@@ -449,7 +441,7 @@ public struct SearchView: View {
                         .foregroundStyle(AmberTheme.labelSecondary)
                 }
             }
-            .padding(.horizontal, 20)
+            .padding(.horizontal, AmberTheme.pageMargin)
 
             LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 16) {
                 ForEach(Array(topGlobalShows.prefix(8))) { item in
@@ -459,7 +451,7 @@ public struct SearchView: View {
                     .buttonStyle(.plain)
                 }
             }
-            .padding(.horizontal, 20)
+            .padding(.horizontal, AmberTheme.pageMargin)
         }
     }
 
@@ -520,7 +512,7 @@ public struct SearchView: View {
             Text("热门分类专题")
                 .font(.system(size: 22, weight: .bold))
                 .foregroundStyle(AmberTheme.labelPrimary)
-                .padding(.horizontal, 20)
+                .padding(.horizontal, AmberTheme.pageMargin)
 
             LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
                 ForEach(categoryShelves) { shelf in
@@ -530,7 +522,7 @@ public struct SearchView: View {
                     .buttonStyle(TactileButtonStyle(scale: 0.96))
                 }
             }
-            .padding(.horizontal, 20)
+            .padding(.horizontal, AmberTheme.pageMargin)
         }
     }
 
@@ -630,10 +622,10 @@ public struct SearchView: View {
                         Image(systemName: "plus").font(.system(size: 9, weight: .bold))
                         Text("订阅").font(.system(size: 11, weight: .medium))
                     }
-                    .foregroundStyle(Color.black)
+                    .foregroundStyle(AmberTheme.ctaForeground)
                     .padding(.horizontal, 11)
                     .padding(.vertical, 4.5)
-                    .background(Color.white, in: RoundedRectangle(cornerRadius: AmberTheme.radiusBadge, style: .continuous))
+                    .background(AmberTheme.ctaBackground, in: RoundedRectangle(cornerRadius: AmberTheme.radiusBadge, style: .continuous))
                 }
             }
             .buttonStyle(TactileButtonStyle(scale: 0.96))

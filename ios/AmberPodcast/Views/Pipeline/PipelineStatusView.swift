@@ -69,7 +69,6 @@ public struct PipelineStatusView: View {
 
     // Queue console state
     @State private var queueTab: Int = 0              // 0 running / 1 queued / 2 failed / 3 completed
-    @State private var searchText: String = ""
     @State private var statusFilter: String? = nil    // nil = all
     @State private var busyEpisodeId: String? = nil
     @State private var toastMessage: String? = nil
@@ -109,9 +108,10 @@ public struct PipelineStatusView: View {
                         // Bottom clearance for floating Dock & MiniPlayer
                         Color.clear.frame(height: 168)
                     }
-                    .padding(.horizontal, 20)
+                    .padding(.horizontal, AmberTheme.pageMargin)
                     .padding(.top, 12)
                 }
+                .amberScrollObservable(tab: 2)
                 .refreshable {
                     await loadAll()
                 }
@@ -260,7 +260,7 @@ public struct PipelineStatusView: View {
                         .font(.system(size: 9, weight: .semibold, design: .monospaced))
                         .foregroundStyle(AmberTheme.labelTertiary)
                     RoundedRectangle(cornerRadius: AmberTheme.radiusMicro, style: .continuous)
-                        .fill(point.count > 0 ? AmberTheme.primaryAmber.opacity(0.75) : Color.white.opacity(0.08))
+                        .fill(point.count > 0 ? AmberTheme.primaryAmber.opacity(0.75) : AmberTheme.trackBackground)
                         .frame(height: max(4, CGFloat(point.count) / CGFloat(peak) * 44))
                     Text(String(point.date.suffix(2)))
                         .font(.system(size: 8.5, design: .monospaced))
@@ -375,19 +375,11 @@ public struct PipelineStatusView: View {
 
     private var currentQueueItems: [AmberAPIClient.PipelineTaskCard] {
         guard let q = store.queueData else { return [] }
-        let base: [AmberAPIClient.PipelineTaskCard] = {
-            switch queueTab {
-            case 0: return q.running
-            case 1: return q.queued
-            case 2: return q.failed
-            default: return q.completed
-            }
-        }()
-        let keyword = searchText.trimmingCharacters(in: .whitespaces)
-        guard !keyword.isEmpty else { return base }
-        return base.filter {
-            $0.title.localizedCaseInsensitiveContains(keyword) ||
-            $0.feedTitle.localizedCaseInsensitiveContains(keyword)
+        switch queueTab {
+        case 0: return q.running
+        case 1: return q.queued
+        case 2: return q.failed
+        default: return q.completed
         }
     }
 
@@ -726,6 +718,8 @@ public struct PipelineStatusView: View {
                     Image(systemName: "trash")
                         .font(.system(size: 13))
                         .foregroundStyle(AmberTheme.labelTertiary)
+                        .frame(minWidth: 36, minHeight: 36)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(TactileButtonStyle(scale: 0.92))
                 .disabled(busyEpisodeId != nil)
@@ -800,11 +794,11 @@ public struct PipelineStatusView: View {
 
             VStack(spacing: 0) {
                 infraRow(title: "语音识别 (ASR)", value: store.statusData?.summary.asrEngine ?? "Groq Whisper Large-v3 Turbo", icon: "waveform")
-                Divider().background(Color.white.opacity(0.06))
+                Divider().background(AmberTheme.divider)
                 infraRow(title: "双语精译模型", value: store.statusData?.summary.llmEngine ?? "Groq Qwen 3.8 27B", icon: "character.book.closed.fill")
-                Divider().background(Color.white.opacity(0.06))
+                Divider().background(AmberTheme.divider)
                 infraRow(title: "语音合成 (TTS)", value: store.statusData?.summary.ttsEngine ?? "Edge TTS · 4 音色", icon: "speaker.wave.2.fill")
-                Divider().background(Color.white.opacity(0.06))
+                Divider().background(AmberTheme.divider)
                 infraRow(title: "网关健康度", value: store.statusData?.summary.serverStatus == "healthy" ? "正常运行 (200 OK)" : "连接检查中", icon: "network")
             }
             .amberPlate(radius: 12)
