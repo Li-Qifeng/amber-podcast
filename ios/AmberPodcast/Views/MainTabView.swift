@@ -76,52 +76,42 @@ private struct NativeApplePodcastTabView: View {
     @Binding var showFullPlayer: Bool
     @ObservedObject var player: DualTrackAudioPlayer
 
+    @ViewBuilder
+    private var baseTabView: some View {
+        TabView(selection: $selectedTab) {
+            Tab("首页", systemImage: "house.fill", value: 0) {
+                HomeLibraryView()
+            }
+
+            Tab("资料库", systemImage: "square.stack.fill", value: 1) {
+                NativeLibraryCatalogView()
+            }
+
+            Tab("转储", systemImage: "arrow.triangle.2.circlepath.circle.fill", value: 2) {
+                PipelineStatusView()
+            }
+
+            Tab("搜索", systemImage: "magnifyingglass", value: 3, role: .search) {
+                SearchView()
+            }
+        }
+        .tint(AmberTheme.primaryAmber)
+        .tabBarMinimizeBehavior(.onScrollDown)
+    }
+
     var body: some View {
-        Group {
-            if player.currentEpisode != nil {
-                TabView(selection: $selectedTab) {
-                    Tab("首页", systemImage: "house.fill", value: 0) {
-                        HomeLibraryView()
-                    }
-
-                    Tab("资料库", systemImage: "square.stack.fill", value: 1) {
-                        NativeLibraryCatalogView()
-                    }
-
-                    Tab("转储", systemImage: "arrow.triangle.2.circlepath.circle.fill", value: 2) {
-                        PipelineStatusView()
-                    }
-
-                    Tab("搜索", systemImage: "magnifyingglass", value: 3, role: .search) {
-                        SearchView()
-                    }
-                }
-                .tint(AmberTheme.primaryAmber)
-                .tabBarMinimizeBehavior(.onScrollDown)
-                .tabViewBottomAccessory {
+        if #available(iOS 26.1, *) {
+            baseTabView
+                .tabViewBottomAccessory(isEnabled: player.currentEpisode != nil) {
                     NativeMiniPlayerAccessory(showFullPlayer: $showFullPlayer, player: player)
                 }
-            } else {
-                TabView(selection: $selectedTab) {
-                    Tab("首页", systemImage: "house.fill", value: 0) {
-                        HomeLibraryView()
-                    }
-
-                    Tab("资料库", systemImage: "square.stack.fill", value: 1) {
-                        NativeLibraryCatalogView()
-                    }
-
-                    Tab("转储", systemImage: "arrow.triangle.2.circlepath.circle.fill", value: 2) {
-                        PipelineStatusView()
-                    }
-
-                    Tab("搜索", systemImage: "magnifyingglass", value: 3, role: .search) {
-                        SearchView()
+        } else {
+            baseTabView
+                .tabViewBottomAccessory {
+                    if player.currentEpisode != nil {
+                        NativeMiniPlayerAccessory(showFullPlayer: $showFullPlayer, player: player)
                     }
                 }
-                .tint(AmberTheme.primaryAmber)
-                .tabBarMinimizeBehavior(.onScrollDown)
-            }
         }
     }
 }
