@@ -526,20 +526,56 @@ public struct SearchView: View {
         }
     }
 
+    private static let categoryStyleEntries: [(id: String, name: String, icon: String, color: Color)] = [
+        ("1318", "科技", "cpu", .blue),
+        ("1321", "商业", "briefcase.fill", .indigo),
+        ("1304", "教育", "graduationcap.fill", .teal),
+        ("1301", "艺术", "paintpalette.fill", .purple),
+        ("1512", "健康与健身", "heart.fill", .green),
+        ("1489", "新闻", "newspaper.fill", .red),
+        ("1324", "社会与文化", "person.2.fill", AmberTheme.primaryAmber),
+        ("1303", "喜剧", "theatermasks.fill", .orange),
+        ("1310", "音乐", "music.note", .pink),
+        ("1545", "体育", "trophy.fill", .mint),
+        ("1488", "真实罪案", "doc.text.magnifyingglass", Color(red: 0.78, green: 0.22, blue: 0.28)),
+        ("1487", "历史", "building.columns.fill", .brown),
+        ("1483", "小说", "book.fill", .cyan),
+        ("1305", "儿童与家庭", "sparkles", Color(red: 0.95, green: 0.48, blue: 0.22)),
+        ("1535", "科学", "atom", Color(red: 0.16, green: 0.56, blue: 0.92)),
+        ("1309", "电视与电影", "film.fill", Color(red: 0.58, green: 0.32, blue: 0.88)),
+    ]
+
+    private static let categoryStylesById: [String: (icon: String, color: Color)] = Dictionary(
+        uniqueKeysWithValues: categoryStyleEntries.map { ($0.id, ($0.icon, $0.color)) }
+    )
+
+    private static let categoryStylesByName: [String: (icon: String, color: Color)] = Dictionary(
+        uniqueKeysWithValues: categoryStyleEntries.map { ($0.name, ($0.icon, $0.color)) }
+    )
+
+    private static func categoryStyle(for shelf: AmberAPIClient.DiscoverCategory) -> (icon: String, color: Color) {
+        categoryStylesById[shelf.id]
+            ?? categoryStylesByName[shelf.name]
+            ?? ("square.grid.2x2.fill", AmberTheme.primaryAmber)
+    }
+
     /// One real Apple category — tapping opens the full genre listing, never a
     /// fake keyword search.
     private func categoryRow(shelf: AmberAPIClient.DiscoverCategory) -> some View {
-        HStack(spacing: 10) {
-            Image(systemName: "square.grid.2x2.fill")
+        let style = Self.categoryStyle(for: shelf)
+        return HStack(spacing: 10) {
+            Image(systemName: style.icon)
                 .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(AmberTheme.primaryAmber)
+                .foregroundStyle(style.color)
                 .frame(width: 32, height: 32)
-                .background(AmberTheme.primaryAmber.opacity(0.12), in: RoundedRectangle(cornerRadius: AmberTheme.radiusControl, style: .continuous))
+                .background(style.color.opacity(0.14), in: RoundedRectangle(cornerRadius: AmberTheme.radiusControl, style: .continuous))
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(shelf.name)
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(AmberTheme.labelPrimary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.85)
                 Text("\(shelf.items.count) 档节目")
                     .font(.system(size: 10.5))
                     .foregroundStyle(AmberTheme.labelTertiary)
@@ -552,7 +588,7 @@ public struct SearchView: View {
                 .foregroundStyle(AmberTheme.labelTertiary)
         }
         .padding(12)
-        .amberPlate(radius: 12)
+        .amberPlate(radius: AmberTheme.radiusCardRow)
         .contentShape(Rectangle())
     }
 
